@@ -46,4 +46,8 @@ public class Reg {
         return regs;
     }
 
+    public long getRv() {
+        return rvs[index];
+    }
+
 }

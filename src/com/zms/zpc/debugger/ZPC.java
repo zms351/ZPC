@@ -14,7 +14,7 @@ import java.util.*;
  */
 public class ZPC extends JFrame implements ActionListener {
 
-    private PC pc=new PC();
+    private PC pc = new PC();
 
     public ZPC() {
         super("ZPC Debugger");
@@ -134,6 +134,8 @@ public class ZPC extends JFrame implements ActionListener {
                     toolBar.addSeparator();
                 } else {
                     toolBar.add(one);
+                    one.setActionCommand(one.getText());
+                    one.addActionListener(this);
                 }
             }
         }
@@ -218,6 +220,16 @@ public class ZPC extends JFrame implements ActionListener {
                 frame.show(desktop);
             }
             break;
+            case "Test1":
+                test1();
+                break;
+            case "Test2":
+                test2();
+                break;
+            case "Test3":
+                test3();
+                break;
+
         }
     }
 
@@ -240,6 +252,21 @@ public class ZPC extends JFrame implements ActionListener {
     public static void main(String[] args) throws Exception {
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         new ZPC().start();
+    }
+
+    public void test1() {
+        ProcessorRegistersFrame frame = (ProcessorRegistersFrame) frameObjs.get(ProcessorRegistersFrame.Title);
+        if (frame != null) {
+            frame.refresh1();
+        }
+    }
+
+    public void test2() {
+
+    }
+
+    public void test3() {
+
     }
 
 }
