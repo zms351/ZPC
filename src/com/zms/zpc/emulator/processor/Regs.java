@@ -32,8 +32,14 @@ public class Regs {
     private final Reg dh = new Reg("dh", this, 3, 8, 8);
     private final Reg dl = new Reg("dl", this, 3, 0, 8);
 
+    private final Reg[] rootRegs=new Reg[]{rax,rbx,rcx,rdx};
+
     public long[] getRvs() {
         return rvs;
+    }
+
+    public Reg[] getRootRegs() {
+        return rootRegs;
     }
 
 }

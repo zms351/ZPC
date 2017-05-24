@@ -1,14 +1,20 @@
 package com.zms.zpc.debugger;
 
+import com.zms.zpc.debugger.util.UtilityFrame;
+import com.zms.zpc.emulator.PC;
+
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
+import java.awt.event.*;
+import java.util.*;
 
 /**
  * Created by 张小美 on 17/五月/24.
  * Copyright 2002-2016
  */
-public class ZPC extends JFrame {
+public class ZPC extends JFrame implements ActionListener {
+
+    private PC pc=new PC();
 
     public ZPC() {
         super("ZPC Debugger");
@@ -16,7 +22,7 @@ public class ZPC extends JFrame {
 
     protected void start() {
         this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        this.setSize(640,480);
+        this.setSize(640, 480);
         this.setExtendedState(Frame.NORMAL);
         this.setVisible(true);
         SwingUtilities.invokeLater(this::design0);
@@ -46,13 +52,17 @@ public class ZPC extends JFrame {
     }
 
     private java.util.List<JMenu> menus;
+    private Map<String, JMenuItem> menuItems;
 
     private void designMenu() {
         if (menus == null) {
             menus = new ArrayList<>();
+            menuItems = new HashMap<>();
             JMenuBar menuBar = new JMenuBar();
             this.setJMenuBar(menuBar);
             JMenu menu;
+            JMenuItem item;
+            String command;
             {
                 menu = new JMenu("Actions");
                 menus.add(menu);
@@ -60,6 +70,18 @@ public class ZPC extends JFrame {
             {
                 menu = new JMenu("Windows");
                 menus.add(menu);
+                {
+                    command = PCMonitorFrame.Title;
+                    item = new JMenuItem(command);
+                    item.setActionCommand(command);
+                    menu.add(item);
+                }
+                {
+                    command = ProcessorRegistersFrame.Title;
+                    item = new JMenuItem(command);
+                    item.setActionCommand(command);
+                    menu.add(item);
+                }
             }
             {
                 menu = new JMenu("Run");
@@ -75,6 +97,11 @@ public class ZPC extends JFrame {
             }
             for (JMenu one : menus) {
                 menuBar.add(one);
+                for (int i = 0; i < one.getItemCount(); i++) {
+                    item = one.getItem(i);
+                    item.addActionListener(this);
+                    menuItems.put(item.getActionCommand(), item);
+                }
             }
         }
     }
@@ -103,7 +130,7 @@ public class ZPC extends JFrame {
                 toolButtons.add(button);
             }
             for (AbstractButton one : toolButtons) {
-                if(one==null) {
+                if (one == null) {
                     toolBar.addSeparator();
                 } else {
                     toolBar.add(one);
@@ -162,12 +189,52 @@ public class ZPC extends JFrame {
         }
     }
 
+    private Map<String, Object> frameObjs = new HashMap<>();
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        String command = e.getActionCommand();
+        if (command == null) {
+            return;
+        }
+        switch (command) {
+            case PCMonitorFrame.Title: {
+                UtilityFrame frame = (UtilityFrame) frameObjs.get(command);
+                if (frame == null) {
+                    frame = new PCMonitorFrame(this);
+                    frameObjs.put(command, frame);
+                    this.desktop.add(frame);
+                }
+                frame.show(desktop);
+            }
+            break;
+            case ProcessorRegistersFrame.Title: {
+                UtilityFrame frame = (UtilityFrame) frameObjs.get(command);
+                if (frame == null) {
+                    frame = new ProcessorRegistersFrame(this);
+                    frameObjs.put(command, frame);
+                    this.desktop.add(frame);
+                }
+                frame.show(desktop);
+            }
+            break;
+        }
+    }
+
     public java.util.List<JMenu> getMenus() {
         return menus;
     }
 
     public java.util.List<AbstractButton> getToolButtons() {
         return toolButtons;
+    }
+
+    public Map<String, JMenuItem> getMenuItems() {
+        return menuItems;
+    }
+
+    public PC getPc() {
+        return pc;
     }
 
     public static void main(String[] args) throws Exception {

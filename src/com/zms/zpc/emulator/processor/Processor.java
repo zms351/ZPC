@@ -6,8 +6,26 @@ package com.zms.zpc.emulator.processor;
  */
 public class Processor {
 
-    public final Regs regs=new Regs();
+    private ProcessorConfig config;
 
+    public Regs regs;
 
+    public Processor(ProcessorConfig config) {
+        assert config != null;
+        this.config = config;
+        init();
+    }
+
+    private void init() {
+        regs = new Regs();
+    }
+
+    public ProcessorConfig getConfig() {
+        return config;
+    }
+
+    public Regs getRegs() {
+        return regs;
+    }
 
 }
