@@ -12,6 +12,12 @@ public class PCMonitorFrame extends UtilityFrame {
 
     public PCMonitorFrame(ZPC pc) {
         super(pc,Title);
+        this.design();
+        setFrameIcon(pc.loadIcon("monitor"));
+    }
+
+    private void design() {
+
     }
 
 }

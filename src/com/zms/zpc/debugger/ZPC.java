@@ -85,7 +85,7 @@ public class ZPC extends JFrame implements ActionListener {
 
     private Map<String, Icon> iconCache = new HashMap<>();
 
-    private Icon loadIcon(String name) {
+    Icon loadIcon(String name) {
         return iconCache.computeIfAbsent(name, n -> new ImageIcon(this.getClass().getClassLoader().getResource("icons/" + name + ".png")));
     }
 
@@ -113,19 +113,21 @@ public class ZPC extends JFrame implements ActionListener {
                     item = new JIconMenuItem(command);
                     item.setActionCommand(command);
                     menu.add(item);
+                    item.setIconCommand("monitor");
                 }
                 {
                     command = ProcessorRegistersFrame.Title;
                     item = new JIconMenuItem(command);
                     item.setActionCommand(command);
                     menu.add(item);
-                    item.setIconCommand("watches");
+                    item.setIconCommand("variable");
                 }
                 {
                     command = IDEFrame.Title;
                     item = new JIconMenuItem(command);
                     item.setActionCommand(command);
                     menu.add(item);
+                    item.setIconCommand("ide");
                 }
             }
             {

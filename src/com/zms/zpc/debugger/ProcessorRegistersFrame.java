@@ -20,6 +20,7 @@ public class ProcessorRegistersFrame extends UtilityFrame {
     public ProcessorRegistersFrame(ZPC pc) {
         super(pc, Title);
         this.design();
+        setFrameIcon(pc.loadIcon("variable"));
     }
 
     private JTable table;

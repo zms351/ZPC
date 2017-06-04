@@ -18,7 +18,7 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
     public IDEFrame(ZPC pc) {
         super(pc, Title);
         this.design();
-
+        setFrameIcon(pc.loadIcon("ide"));
     }
 
     private void design() {

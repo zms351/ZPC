@@ -26,7 +26,7 @@ public class UtilityFrame extends JInternalFrame {
         this.frame =pc;
         this.showStatus=showStatus;
         this.design();
-        this.setToolTipText(title);
+        //this.setToolTipText(title);
     }
 
     protected JLabel status;
