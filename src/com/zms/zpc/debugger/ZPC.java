@@ -60,6 +60,7 @@ public class ZPC extends JFrame implements ActionListener {
                 item.setIcon(loadIcon(iconCommand));
             }
             item.setToolTipText(item.getActionCommand());
+            item.setFrame(this);
         }
         for (JIconButton button : toolButtons) {
             if(button==null) {
@@ -71,6 +72,7 @@ public class ZPC extends JFrame implements ActionListener {
                 button.setIcon(loadIcon(iconCommand));
                 button.setText(null);
             }
+            button.setFrame(this);
         }
     }
 
@@ -192,6 +194,7 @@ public class ZPC extends JFrame implements ActionListener {
     }
 
     private java.util.List<JLabel> statusLabels;
+    private int mainStatusIndex=1;
 
     private void designStatus() {
         if (statusLabels == null) {
@@ -221,7 +224,7 @@ public class ZPC extends JFrame implements ActionListener {
                 label.setPreferredSize(new Dimension(100, 1));
                 statusLabels.add(label);
             }
-            int main = 1;
+            int main = mainStatusIndex;
             JPanel panel = new JPanel(new BorderLayout());
             panel.setBorder(BorderFactory.createEmptyBorder(1, 4, 1, 4));
             this.statusBar.add(panel, BorderLayout.CENTER);
@@ -238,6 +241,21 @@ public class ZPC extends JFrame implements ActionListener {
                 panel = one;
             }
             panel.add(statusLabels.get(main), BorderLayout.CENTER);
+        }
+    }
+
+    public void showMainStatus(String text) {
+        JLabel label=statusLabels.get(mainStatusIndex);
+        if(text==null || text.length()<1) {
+            text=" ";
+        }
+        label.setText(text);
+    }
+
+    public void hideMainStatus(String text) {
+        JLabel label=statusLabels.get(mainStatusIndex);
+        if(text!=null && text.equals(label.getText())) {
+            label.setText(" ");
         }
     }
 

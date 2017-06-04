@@ -1,5 +1,7 @@
 package com.zms.zpc.debugger.util;
 
+import com.zms.zpc.debugger.ZPC;
+
 import javax.swing.*;
 import java.awt.event.*;
 
@@ -10,6 +12,7 @@ import java.awt.event.*;
 public class JIconButton extends JButton {
 
     private String iconCommand;
+    private ZPC frame;
 
     public JIconButton(String text) {
         super(text);
@@ -31,6 +34,14 @@ public class JIconButton extends JButton {
         setBorderPainted(false);
     }
 
+    public ZPC getFrame() {
+        return frame;
+    }
+
+    public void setFrame(ZPC frame) {
+        this.frame = frame;
+    }
+
     public boolean isFocusable() {
         return isRequestFocusEnabled();
     }
@@ -38,14 +49,20 @@ public class JIconButton extends JButton {
     public static MouseListener ToolbarMouseListener = new MouseAdapter() {
         @Override
         public void mouseEntered(MouseEvent e) {
-            JButton button = (JButton) e.getComponent();
+            JIconButton button = (JIconButton) e.getComponent();
             button.setBorderPainted(true);
+            if (button.frame != null && button.getToolTipText() != null) {
+                button.frame.showMainStatus(button.getToolTipText());
+            }
         }
 
         @Override
         public void mouseExited(MouseEvent e) {
-            JButton button = (JButton) e.getComponent();
+            JIconButton button = (JIconButton) e.getComponent();
             button.setBorderPainted(false);
+            if (button.frame != null && button.getToolTipText() != null) {
+                button.frame.hideMainStatus(button.getToolTipText());
+            }
         }
     };
 
