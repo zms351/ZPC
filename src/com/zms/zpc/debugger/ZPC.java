@@ -27,6 +27,7 @@ public class ZPC extends JFrame implements ActionListener {
         this.setExtendedState(Frame.NORMAL);
         this.setVisible(true);
         SwingUtilities.invokeLater(this::design0);
+        setIconImage(loadIcon("pc").getImage());
     }
 
     private JDesktopPane desktop;
@@ -83,9 +84,9 @@ public class ZPC extends JFrame implements ActionListener {
         }
     }
 
-    private Map<String, Icon> iconCache = new HashMap<>();
+    private Map<String, ImageIcon> iconCache = new HashMap<>();
 
-    Icon loadIcon(String name) {
+    ImageIcon loadIcon(String name) {
         return iconCache.computeIfAbsent(name, n -> new ImageIcon(this.getClass().getClassLoader().getResource("icons/" + name + ".png")));
     }
 

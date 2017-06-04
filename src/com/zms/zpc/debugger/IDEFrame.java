@@ -3,7 +3,7 @@ package com.zms.zpc.debugger;
 import com.zms.zpc.debugger.util.*;
 
 import javax.swing.*;
-import javax.swing.text.*;
+import javax.swing.text.DefaultStyledDocument;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
@@ -46,6 +46,13 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
             menu = new JMenu("File");
             menus.add(menu);
             {
+                command = "New";
+                item = new JIconMenuItem(command);
+                item.setActionCommand(command);
+                menu.add(item);
+                item.setIconCommand("documentation");
+            }
+            {
                 command = "Open";
                 item = new JIconMenuItem("Open...");
                 item.setActionCommand(command);
@@ -58,7 +65,7 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
                 item.setActionCommand(command);
                 menu.add(item);
                 item.setIconCommand("menu-saveall");
-                item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,InputEvent.CTRL_DOWN_MASK));
+                item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK));
             }
         }
         {
@@ -83,6 +90,8 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
         getFrame().addMenus(menuBar, menus, menuItems);
         for (JIconMenuItem one : menuItems.values()) {
             getFrame().designIcon(one);
+            one.removeActionListener(getFrame());
+            one.addActionListener(this);
         }
     }
 
@@ -96,6 +105,11 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
 
         JIconButton button;
 
+        {
+            button = new JIconButton("New");
+            toolButtons.add(button);
+            button.setIconCommand("documentation");
+        }
         {
             button = new JIconButton("Open");
             toolButtons.add(button);
@@ -142,30 +156,44 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
         getFrame().designToolbar(toolBar, toolButtons);
 
         for (JIconButton one : toolButtons) {
-            getFrame().designIcon(one);
+            if(one!=null) {
+                getFrame().designIcon(one);
+                one.removeActionListener(getFrame());
+                one.addActionListener(this);
+            }
         }
     }
 
     private JTabbedPane tabs;
 
     private void designMain() {
-        tabs=new JTabbedPane(SwingConstants.TOP,JTabbedPane.WRAP_TAB_LAYOUT);
-        this.getContentPane().add(tabs,BorderLayout.CENTER);
+        tabs = new JTabbedPane(SwingConstants.TOP, JTabbedPane.WRAP_TAB_LAYOUT);
+        this.getContentPane().add(tabs, BorderLayout.CENTER);
     }
 
     private void checkNew() {
-        if(tabs.getTabCount()<1) {
+        if (tabs.getTabCount() < 1) {
             addNew();
         }
     }
 
     private void addNew() {
-        FileEditorPane one=FileEditorPane.newDefault();
-        tabs.add(one.getDisplayTitle(),one);
+        FileEditorPane one = FileEditorPane.newDefault();
+        tabs.add(one.getDisplayTitle(), one);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        String command = e.getActionCommand();
+        if (command == null) {
+            return;
+        }
+        switch (command) {
+            case "New": {
+                addNew();
+            }
+            break;
+        }
     }
 
 }
@@ -176,7 +204,7 @@ class FileEditorPane extends JTextPane {
 
     public FileEditorPane() {
         super(new DefaultStyledDocument());
-        doc= (DefaultStyledDocument) getDocument();
+        doc = (DefaultStyledDocument) getDocument();
     }
 
     private String docTitle;
@@ -199,15 +227,15 @@ class FileEditorPane extends JTextPane {
     }
 
     public String getDisplayTitle() {
-        if(isModifed()) {
-            return getDocTitle()+"*";
+        if (isModifed()) {
+            return getDocTitle() + "*";
         } else {
             return getDocTitle();
         }
     }
 
     public static FileEditorPane newDefault() {
-        FileEditorPane one=new FileEditorPane();
+        FileEditorPane one = new FileEditorPane();
         one.setDocTitle("新建文档");
         one.setModifed(false);
         return one;
