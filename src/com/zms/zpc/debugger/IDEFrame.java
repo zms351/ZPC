@@ -5,7 +5,7 @@ import com.zms.zpc.debugger.util.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
+import java.util.*;
 
 /**
  * Created by 张小美 on 17/六月/4.
@@ -30,7 +30,57 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
     }
 
     private void designMenubar() {
+        JMenuBar menuBar = new JMenuBar();
+        this.setJMenuBar(menuBar);
 
+        java.util.List<JMenu> menus;
+        menus = new ArrayList<>();
+
+        JMenu menu;
+        JIconMenuItem item;
+        String command;
+        {
+            menu = new JMenu("File");
+            menus.add(menu);
+            {
+                command = "Open";
+                item = new JIconMenuItem("Open...");
+                item.setActionCommand(command);
+                menu.add(item);
+                item.setIconCommand("menu-open");
+            }
+            {
+                command = "Save All";
+                item = new JIconMenuItem(command);
+                item.setActionCommand(command);
+                menu.add(item);
+                item.setIconCommand("menu-saveall");
+                item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,InputEvent.CTRL_DOWN_MASK));
+            }
+        }
+        {
+            menu = new JMenu("Run");
+            menus.add(menu);
+            {
+                command = "Start Debug";
+                item = new JIconMenuItem("Debug...");
+                item.setActionCommand(command);
+                menu.add(item);
+                item.setIconCommand("startDebugger");
+            }
+            {
+                command = "Resume";
+                item = new JIconMenuItem("Resume Program");
+                item.setActionCommand(command);
+                menu.add(item);
+                item.setIconCommand("resume");
+            }
+        }
+        Map<String, JIconMenuItem> menuItems = new HashMap<>();
+        getFrame().addMenus(menuBar, menus, menuItems);
+        for (JIconMenuItem one : menuItems.values()) {
+            getFrame().designIcon(one);
+        }
     }
 
     private void designToolbar() {
@@ -43,6 +93,17 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
 
         JIconButton button;
 
+        {
+            button = new JIconButton("Open");
+            toolButtons.add(button);
+            button.setIconCommand("menu-open");
+        }
+        {
+            button = new JIconButton("Save All");
+            toolButtons.add(button);
+            button.setIconCommand("menu-saveall");
+        }
+        toolButtons.add(null);
         {
             button = new JIconButton("Start Debug");
             toolButtons.add(button);

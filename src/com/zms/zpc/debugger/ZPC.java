@@ -55,16 +55,20 @@ public class ZPC extends JFrame implements ActionListener {
 
     private void designIcons() {
         for (JIconMenuItem item : menuItems.values()) {
-            String iconCommand = item.getIconCommand();
-            if (iconCommand != null && iconCommand.length() > 0) {
-                item.setIcon(loadIcon(iconCommand));
-            }
-            item.setToolTipText(item.getActionCommand());
-            item.setFrame(this);
+            designIcon(item);
         }
         for (JIconButton button : toolButtons) {
             designIcon(button);
         }
+    }
+
+    void designIcon(JIconMenuItem item) {
+        String iconCommand = item.getIconCommand();
+        if (iconCommand != null && iconCommand.length() > 0) {
+            item.setIcon(loadIcon(iconCommand));
+        }
+        item.setToolTipText(item.getActionCommand());
+        item.setFrame(this);
     }
 
     void designIcon(JIconButton button) {
@@ -147,13 +151,18 @@ public class ZPC extends JFrame implements ActionListener {
                     item.setIconCommand("help");
                 }
             }
-            for (JMenu one : menus) {
-                menuBar.add(one);
-                for (int i = 0; i < one.getItemCount(); i++) {
-                    item = (JIconMenuItem) one.getItem(i);
-                    item.addActionListener(this);
-                    menuItems.put(item.getActionCommand(), item);
-                }
+            addMenus(menuBar, menus, menuItems);
+        }
+    }
+
+    void addMenus(JMenuBar menuBar, java.util.List<JMenu> menus, Map<String, JIconMenuItem> menuItems) {
+        JIconMenuItem item;
+        for (JMenu one : menus) {
+            menuBar.add(one);
+            for (int i = 0; i < one.getItemCount(); i++) {
+                item = (JIconMenuItem) one.getItem(i);
+                item.addActionListener(this);
+                menuItems.put(item.getActionCommand(), item);
             }
         }
     }
