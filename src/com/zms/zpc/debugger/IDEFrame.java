@@ -3,6 +3,7 @@ package com.zms.zpc.debugger;
 import com.zms.zpc.debugger.util.*;
 
 import javax.swing.*;
+import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
@@ -27,6 +28,8 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
 
         this.designMenubar();
         this.designToolbar();
+        this.designMain();
+        this.checkNew();
     }
 
     private void designMenubar() {
@@ -143,9 +146,75 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
         }
     }
 
+    private JTabbedPane tabs;
+
+    private void designMain() {
+        tabs=new JTabbedPane(SwingConstants.TOP,JTabbedPane.WRAP_TAB_LAYOUT);
+        this.getContentPane().add(tabs,BorderLayout.CENTER);
+    }
+
+    private void checkNew() {
+        if(tabs.getTabCount()<1) {
+            addNew();
+        }
+    }
+
+    private void addNew() {
+        FileEditorPane one=FileEditorPane.newDefault();
+        tabs.add(one.getDisplayTitle(),one);
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
+    }
 
+}
+
+class FileEditorPane extends JTextPane {
+
+    private DefaultStyledDocument doc;
+
+    public FileEditorPane() {
+        super(new DefaultStyledDocument());
+        doc= (DefaultStyledDocument) getDocument();
+    }
+
+    private String docTitle;
+    private boolean modifed;
+
+    public String getDocTitle() {
+        return docTitle;
+    }
+
+    public void setDocTitle(String docTitle) {
+        this.docTitle = docTitle;
+    }
+
+    public boolean isModifed() {
+        return modifed;
+    }
+
+    public void setModifed(boolean modifed) {
+        this.modifed = modifed;
+    }
+
+    public String getDisplayTitle() {
+        if(isModifed()) {
+            return getDocTitle()+"*";
+        } else {
+            return getDocTitle();
+        }
+    }
+
+    public static FileEditorPane newDefault() {
+        FileEditorPane one=new FileEditorPane();
+        one.setDocTitle("新建文档");
+        one.setModifed(false);
+        return one;
+    }
+
+    public DefaultStyledDocument getDoc() {
+        return doc;
     }
 
 }
