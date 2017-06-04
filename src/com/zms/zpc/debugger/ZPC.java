@@ -1,11 +1,12 @@
 package com.zms.zpc.debugger;
 
-import com.zms.zpc.debugger.util.UtilityFrame;
+import com.zms.zpc.debugger.util.*;
 import com.zms.zpc.emulator.PC;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.lang.reflect.Constructor;
 import java.util.*;
 
 /**
@@ -46,13 +47,41 @@ public class ZPC extends JFrame implements ActionListener {
             designStatus();
 
             designToolbar();
+            designIcons();
 
             this.setExtendedState(Frame.MAXIMIZED_BOTH);
         }
     }
 
+    private void designIcons() {
+        for (JIconMenuItem item : menuItems.values()) {
+            String iconCommand=item.getIconCommand();
+            if(iconCommand!=null && iconCommand.length()>0) {
+                item.setIcon(loadIcon(iconCommand));
+            }
+            item.setToolTipText(item.getActionCommand());
+        }
+        for (JIconButton button : toolButtons) {
+            if(button==null) {
+                continue;
+            }
+            button.setToolTipText(button.getText());
+            String iconCommand=button.getIconCommand();
+            if(iconCommand!=null && iconCommand.length()>0) {
+                button.setIcon(loadIcon(iconCommand));
+                button.setText(null);
+            }
+        }
+    }
+
+    private Map<String,Icon> iconCache=new HashMap<>();
+
+    private Icon loadIcon(String name) {
+        return iconCache.computeIfAbsent(name, n -> new ImageIcon(this.getClass().getClassLoader().getResource("icons/" + name + ".png")));
+    }
+
     private java.util.List<JMenu> menus;
-    private Map<String, JMenuItem> menuItems;
+    private Map<String, JIconMenuItem> menuItems;
 
     private void designMenu() {
         if (menus == null) {
@@ -61,7 +90,7 @@ public class ZPC extends JFrame implements ActionListener {
             JMenuBar menuBar = new JMenuBar();
             this.setJMenuBar(menuBar);
             JMenu menu;
-            JMenuItem item;
+            JIconMenuItem item;
             String command;
             {
                 menu = new JMenu("Actions");
@@ -72,13 +101,20 @@ public class ZPC extends JFrame implements ActionListener {
                 menus.add(menu);
                 {
                     command = PCMonitorFrame.Title;
-                    item = new JMenuItem(command);
+                    item = new JIconMenuItem(command);
                     item.setActionCommand(command);
                     menu.add(item);
                 }
                 {
                     command = ProcessorRegistersFrame.Title;
-                    item = new JMenuItem(command);
+                    item = new JIconMenuItem(command);
+                    item.setActionCommand(command);
+                    menu.add(item);
+                    item.setIconCommand("watches");
+                }
+                {
+                    command = IDEFrame.Title;
+                    item = new JIconMenuItem(command);
                     item.setActionCommand(command);
                     menu.add(item);
                 }
@@ -95,10 +131,21 @@ public class ZPC extends JFrame implements ActionListener {
                 menu = new JMenu("Disks");
                 menus.add(menu);
             }
+            {
+                menu = new JMenu("Help");
+                menus.add(menu);
+                {
+                    command="Help";
+                    item = new JIconMenuItem(command);
+                    item.setActionCommand(command);
+                    menu.add(item);
+                    item.setIconCommand("help");
+                }
+            }
             for (JMenu one : menus) {
                 menuBar.add(one);
                 for (int i = 0; i < one.getItemCount(); i++) {
-                    item = one.getItem(i);
+                    item = (JIconMenuItem) one.getItem(i);
                     item.addActionListener(this);
                     menuItems.put(item.getActionCommand(), item);
                 }
@@ -106,7 +153,7 @@ public class ZPC extends JFrame implements ActionListener {
         }
     }
 
-    private java.util.List<AbstractButton> toolButtons;
+    private java.util.List<JIconButton> toolButtons;
 
     private void designToolbar() {
         if (toolButtons == null) {
@@ -115,19 +162,22 @@ public class ZPC extends JFrame implements ActionListener {
             this.getContentPane().add(toolBar, BorderLayout.NORTH);
             toolBar.setFloatable(false);
             toolBar.setRollover(true);
-            JButton button;
+            JIconButton button;
             {
-                button = new JButton("Test1");
+                button = new JIconButton("Test1");
                 toolButtons.add(button);
+                button.setIconCommand("refresh");
             }
             {
-                button = new JButton("Test2");
+                button = new JIconButton("Test2");
                 toolButtons.add(button);
+                button.setIconCommand("sync");
             }
             toolButtons.add(null);
             {
-                button = new JButton("Test3");
+                button = new JIconButton("Test3");
                 toolButtons.add(button);
+                button.setIconCommand("magic");
             }
             for (AbstractButton one : toolButtons) {
                 if (one == null) {
@@ -193,6 +243,24 @@ public class ZPC extends JFrame implements ActionListener {
 
     private Map<String, Object> frameObjs = new HashMap<>();
 
+    protected UtilityFrame showUtilityFrame(Class<? extends UtilityFrame> klass) {
+        UtilityFrame frame;
+        try {
+            String name = (String) klass.getDeclaredField("Title").get(null);
+            frame = (UtilityFrame) frameObjs.get(name);
+            if (frame == null) {
+                Constructor<? extends UtilityFrame> con = klass.getDeclaredConstructor(this.getClass());
+                frame = con.newInstance(this);
+                frameObjs.put(name, frame);
+                this.desktop.add(frame);
+            }
+        } catch (Throwable t) {
+            throw new RuntimeException(t);
+        }
+        frame.show(desktop);
+        return frame;
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         String command = e.getActionCommand();
@@ -201,23 +269,15 @@ public class ZPC extends JFrame implements ActionListener {
         }
         switch (command) {
             case PCMonitorFrame.Title: {
-                UtilityFrame frame = (UtilityFrame) frameObjs.get(command);
-                if (frame == null) {
-                    frame = new PCMonitorFrame(this);
-                    frameObjs.put(command, frame);
-                    this.desktop.add(frame);
-                }
-                frame.show(desktop);
+                showUtilityFrame(PCMonitorFrame.class);
             }
             break;
             case ProcessorRegistersFrame.Title: {
-                UtilityFrame frame = (UtilityFrame) frameObjs.get(command);
-                if (frame == null) {
-                    frame = new ProcessorRegistersFrame(this);
-                    frameObjs.put(command, frame);
-                    this.desktop.add(frame);
-                }
-                frame.show(desktop);
+                showUtilityFrame(ProcessorRegistersFrame.class);
+            }
+            break;
+            case IDEFrame.Title: {
+                showUtilityFrame(IDEFrame.class).setVisible(true);
             }
             break;
             case "Test1":
@@ -237,11 +297,11 @@ public class ZPC extends JFrame implements ActionListener {
         return menus;
     }
 
-    public java.util.List<AbstractButton> getToolButtons() {
+    public java.util.List<JIconButton> getToolButtons() {
         return toolButtons;
     }
 
-    public Map<String, JMenuItem> getMenuItems() {
+    public Map<String, JIconMenuItem> getMenuItems() {
         return menuItems;
     }
 
