@@ -13,7 +13,7 @@ import java.util.Random;
  */
 public class UtilityFrame extends JInternalFrame {
 
-    private ZPC pc;
+    private ZPC frame;
     private boolean showStatus;
 
     public UtilityFrame(ZPC pc,String title) {
@@ -23,9 +23,10 @@ public class UtilityFrame extends JInternalFrame {
     public UtilityFrame(ZPC pc,String title,boolean showStatus) {
         super(title, true, true, true, true);
         setDefaultCloseOperation(HIDE_ON_CLOSE);
-        this.pc=pc;
+        this.frame =pc;
         this.showStatus=showStatus;
         this.design();
+        this.setToolTipText(title);
     }
 
     protected JLabel status;
@@ -61,8 +62,8 @@ public class UtilityFrame extends JInternalFrame {
         }
     }
 
-    public ZPC getPc() {
-        return pc;
+    public ZPC getFrame() {
+        return frame;
     }
 
 }

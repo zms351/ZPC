@@ -55,20 +55,23 @@ public class ZPC extends JFrame implements ActionListener {
 
     private void designIcons() {
         for (JIconMenuItem item : menuItems.values()) {
-            String iconCommand=item.getIconCommand();
-            if(iconCommand!=null && iconCommand.length()>0) {
+            String iconCommand = item.getIconCommand();
+            if (iconCommand != null && iconCommand.length() > 0) {
                 item.setIcon(loadIcon(iconCommand));
             }
             item.setToolTipText(item.getActionCommand());
             item.setFrame(this);
         }
         for (JIconButton button : toolButtons) {
-            if(button==null) {
-                continue;
-            }
+            designIcon(button);
+        }
+    }
+
+    void designIcon(JIconButton button) {
+        if (button != null) {
             button.setToolTipText(button.getText());
-            String iconCommand=button.getIconCommand();
-            if(iconCommand!=null && iconCommand.length()>0) {
+            String iconCommand = button.getIconCommand();
+            if (iconCommand != null && iconCommand.length() > 0) {
                 button.setIcon(loadIcon(iconCommand));
                 button.setText(null);
             }
@@ -76,7 +79,7 @@ public class ZPC extends JFrame implements ActionListener {
         }
     }
 
-    private Map<String,Icon> iconCache=new HashMap<>();
+    private Map<String, Icon> iconCache = new HashMap<>();
 
     private Icon loadIcon(String name) {
         return iconCache.computeIfAbsent(name, n -> new ImageIcon(this.getClass().getClassLoader().getResource("icons/" + name + ".png")));
@@ -137,7 +140,7 @@ public class ZPC extends JFrame implements ActionListener {
                 menu = new JMenu("Help");
                 menus.add(menu);
                 {
-                    command="Help";
+                    command = "Help";
                     item = new JIconMenuItem(command);
                     item.setActionCommand(command);
                     menu.add(item);
@@ -181,20 +184,24 @@ public class ZPC extends JFrame implements ActionListener {
                 toolButtons.add(button);
                 button.setIconCommand("magic");
             }
-            for (AbstractButton one : toolButtons) {
-                if (one == null) {
-                    toolBar.addSeparator();
-                } else {
-                    toolBar.add(one);
-                    one.setActionCommand(one.getText());
-                    one.addActionListener(this);
-                }
+            designToolbar(toolBar, toolButtons);
+        }
+    }
+
+    void designToolbar(JToolBar toolBar, java.util.List<JIconButton> toolButtons) {
+        for (AbstractButton one : toolButtons) {
+            if (one == null) {
+                toolBar.addSeparator();
+            } else {
+                toolBar.add(one);
+                one.setActionCommand(one.getText());
+                one.addActionListener(this);
             }
         }
     }
 
     private java.util.List<JLabel> statusLabels;
-    private int mainStatusIndex=1;
+    private int mainStatusIndex = 1;
 
     private void designStatus() {
         if (statusLabels == null) {
@@ -245,16 +252,16 @@ public class ZPC extends JFrame implements ActionListener {
     }
 
     public void showMainStatus(String text) {
-        JLabel label=statusLabels.get(mainStatusIndex);
-        if(text==null || text.length()<1) {
-            text=" ";
+        JLabel label = statusLabels.get(mainStatusIndex);
+        if (text == null || text.length() < 1) {
+            text = " ";
         }
         label.setText(text);
     }
 
     public void hideMainStatus(String text) {
-        JLabel label=statusLabels.get(mainStatusIndex);
-        if(text!=null && text.equals(label.getText())) {
+        JLabel label = statusLabels.get(mainStatusIndex);
+        if (text != null && text.equals(label.getText())) {
             label.setText(" ");
         }
     }
