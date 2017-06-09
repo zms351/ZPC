@@ -71,6 +71,12 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
                 item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK));
             }
             {
+                command = "Save As";
+                item = new JIconMenuItem("Save As...");
+                item.setActionCommand(command);
+                menu.add(item);
+            }
+            {
                 command = "Close Tab";
                 item = new JIconMenuItem(command);
                 item.setActionCommand(command);
@@ -211,10 +217,28 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
                 }
             }
             break;
-            case "Close Tab":{
-                int index=tabs.getSelectedIndex();
-                if(index>=0) {
+            case "Close Tab": {
+                int index = tabs.getSelectedIndex();
+                if (index >= 0) {
                     tabs.remove(index);
+                }
+            }
+            break;
+            case "Save As": {
+                FileEditorPane pane = (FileEditorPane) tabs.getSelectedComponent();
+                if (pane != null) {
+                    pane.saveAs();
+                    tabs.setTitleAt(tabs.getSelectedIndex(), pane.getDisplayTitle());
+                }
+            }
+            break;
+            case "Open": {
+                File file = openDialog();
+                if (file != null) {
+                    FileEditorPane tab = addNew();
+                    tabs.setSelectedComponent(tab);
+                    tab.init(file);
+                    tabs.setTitleAt(tabs.getTabCount() - 1, tab.getDisplayTitle());
                 }
             }
             break;
@@ -332,6 +356,19 @@ class FileEditorPane extends JTextPane implements DocumentListener {
             modifed = true;
             parent.refreshTitle(this);
         }
+    }
+
+    public void init(File file) {
+        this.file = file;
+        this.docTitle = file.getName();
+        String s = parent.loadFile(file);
+        modifed=true;
+        try {
+            doc.replace(0, doc.getLength(), s, null);
+        } catch (Throwable t) {
+            throw new RuntimeException(t);
+        }
+        setModifed(false);
     }
 
 }
