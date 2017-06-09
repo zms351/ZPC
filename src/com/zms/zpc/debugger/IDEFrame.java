@@ -3,9 +3,11 @@ package com.zms.zpc.debugger;
 import com.zms.zpc.debugger.util.*;
 
 import javax.swing.*;
+import javax.swing.event.*;
 import javax.swing.text.DefaultStyledDocument;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.util.*;
 
 /**
@@ -30,7 +32,7 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
         this.designToolbar();
         this.designMain();
         this.checkNew();
-        this.setPreferredSize(new Dimension(640,480));
+        this.setPreferredSize(new Dimension(640, 480));
     }
 
     private void designMenubar() {
@@ -67,6 +69,12 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
                 menu.add(item);
                 item.setIconCommand("menu-saveall");
                 item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK));
+            }
+            {
+                command = "Close Tab";
+                item = new JIconMenuItem(command);
+                item.setActionCommand(command);
+                menu.add(item);
             }
         }
         {
@@ -157,7 +165,7 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
         getFrame().designToolbar(toolBar, toolButtons);
 
         for (JIconButton one : toolButtons) {
-            if(one!=null) {
+            if (one != null) {
                 getFrame().designIcon(one);
                 one.removeActionListener(getFrame());
                 one.addActionListener(this);
@@ -178,9 +186,10 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
         }
     }
 
-    private void addNew() {
-        FileEditorPane one = FileEditorPane.newDefault();
+    private FileEditorPane addNew() {
+        FileEditorPane one = FileEditorPane.newDefault(this);
         tabs.add(one.getDisplayTitle(), one);
+        return one;
     }
 
     @Override
@@ -191,25 +200,51 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
         }
         switch (command) {
             case "New": {
-                addNew();
+                tabs.setSelectedComponent(addNew());
+            }
+            break;
+            case "Save All": {
+                FileEditorPane pane = (FileEditorPane) tabs.getSelectedComponent();
+                if (pane != null) {
+                    pane.save();
+                    tabs.setTitleAt(tabs.getSelectedIndex(), pane.getDisplayTitle());
+                }
+            }
+            break;
+            case "Close Tab":{
+                int index=tabs.getSelectedIndex();
+                if(index>=0) {
+                    tabs.remove(index);
+                }
             }
             break;
         }
     }
 
+    protected void refreshTitle(FileEditorPane tab) {
+        int index = tabs.indexOfComponent(tab);
+        if (index >= 0) {
+            tabs.setTitleAt(index, tab.getDisplayTitle());
+        }
+    }
+
 }
 
-class FileEditorPane extends JTextPane {
+class FileEditorPane extends JTextPane implements DocumentListener {
 
     private DefaultStyledDocument doc;
+    private IDEFrame parent;
 
-    public FileEditorPane() {
+    public FileEditorPane(IDEFrame parent) {
         super(new DefaultStyledDocument());
         doc = (DefaultStyledDocument) getDocument();
+        doc.addDocumentListener(this);
+        this.parent = parent;
     }
 
     private String docTitle;
     private boolean modifed;
+    private File file;
 
     public String getDocTitle() {
         return docTitle;
@@ -235,8 +270,8 @@ class FileEditorPane extends JTextPane {
         }
     }
 
-    public static FileEditorPane newDefault() {
-        FileEditorPane one = new FileEditorPane();
+    public static FileEditorPane newDefault(IDEFrame parent) {
+        FileEditorPane one = new FileEditorPane(parent);
         one.setDocTitle("新建文档");
         one.setModifed(false);
         return one;
@@ -244,6 +279,59 @@ class FileEditorPane extends JTextPane {
 
     public DefaultStyledDocument getDoc() {
         return doc;
+    }
+
+    public String getText() {
+        try {
+            return doc.getText(0, doc.getLength());
+        } catch (Throwable t) {
+            throw new RuntimeException(t);
+        }
+    }
+
+    public Object save() {
+        if (file == null) {
+            return saveAs();
+        } else {
+            Object r = parent.saveFile(file, getText());
+            setModifed(false);
+            setDocTitle(file.getName());
+            return r;
+        }
+    }
+
+    public Object saveAs() {
+        File file = parent.saveDialog();
+        if (file != null) {
+            this.file = file;
+            return save();
+        }
+        return null;
+    }
+
+    @Override
+    public void insertUpdate(DocumentEvent e) {
+        showModified();
+        setModifed(true);
+    }
+
+    @Override
+    public void removeUpdate(DocumentEvent e) {
+        showModified();
+        setModifed(true);
+    }
+
+    @Override
+    public void changedUpdate(DocumentEvent e) {
+        showModified();
+        setModifed(true);
+    }
+
+    protected void showModified() {
+        if (!modifed) {
+            modifed = true;
+            parent.refreshTitle(this);
+        }
     }
 
 }
