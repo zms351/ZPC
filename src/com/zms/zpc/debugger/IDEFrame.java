@@ -30,6 +30,7 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
         this.designToolbar();
         this.designMain();
         this.checkNew();
+        this.setPreferredSize(new Dimension(640,480));
     }
 
     private void designMenubar() {
