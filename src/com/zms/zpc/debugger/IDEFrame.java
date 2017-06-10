@@ -1,6 +1,7 @@
 package com.zms.zpc.debugger;
 
 import com.zms.zpc.debugger.util.*;
+import com.zms.zpc.emulator.assembler.Assembler;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -242,6 +243,13 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
                 }
             }
             break;
+            case "Resume": {
+                FileEditorPane pane = (FileEditorPane) tabs.getSelectedComponent();
+                if (pane != null) {
+                    new Assembler().assemble(pane.getText());
+                }
+            }
+            break;
         }
     }
 
@@ -362,7 +370,7 @@ class FileEditorPane extends JTextPane implements DocumentListener {
         this.file = file;
         this.docTitle = file.getName();
         String s = parent.loadFile(file);
-        modifed=true;
+        modifed = true;
         try {
             doc.replace(0, doc.getLength(), s, null);
         } catch (Throwable t) {

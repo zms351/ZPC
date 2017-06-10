@@ -73,4 +73,8 @@ public class InstruData {
         return flag;
     }
 
+    public boolean isSys() {
+        return "SYS".equals(flag);
+    }
+
 }
