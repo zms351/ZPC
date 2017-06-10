@@ -81,7 +81,7 @@ public class Assembler {
                         }
                         line = line.replaceAll("\\s+", " ");
                         if ((line = line.trim()).length() > 0) {
-                            System.out.println(line);
+                            //System.out.println(line);
                             index = line.indexOf(' ');
                             assert index > 0;
                             String name1 = line.substring(0, index);
@@ -148,6 +148,7 @@ public class Assembler {
             String line;
             int n1 = 0;
             String s;
+            Instru instru=new Instru();
             while ((line = reader.readLine()) != null) {
                 n1++;
                 s = line;
@@ -156,8 +157,10 @@ public class Assembler {
                     line = line.substring(0, index).trim();
                 }
                 writer.print(s);
+                line = line.replaceAll("\\s+", " ");
                 if ((line = line.trim()).length() > 0) {
-                    process(line);
+                    instru.parse(this,line);
+                    process(instru);
                 }
                 writer.println();
             }
@@ -167,39 +170,46 @@ public class Assembler {
         return writer1;
     }
 
-    protected void process(String line) {
-        line = line.replaceAll("\\s+", " ").trim();
-        System.out.println(line);
-        InstruData instru = findInstruData(line);
-        if (instru.isSys()) {
-            processSysInstruData(instru, line);
+    protected void process(Instru instru) {
+        System.out.println(instru.getLine());
+        InstruData data = findInstruData(instru);
+        if (data.isSys()) {
+            processSysInstruData(instru, data);
         }
     }
 
-    protected InstruData findInstruData(String line) {
-        int index = line.indexOf(' ');
-        String key;
-        if (index > 0) {
-            key = line.substring(0, index);
-        } else {
-            key = line;
-        }
-        key = key.trim().toUpperCase();
-        Collection<InstruData> list = InstruMap.get(key);
+    protected InstruData findInstruData(Instru instru) {
+        Collection<InstruData> list = InstruMap.get(instru.getKey());
         if (list != null) {
-            if (list.size() == 1) {
-                return list.iterator().next();
+            for (InstruData data : list) {
+                if(data.match(instru)>0) {
+                    return data;
+                }
             }
         }
         return null;
     }
 
-    protected void processSysInstruData(InstruData instru, String line) {
-        System.out.println("hehe");
+    protected void processSysInstruData(Instru instru,InstruData data) {
+        if("BITS".equals(instru.getKey())) {
+            this.bits=parseImm(instru.getTokens().get(1)).intValue();
+        }
+    }
+
+    public List<String> parseTokenTypes(String token) {
+        List<String> list=new ArrayList<>();
+        if(token.matches("^\\d+$")) {
+            list.add("imm");
+        }
+        return list;
+    }
+
+    public Number parseImm(String token) {
+        return Long.parseLong(token);
     }
 
     public static void main(String[] args) throws Exception {
-        System.out.println("test");
+        System.out.println("test stub");
         System.out.println(InstruData.Flags);
     }
 

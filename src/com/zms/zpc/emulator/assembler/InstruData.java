@@ -13,6 +13,8 @@ public class InstruData {
     private String code;
     private String flag;
 
+    private List<List<String>> types;
+
     public final static Collection<String> Flags=new LinkedHashSet<>();
 
     public InstruData(String line) {
@@ -63,6 +65,20 @@ public class InstruData {
                 assert code.startsWith("[") && code.endsWith("]");
             }
         }
+        {
+            types=new ArrayList<>();
+            types.add(new ArrayList<>());
+            if(!("void".equals(param) || "ignore".equals(param))) {
+                for (String tok : param.split(",")) {
+                    tok=tok.trim();
+                    if(tok.length()>0) {
+                        List<String> one=new ArrayList<>();
+                        one.add(tok);
+                        types.add(one);
+                    }
+                }
+            }
+        }
     }
 
     public String getKey() {
@@ -75,6 +91,36 @@ public class InstruData {
 
     public boolean isSys() {
         return "SYS".equals(flag);
+    }
+
+    public String getParam() {
+        return param;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public List<List<String>> getTypes() {
+        return types;
+    }
+
+    public int match(Instru instru) {
+        int size=this.types.size();
+        List<List<String>> t1 = instru.getTypes();
+        if(t1.size()==size) {
+            out:for(int i=1;i<size;i++) {
+                List<String> t2 = this.types.get(i);
+                for (String t3 : t1.get(i)) {
+                    if(t2.contains(t3)) {
+                        continue out;
+                    }
+                }
+                return 0;
+            }
+            return 1;
+        }
+        return 0;
     }
 
 }
