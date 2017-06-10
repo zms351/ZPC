@@ -203,6 +203,7 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
     private FileEditorPane addNew() {
         FileEditorPane one = FileEditorPane.newDefault(this);
         tabs.add(one.getDisplayTitle(), one);
+        refreshTitle(one);
         return one;
     }
 
@@ -289,6 +290,7 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
         int index = tabs.indexOfComponent(tab);
         if (index >= 0) {
             tabs.setTitleAt(index, tab.getDisplayTitle());
+            tabs.setTabComponentAt(index,tab.getTabComponent());
         }
     }
 
@@ -405,6 +407,47 @@ class FileEditorPane extends JTextPane implements DocumentListener {
         } else {
             super.setText(text);
         }
+    }
+
+    private TabComponent tabComponent;
+
+    public TabComponent getTabComponent() {
+        if(tabComponent==null) {
+            tabComponent=new TabComponent(this);
+        }
+        tabComponent.getLabel().setText(getDisplayTitle());
+        return tabComponent;
+    }
+
+    public IDEFrame getParentComponent() {
+        return parent;
+    }
+
+}
+
+class TabComponent extends JPanel {
+
+    private JLabel label;
+    private JButton closeButton;
+
+    public TabComponent(FileEditorPane parent) {
+        super(new BorderLayout());
+        label=new JLabel(parent.getDisplayTitle());
+        this.add(label,BorderLayout.CENTER);
+        closeButton=new JButton(parent.getParentComponent().getFrame().loadIcon("close"));
+        this.add(closeButton,BorderLayout.EAST);
+        this.setOpaque(true);
+        closeButton.setBorderPainted(false);
+        label.setOpaque(true);
+        closeButton.setOpaque(true);
+    }
+
+    public JLabel getLabel() {
+        return label;
+    }
+
+    public JButton getCloseButton() {
+        return closeButton;
     }
 
 }
