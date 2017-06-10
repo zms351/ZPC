@@ -1,5 +1,7 @@
 package com.zms.zpc.emulator.assembler;
 
+import com.zms.zpc.support.GarUtils;
+
 import java.io.*;
 import java.util.*;
 
@@ -88,19 +90,20 @@ public class Assembler {
                             index = name1.indexOf('-');
                             RegData reg;
                             if (index > 0) {
-                                int index3=index+1;
-                                while(index3<name1.length() && Character.isDigit(name1.charAt(index3))) {
+                                int index3 = index + 1;
+                                while (index3 < name1.length() && Character.isDigit(name1.charAt(index3))) {
                                     index3++;
                                 }
-                                int to = Integer.parseInt(name1.substring(index + 1,index3));
+                                int to = Integer.parseInt(name1.substring(index + 1, index3));
                                 int index2 = index - 1;
                                 while (Character.isDigit(name1.charAt(index2))) {
                                     index2--;
                                 }
                                 int from = Integer.parseInt(name1.substring(index2 + 1, index));
                                 for (int i = from; i <= to; i++) {
-                                    name=name1.substring(0, index2 + 1)+i+name1.substring(index3);
+                                    name = name1.substring(0, index2 + 1) + i + name1.substring(index3);
                                     reg = new RegData(name, line);
+                                    reg.setNum(i);
                                     _add(map, reg);
                                 }
                             } else {
@@ -110,7 +113,7 @@ public class Assembler {
                         }
                     }
                 }
-                RegMap=map;
+                RegMap = map;
             } catch (Throwable t) {
                 throw new RuntimeException(t);
             }
@@ -122,7 +125,7 @@ public class Assembler {
     }
 
     public Assembler(int bits) {
-        this.bits=bits;
+        this.bits = bits;
     }
 
     private ByteArrayOutputStream output;
@@ -148,7 +151,7 @@ public class Assembler {
             String line;
             int n1 = 0;
             String s;
-            Instru instru=new Instru();
+            Instru instru = new Instru();
             while ((line = reader.readLine()) != null) {
                 n1++;
                 s = line;
@@ -159,7 +162,7 @@ public class Assembler {
                 writer.print(s);
                 line = line.replaceAll("\\s+", " ");
                 if ((line = line.trim()).length() > 0) {
-                    instru.parse(this,line);
+                    instru.parse(this, line);
                     process(instru);
                 }
                 writer.println();
@@ -182,7 +185,7 @@ public class Assembler {
         Collection<InstruData> list = InstruMap.get(instru.getKey());
         if (list != null) {
             for (InstruData data : list) {
-                if(data.match(instru)>0) {
+                if (data.match(instru) > 0) {
                     return data;
                 }
             }
@@ -190,15 +193,15 @@ public class Assembler {
         return null;
     }
 
-    protected void processSysInstruData(Instru instru,InstruData data) {
-        if("BITS".equals(instru.getKey())) {
-            this.bits=parseImm(instru.getTokens().get(1)).intValue();
+    protected void processSysInstruData(Instru instru, InstruData data) {
+        if ("BITS".equals(instru.getKey())) {
+            this.bits = parseImm(instru.getTokens().get(1)).intValue();
         }
     }
 
     public List<String> parseTokenTypes(String token) {
-        List<String> list=new ArrayList<>();
-        if(token.matches("^\\d+$")) {
+        List<String> list = new ArrayList<>();
+        if (token.matches("^\\d+$")) {
             list.add("imm");
         }
         return list;
@@ -211,6 +214,35 @@ public class Assembler {
     public static void main(String[] args) throws Exception {
         System.out.println("test stub");
         System.out.println(InstruData.Flags);
+    }
+
+    private static File tempNativeInput, tempNativeOutput,tempNativeError;
+    private static File Nasm;
+
+    public static synchronized Object nativeAssemble(String text) {
+        try {
+            if (tempNativeInput == null) {
+                tempNativeInput = File.createTempFile("zpc", ".asm");
+                tempNativeOutput = File.createTempFile("zpc", ".bin");
+                tempNativeError = File.createTempFile("zpc", ".log");
+                Nasm = new File("/Users/zms/workspace/api/jpc/gnu/nasm/nasm");
+            }
+            GarUtils.saveFile(tempNativeInput, text);
+            ProcessBuilder pb = new ProcessBuilder(Nasm.getPath(), "-o", tempNativeOutput.getPath(), tempNativeInput.getPath());
+            pb.redirectErrorStream(true);
+            pb.directory(Nasm.getParentFile());
+            pb.redirectOutput(tempNativeError);
+            int code = pb.start().waitFor();
+            if (code == 0) {
+                byte[] bytes = GarUtils.readFile(tempNativeOutput);
+                if (bytes != null && bytes.length > 0) {
+                    return GarUtils.bytes2Plain(bytes);
+                }
+            }
+            return GarUtils.loadFile(tempNativeError);
+        } catch (Throwable t) {
+            throw new RuntimeException(t);
+        }
     }
 
 }

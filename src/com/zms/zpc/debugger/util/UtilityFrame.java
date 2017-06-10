@@ -1,13 +1,13 @@
 package com.zms.zpc.debugger.util;
 
 import com.zms.zpc.debugger.ZPC;
+import com.zms.zpc.support.GarUtils;
 
 import javax.swing.*;
 import javax.swing.border.EtchedBorder;
 import java.awt.*;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.io.File;
+import java.util.Random;
 
 /**
  * Created by 张小美 on 17/五月/25.
@@ -71,58 +71,11 @@ public class UtilityFrame extends JInternalFrame {
     public static File LastDir;
 
     public File openDialog() {
-        return _dialog(false);
+        return GarUtils.fileDialog(getFrame(), false);
     }
 
     public File saveDialog() {
-        return _dialog(true);
-    }
-
-    public File _dialog(boolean save) {
-        FileDialog dialog = new FileDialog(getFrame());
-        if (LastDir != null) {
-            dialog.setDirectory(LastDir.getPath());
-        }
-        dialog.setMultipleMode(false);
-        if (save) {
-            dialog.setMode(FileDialog.SAVE);
-            dialog.setTitle("另存为");
-        } else {
-            dialog.setMode(FileDialog.LOAD);
-            dialog.setTitle("打开");
-        }
-        dialog.setLocale(Locale.CHINA);
-        dialog.setVisible(true);
-        String path = dialog.getFile();
-        if (path != null && path.length() > 0) {
-            File file = new File(dialog.getDirectory(), path);
-            LastDir = file.getParentFile();
-            return file;
-        }
-        return null;
-    }
-
-    public String loadFile(File file) {
-        long len = file.length();
-        assert len >= 0 && len < Integer.MAX_VALUE;
-        byte[] bytes = new byte[(int) len];
-        try (DataInputStream input = new DataInputStream(new FileInputStream(file))) {
-            input.readFully(bytes);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return new String(bytes, StandardCharsets.UTF_8);
-    }
-
-    public Object saveFile(File file, String text) {
-        byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
-        try (BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream(file))) {
-            output.write(bytes);
-            output.flush();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return file;
+        return GarUtils.fileDialog(getFrame(), true);
     }
 
 }

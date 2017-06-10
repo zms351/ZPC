@@ -2,6 +2,7 @@ package com.zms.zpc.debugger;
 
 import com.zms.zpc.debugger.util.*;
 import com.zms.zpc.emulator.assembler.Assembler;
+import com.zms.zpc.support.GarUtils;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -82,6 +83,7 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
                 item = new JIconMenuItem(command);
                 item.setActionCommand(command);
                 menu.add(item);
+                item.setIconCommand("closeActive");
             }
         }
         {
@@ -135,6 +137,11 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
             button = new JIconButton("Save All");
             toolButtons.add(button);
             button.setIconCommand("menu-saveall");
+        }
+        {
+            button = new JIconButton("Close Tab");
+            toolButtons.add(button);
+            button.setIconCommand("closeActive");
         }
         toolButtons.add(null);
         {
@@ -199,6 +206,18 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
         return one;
     }
 
+    public void showNew(String text, String title, boolean silent) {
+        FileEditorPane tab = addNew();
+        tabs.setSelectedComponent(tab);
+        if (title != null) {
+            tab.setDocTitle(title);
+        }
+        if (text != null) {
+            tab.setText(text, silent);
+        }
+        refreshTitle(tab);
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         String command = e.getActionCommand();
@@ -211,10 +230,10 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
             }
             break;
             case "Save All": {
-                FileEditorPane pane = (FileEditorPane) tabs.getSelectedComponent();
-                if (pane != null) {
-                    pane.save();
-                    tabs.setTitleAt(tabs.getSelectedIndex(), pane.getDisplayTitle());
+                FileEditorPane tab = (FileEditorPane) tabs.getSelectedComponent();
+                if (tab != null) {
+                    tab.save();
+                    refreshTitle(tab);
                 }
             }
             break;
@@ -226,10 +245,10 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
             }
             break;
             case "Save As": {
-                FileEditorPane pane = (FileEditorPane) tabs.getSelectedComponent();
-                if (pane != null) {
-                    pane.saveAs();
-                    tabs.setTitleAt(tabs.getSelectedIndex(), pane.getDisplayTitle());
+                FileEditorPane tab = (FileEditorPane) tabs.getSelectedComponent();
+                if (tab != null) {
+                    tab.saveAs();
+                    refreshTitle(tab);
                 }
             }
             break;
@@ -239,14 +258,27 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
                     FileEditorPane tab = addNew();
                     tabs.setSelectedComponent(tab);
                     tab.init(file);
-                    tabs.setTitleAt(tabs.getTabCount() - 1, tab.getDisplayTitle());
+                    refreshTitle(tab);
                 }
             }
             break;
             case "Resume": {
                 FileEditorPane pane = (FileEditorPane) tabs.getSelectedComponent();
                 if (pane != null) {
-                    new Assembler().assemble(pane.getText());
+                    Object o = new Assembler().assemble(pane.getText());
+                    if (o != null) {
+                        showNew(o.toString(), "本地编译结果", true);
+                    }
+                }
+            }
+            break;
+            case "ReRun": {
+                FileEditorPane tab = (FileEditorPane) tabs.getSelectedComponent();
+                if (tab != null) {
+                    Object o = Assembler.nativeAssemble(tab.getText());
+                    if (o != null) {
+                        showNew(o.toString(), "Native编译结果", true);
+                    }
                 }
             }
             break;
@@ -313,19 +345,11 @@ class FileEditorPane extends JTextPane implements DocumentListener {
         return doc;
     }
 
-    public String getText() {
-        try {
-            return doc.getText(0, doc.getLength());
-        } catch (Throwable t) {
-            throw new RuntimeException(t);
-        }
-    }
-
     public Object save() {
         if (file == null) {
             return saveAs();
         } else {
-            Object r = parent.saveFile(file, getText());
+            Object r = GarUtils.saveFile(file, getText());
             setModifed(false);
             setDocTitle(file.getName());
             return r;
@@ -369,14 +393,18 @@ class FileEditorPane extends JTextPane implements DocumentListener {
     public void init(File file) {
         this.file = file;
         this.docTitle = file.getName();
-        String s = parent.loadFile(file);
-        modifed = true;
-        try {
-            doc.replace(0, doc.getLength(), s, null);
-        } catch (Throwable t) {
-            throw new RuntimeException(t);
+        String s = GarUtils.loadFile(file);
+        setText(s, true);
+    }
+
+    public void setText(String text, boolean silent) {
+        if (silent) {
+            modifed = true;
+            super.setText(text);
+            setModifed(false);
+        } else {
+            super.setText(text);
         }
-        setModifed(false);
     }
 
 }
