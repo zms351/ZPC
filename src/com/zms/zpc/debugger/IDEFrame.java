@@ -429,7 +429,7 @@ class FileEditorPane extends JTextPane implements DocumentListener {
 
 }
 
-class TabComponent extends JPanel implements MouseListener {
+class TabComponent extends JPanel implements MouseListener,ActionListener {
 
     private JLabel label;
     private JButton closeButton;
@@ -452,10 +452,11 @@ class TabComponent extends JPanel implements MouseListener {
         this.parent=parent;
         label=new JLabel(parent.getDisplayTitle(),text,JLabel.CENTER);
         this.add(label,BorderLayout.CENTER);
+        closeButton.addActionListener(this);
 
-        this.setOpaque(true);
-        label.setOpaque(true);
-        closeButton.setOpaque(true);
+        this.setOpaque(false);
+        label.setOpaque(false);
+        closeButton.setOpaque(false);
     }
 
     public JLabel getLabel() {
@@ -466,9 +467,18 @@ class TabComponent extends JPanel implements MouseListener {
         return closeButton;
     }
 
+    protected void close() {
+        parent.getParentComponent().closeTab(parent);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        close();
+    }
+
     @Override
     public void mouseClicked(MouseEvent e) {
-        parent.getParentComponent().closeTab(parent);
+        close();
     }
 
     @Override
