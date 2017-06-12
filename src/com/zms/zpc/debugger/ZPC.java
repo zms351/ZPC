@@ -359,7 +359,7 @@ public class ZPC extends JFrame implements ActionListener {
     }
 
     public void test2() {
-
+        showUtilityFrame(IDEFrame.class);
     }
 
     public void test3() {

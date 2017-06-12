@@ -219,6 +219,10 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
         refreshTitle(tab);
     }
 
+    public void closeTab(FileEditorPane tab) {
+        tabs.remove(tab);
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         String command = e.getActionCommand();
@@ -425,19 +429,31 @@ class FileEditorPane extends JTextPane implements DocumentListener {
 
 }
 
-class TabComponent extends JPanel {
+class TabComponent extends JPanel implements MouseListener {
 
     private JLabel label;
     private JButton closeButton;
+    private FileEditorPane parent;
+
+    public static Icon close,closeHovered,text;
 
     public TabComponent(FileEditorPane parent) {
         super(new BorderLayout());
-        label=new JLabel(parent.getDisplayTitle());
-        this.add(label,BorderLayout.CENTER);
-        closeButton=new JButton(parent.getParentComponent().getFrame().loadIcon("close"));
+        ZPC zpc = parent.getParentComponent().getFrame();
+        if(close==null) {
+            close=zpc.loadIcon("closeNew");
+            closeHovered=zpc.loadIcon("closeNewHovered");
+            text=zpc.loadIcon("text");
+        }
+        closeButton=new JButton(close);
         this.add(closeButton,BorderLayout.EAST);
-        this.setOpaque(true);
         closeButton.setBorderPainted(false);
+        closeButton.addMouseListener(this);
+        this.parent=parent;
+        label=new JLabel(parent.getDisplayTitle(),text,JLabel.CENTER);
+        this.add(label,BorderLayout.CENTER);
+
+        this.setOpaque(true);
         label.setOpaque(true);
         closeButton.setOpaque(true);
     }
@@ -448,6 +464,31 @@ class TabComponent extends JPanel {
 
     public JButton getCloseButton() {
         return closeButton;
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        parent.getParentComponent().closeTab(parent);
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+        closeButton.setIcon(closeHovered);
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+        closeButton.setIcon(close);
     }
 
 }
