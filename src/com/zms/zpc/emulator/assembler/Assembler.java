@@ -1,6 +1,6 @@
 package com.zms.zpc.emulator.assembler;
 
-import com.zms.zpc.support.GarUtils;
+import com.zms.zpc.support.*;
 
 import java.io.*;
 import java.util.*;
@@ -173,11 +173,25 @@ public class Assembler {
         return writer1;
     }
 
+    protected void write(Instru instru, InstruData data) {
+        writer.print("\t\t;#");
+        for (Object o : data.getCodes()) {
+            if(o instanceof Number) {
+                int n=((Number)o).intValue();
+                output.write(n);
+                writer.print(' ');
+                writer.print(NumberUtils.byte2Hex(n));
+            }
+        }
+    }
+
     protected void process(Instru instru) {
         System.out.println(instru.getLine());
         InstruData data = findInstruData(instru);
         if (data.isSys()) {
             processSysInstruData(instru, data);
+        } else {
+            write(instru,data);
         }
     }
 

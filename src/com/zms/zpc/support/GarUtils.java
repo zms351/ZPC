@@ -80,8 +80,7 @@ public class GarUtils {
                     buffer.append(' ');
                 }
             }
-            String token = Integer.toHexString(bytes[i] + 512);
-            buffer.append(token.substring(token.length() - 2));
+            buffer.append(NumberUtils.byte2Hex(bytes[i]));
         }
         return buffer;
     }

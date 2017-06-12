@@ -28,8 +28,7 @@ public class Instru {
         }
         tokens.set(0,tokens.get(0).toUpperCase());
         types.clear();
-        types.add(new ArrayList<>());
-        types.get(0).add("KEY");
+        types.add(InstruData.KeyType);
         for(int i=1;i<tokens.size();i++) {
             types.add(assembler.parseTokenTypes(tokens.get(i)));
         }

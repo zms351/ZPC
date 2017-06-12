@@ -16,4 +16,9 @@ public class NumberUtils {
         return s.substring(s.length() - width);
     }
 
+    public static String byte2Hex(int b) {
+        String token = Integer.toHexString(b + 512);
+        return token.substring(token.length() - 2);
+    }
+
 }
