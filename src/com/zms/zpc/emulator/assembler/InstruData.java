@@ -84,6 +84,11 @@ public class InstruData {
             for (String tok : code.substring(1, code.length() - 1).split("\\s")) {
                 tok=tok.trim();
                 if(tok.length()>0) {
+                    if(codes.size()<1) {
+                        if(tok.endsWith(":")) {
+                            continue;  //todo 检查参数
+                        }
+                    }
                     Object o=tok;
                     if(tok.matches("[0-9a-fA-F]{2}") && tok.length()==2) {
                         o=Integer.parseInt(tok,16);

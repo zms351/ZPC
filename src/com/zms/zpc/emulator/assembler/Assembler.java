@@ -173,16 +173,34 @@ public class Assembler {
         return writer1;
     }
 
+    protected void write8(int n) {
+        output.write(n);
+        writer.print(' ');
+        writer.print(NumberUtils.byte2Hex(n));
+    }
+
     protected void write(Instru instru, InstruData data) {
         writer.print("\t\t;#");
         for (Object o : data.getCodes()) {
             if(o instanceof Number) {
                 int n=((Number)o).intValue();
-                output.write(n);
-                writer.print(' ');
-                writer.print(NumberUtils.byte2Hex(n));
+                write8(n);
+            } else if("ib".equals(o) || "ib,u".equals(o)) {
+                write8(getImm(instru).intValue());
             }
         }
+    }
+
+    protected Number getImm(Instru instru) {
+        List<List<String>> types = instru.getTypes();
+        for(int i=0;i<types.size();i++) {
+            for (String s : types.get(i)) {
+                if(s.startsWith("imm")) {
+                    return parseImm(instru.getTokens().get(i));
+                }
+            }
+        }
+        return null;
     }
 
     protected void process(Instru instru) {
@@ -216,6 +234,9 @@ public class Assembler {
     public List<String> parseTokenTypes(String token) {
         List<String> list = new ArrayList<>();
         if (token.matches("^\\d+$")) {
+            list.add("imm");
+        }
+        if(token.matches("^\\-\\d+$")) {
             list.add("imm");
         }
         return list;
