@@ -179,28 +179,42 @@ public class Assembler {
         writer.print(NumberUtils.byte2Hex(n));
     }
 
+    protected void processModRMSIB(Instru instru, InstruData data) {
+
+    }
+
     protected void write(Instru instru, InstruData data) {
         writer.print("\t\t;#");
         for (Object o : data.getCodes()) {
             if(o instanceof Number) {
-                int n=((Number)o).intValue();
+                int n = ((Number) o).intValue();
                 write8(n);
             } else if("ib".equals(o) || "ib,u".equals(o)) {
                 write8(getImm(instru).intValue());
+            } else if("/r".equals(o)) {
+                processModRMSIB(instru,data);
+            } else {
+                if(!("hle".equals(o))) {
+                    throw new RuntimeException("impl this");
+                }
             }
         }
     }
 
     protected Number getImm(Instru instru) {
         List<List<String>> types = instru.getTypes();
+        int n=0;
+        Number r=null;
         for(int i=0;i<types.size();i++) {
             for (String s : types.get(i)) {
                 if(s.startsWith("imm")) {
-                    return parseImm(instru.getTokens().get(i));
+                    r=parseImm(instru.getTokens().get(i));
+                    n++;
                 }
             }
         }
-        return null;
+        assert n==1;
+        return r;
     }
 
     protected void process(Instru instru) {
@@ -236,8 +250,20 @@ public class Assembler {
         if (token.matches("^\\d+$")) {
             list.add("imm");
         }
-        if(token.matches("^\\-\\d+$")) {
+        if(token.matches("^-\\d+$")) {
             list.add("imm");
+        }
+        if(token.startsWith("[") && token.endsWith("]")) {
+            list.add("mem");
+        }
+        if(Character.isLetter(token.charAt(0))) {
+            token = token.toUpperCase();
+            RegData reg = RegMap.get(token);
+            if (reg != null) {
+                if (reg.getKlasses2().contains("reg8")) {
+                    list.add("reg8");
+                }
+            }
         }
         return list;
     }

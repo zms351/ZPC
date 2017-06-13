@@ -12,6 +12,7 @@ public class InstruData {
     private String param;
     private String code;
     private String flag;
+    private String pr1;
 
     private List<List<String>> types;
     private List<Object> codes;
@@ -86,7 +87,9 @@ public class InstruData {
                 if(tok.length()>0) {
                     if(codes.size()<1) {
                         if(tok.endsWith(":")) {
-                            continue;  //todo 检查参数
+                            assert pr1==null;
+                            pr1=tok.substring(0,tok.length()-1);
+                            continue;
                         }
                     }
                     Object o=tok;
@@ -149,6 +152,10 @@ public class InstruData {
 
     public List<Object> getCodes() {
         return codes;
+    }
+
+    public String getPr1() {
+        return pr1;
     }
 
 }
