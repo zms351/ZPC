@@ -179,71 +179,185 @@ public class Assembler {
 
     private static Object[][][] ModData = new Object[][][]{
             {
-                {"AL", "AX", "EAX", "MM0", "XMM0" },
-                {"CL", "CX", "ECX", "MM1", "XMM1" },
-                {"DL", "DX", "EDX", "MM2", "XMM2" },
-                {"BL", "BX", "EBX", "MM3", "XMM3" },
-                {"AH", "SP", "ESP", "MM4", "XMM4" },
-                {"CH", "BP", "EBP", "MM5", "XMM5" },
-                {"DH", "SI", "ESI", "MM6", "XMM6" },
-                {"BH", "DI", "EDI", "MM7", "XMM7" }
+                    {"AL", "AX", "EAX", "MM0", "XMM0"},
+                    {"CL", "CX", "ECX", "MM1", "XMM1"},
+                    {"DL", "DX", "EDX", "MM2", "XMM2"},
+                    {"BL", "BX", "EBX", "MM3", "XMM3"},
+                    {"AH", "SP", "ESP", "MM4", "XMM4"},
+                    {"CH", "BP", "EBP", "MM5", "XMM5"},
+                    {"DH", "SI", "ESI", "MM6", "XMM6"},
+                    {"BH", "DI", "EDI", "MM7", "XMM7"}
             },
             {
-                {"AL", "AX" ,"EAX", "MM0", "XMM0"},
-                {"CL", "CX" ,"ECX", "MM1", "XMM1"},
-                {"DL", "DX" ,"EDX", "MM2", "XMM2"},
-                {"BL", "BX" ,"EBX" ,"MM3", "XMM3"},
-                {"AH", "SP" ,"ESP", "MM4", "XMM4"},
-                {"CH", "BP" ,"EBP", "MM5", "XMM5"},
-                {"DH", "SI", "ESI", "MM6", "XMM6"},
-                {"BH", "DI", "EDI", "MM7", "XMM7"}
+                    {"EAX", "AX", "AL", "MM0", "XMM0"},
+                    {"ECX", "CX", "CL", "MM1", "XMM1"},
+                    {"EDX", "DX", "DL", "MM2", "XMM2"},
+                    {"EBX", "BX", "BL", "MM3", "XMM3"},
+                    {"ESP", "SP", "AH", "MM4", "XMM4"},
+                    {"EBP", "BP", "CH", "MM5", "XMM5"},
+                    {"ESI", "SI", "DH", "MM6", "XMM6"},
+                    {"EDI", "DI", "BH", "MM7", "XMM7"}
             },
             {
-                    {"EAX","AX","AL","MM0","XMM0"},
-                    {"ECX","CX","CL","MM1","XMM1"},
-                    {"EDX","DX","DL","MM2","XMM2"},
-                    {"EBX","BX","BL","MM3","XMM3"},
-                    {"ESP","SP","AH","MM4","XMM4"},
-                    {"EBP","BP","CH","MM5","XMM5"},
-                    {"ESI","SI","DH","MM6","XMM6"},
-                    {"EDI","DI","BH","MM7","XMM7"}
-            },
-            {
-                    {"BX+SI","BX+DI","BP+SI","BP+DI","SI","DI","BP","BX"},  //BP  ....
-                    {"EAX","ECX","EDX","EBX", "ESP", "EBP" ,"ESI", "EDI"}  //ESP  EBP ....
+                    {"BX+SI", "BX+DI", "BP+SI", "BP+DI", "SI", "DI", "BP", "BX"},  //BP  ....
+                    {"EAX", "ECX", "EDX", "EBX", "ESP", "EBP", "ESI", "EDI"}  //ESP  EBP ....
             }
     };
+
     protected void processModRMSIB(Instru instru, InstruData data) {
-        String pr=data.getPr1();
+        String pr = data.getPr1();
         assert "mr".equals(pr) || "rm".equals(pr);
         String r2;
-        if(pr.charAt(0)=='r') {
-            r2=instru.getTokens().get(1);
+        String r1;
+        if (pr.charAt(0) == 'r') {
+            r2 = instru.getTokens().get(1);
+            r1 = instru.getTokens().get(2);
         } else {
-            r2=instru.getTokens().get(2);
+            r2 = instru.getTokens().get(2);
+            r1 = instru.getTokens().get(1);
         }
-        r2=r2.toUpperCase();
+        r2 = r2.toUpperCase();
+        r1 = r1.toUpperCase();
         assert RegMap.containsKey(r2);
 
-        String r2c=null;
-        if(bits==16) {
-
-        } else if(bits==32) {
-
+        int r2c = -1;
+        out:
+        for (int i = 0; i < 8; i++) {
+            for (Object o : ModData[0][i]) {
+                if (r2.equals(o)) {
+                    r2c = i;
+                    break out;
+                }
+            }
         }
+        assert r2c >= 0;
+        int r0c = -1;
+        int r1c = -1;
+        boolean in32 = bits == 32;
+        boolean in16 = bits == 16;
+        if (r1.startsWith("[") && r1.endsWith("]")) {
+            r1 = r1.substring(1, r1.length() - 1).trim().toUpperCase();
+            if ("BP".equals(r1) || "EBP".equals(r1)) {
+                r1 = r1 + "+0";
+            }
+            if (NumberUtils.isNumber(r1)) {
+                long n = parseImm(r1).longValue();
+                if (in16 && !NumberUtils.isIn16Bits(n)) {
+                    in32 = true;
+                    in16 = false;
+                }
+                r0c = 0;
+                r1c = 6;
+            } else {
+                int index = r1.lastIndexOf('-');
+                if (index < 0) {
+                    index = r1.lastIndexOf('+');
+                }
+                String ra;
+                long n;
+                if (index > 0 && NumberUtils.isNumber(ra = r1.substring(index))) {
+                    n = NumberUtils.parseNumber(ra);
+                    r1 = r1.substring(0, index);
+                } else {
+                    ra = null;
+                    n = 0;
+                }
+                //System.out.println(n);
+                String pattern;
+                for (int i = 0; i < 8; i++) {
+                    pattern = (String) ModData[2][0][i];
+                    if (eqModRMSIB(r1, pattern)) {
+                        r1c = i;
+                        in16 = true;
+                        in32 = false;
+                        break;
+                    }
+                    pattern = (String) ModData[2][1][i];
+                    if (eqModRMSIB(r1, pattern)) {
+                        r1c = i;
+                        in32 = true;
+                        in16 = false;
+                        break;
+                    }
+                }
+                if (in16) {
+                    assert r1c >= 0;
+                }
+                if (r1c == 4 && in32) {
+                    assert "ESP".equals(r1);
+                }
+                if (r1c < 0) {
+                    assert in32;
+                    r1c = 4;
+                }
+                if (in16) {
+                    if (ra == null) {
+                        r0c = 0;
+                    } else if (NumberUtils.isIn8Bits(n)) {
+                        r0c = 1;
+                    } else {
+                        assert NumberUtils.isIn16Bits(n);
+                        r0c = 2;
+                    }
+                }
+                if (in32) {
+                    if (ra == null) {
+                        r0c = 0;
+                    } else if (NumberUtils.isIn8Bits(n)) {
+                        r0c = 1;
+                    } else {
+                        assert NumberUtils.isIn32Bits(n);
+                        r0c = 2;
+                    }
+                }
+                if (r1c == 4 && in32) {
+                    //sib
+
+                }
+            }
+        } else {
+            assert RegMap.containsKey(r1);
+            r0c = 3;
+            out:
+            for (int i = 0; i < 8; i++) {
+                for (Object o : ModData[1][i]) {
+                    if (r1.equals(o)) {
+                        r1c = i;
+                        break out;
+                    }
+                }
+            }
+        }
+        assert r0c >= 0;
+        assert r1c >= 0;
+        if (bits == 32) {
+            if (in16) {
+                output.addInMark(0x67);
+            }
+        }
+        if (bits == 16) {
+            if (in32) {
+                output.addInMark(0x67);
+            }
+        }
+    }
+
+    private boolean eqModRMSIB(String r1, String pattern) {
+        //todo
+        return false;
     }
 
     protected void write(Instru instru, InstruData data) {
         for (Object o : data.getCodes()) {
-            if(o instanceof Number) {
+            if (o instanceof Number) {
                 int n = ((Number) o).intValue();
                 write8(n);
-            } else if("ib".equals(o) || "ib,u".equals(o)) {
+            } else if ("ib".equals(o) || "ib,u".equals(o)) {
                 write8(getImm(instru).intValue());
-            } else if("/r".equals(o)) {
-                processModRMSIB(instru,data);
+            } else if ("/r".equals(o)) {
+                processModRMSIB(instru, data);
             } else {
-                if(!("hle".equals(o))) {
+                if (!("hle".equals(o))) {
                     throw new RuntimeException("impl this");
                 }
             }
@@ -251,15 +365,15 @@ public class Assembler {
     }
 
     protected void process(Instru instru, InstruData data) {
-        int position=output.getPosition();
+        int position = output.getPosition();
         output.setMark(position);
 
-        write(instru,data);
+        write(instru, data);
 
-        int size=output.getPosition();
-        byte[] buffer=output.getBuffer();
+        int size = output.getPosition();
+        byte[] buffer = output.getBuffer();
         writer.print("\t\t;#");
-        for(int i=position;i<size;i++) {
+        for (int i = position; i < size; i++) {
             writer.print(' ');
             writer.print(NumberUtils.byte2Hex(buffer[i]));
         }
@@ -267,17 +381,17 @@ public class Assembler {
 
     protected Number getImm(Instru instru) {
         List<List<String>> types = instru.getTypes();
-        int n=0;
-        Number r=null;
-        for(int i=0;i<types.size();i++) {
+        int n = 0;
+        Number r = null;
+        for (int i = 0; i < types.size(); i++) {
             for (String s : types.get(i)) {
-                if(s.startsWith("imm")) {
-                    r=parseImm(instru.getTokens().get(i));
+                if (s.startsWith("imm")) {
+                    r = parseImm(instru.getTokens().get(i));
                     n++;
                 }
             }
         }
-        assert n==1;
+        assert n == 1;
         return r;
     }
 
@@ -287,7 +401,7 @@ public class Assembler {
         if (data.isSys()) {
             processSysInstruData(instru, data);
         } else {
-            process(instru,data);
+            process(instru, data);
         }
     }
 
@@ -309,18 +423,16 @@ public class Assembler {
         }
     }
 
+
     public List<String> parseTokenTypes(String token) {
         List<String> list = new ArrayList<>();
-        if (token.matches("^\\d+$")) {
+        if (NumberUtils.isNumber(token)) {
             list.add("imm");
         }
-        if(token.matches("^-\\d+$")) {
-            list.add("imm");
-        }
-        if(token.startsWith("[") && token.endsWith("]")) {
+        if (token.startsWith("[") && token.endsWith("]")) {
             list.add("mem");
         }
-        if(Character.isLetter(token.charAt(0))) {
+        if (Character.isLetter(token.charAt(0))) {
             token = token.toUpperCase();
             RegData reg = RegMap.get(token);
             if (reg != null) {
@@ -333,7 +445,7 @@ public class Assembler {
     }
 
     public Number parseImm(String token) {
-        return Long.parseLong(token);
+        return NumberUtils.parseNumber(token);
     }
 
     public static void main(String[] args) throws Exception {
@@ -341,7 +453,7 @@ public class Assembler {
         System.out.println(InstruData.Flags);
     }
 
-    private static File tempNativeInput, tempNativeOutput,tempNativeError;
+    private static File tempNativeInput, tempNativeOutput, tempNativeError;
     private static File Nasm;
 
     public static synchronized Object nativeAssemble(String text) {

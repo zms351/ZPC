@@ -40,6 +40,10 @@ public class AssemblerOutput {
         return output.getBuffer();
     }
 
+    public void addInMark(int n) {
+        //todo
+    }
+
 }
 
 class AssemblerByteArrayOutputStream extends ByteArrayOutputStream {
