@@ -128,7 +128,7 @@ public class Assembler {
         this.bits = bits;
     }
 
-    private ByteArrayOutputStream output;
+    private AssemblerOutput output;
     private StringWriter writer1;
     private PrintWriter writer;
 
@@ -137,7 +137,7 @@ public class Assembler {
     public Object assemble(String asm) {
         try {
             if (output == null) {
-                output = new ByteArrayOutputStream();
+                output = new AssemblerOutput();
             } else {
                 output.reset();
             }
@@ -175,16 +175,65 @@ public class Assembler {
 
     protected void write8(int n) {
         output.write(n);
-        writer.print(' ');
-        writer.print(NumberUtils.byte2Hex(n));
     }
 
+    private static Object[][][] ModData = new Object[][][]{
+            {
+                {"AL", "AX", "EAX", "MM0", "XMM0" },
+                {"CL", "CX", "ECX", "MM1", "XMM1" },
+                {"DL", "DX", "EDX", "MM2", "XMM2" },
+                {"BL", "BX", "EBX", "MM3", "XMM3" },
+                {"AH", "SP", "ESP", "MM4", "XMM4" },
+                {"CH", "BP", "EBP", "MM5", "XMM5" },
+                {"DH", "SI", "ESI", "MM6", "XMM6" },
+                {"BH", "DI", "EDI", "MM7", "XMM7" }
+            },
+            {
+                {"AL", "AX" ,"EAX", "MM0", "XMM0"},
+                {"CL", "CX" ,"ECX", "MM1", "XMM1"},
+                {"DL", "DX" ,"EDX", "MM2", "XMM2"},
+                {"BL", "BX" ,"EBX" ,"MM3", "XMM3"},
+                {"AH", "SP" ,"ESP", "MM4", "XMM4"},
+                {"CH", "BP" ,"EBP", "MM5", "XMM5"},
+                {"DH", "SI", "ESI", "MM6", "XMM6"},
+                {"BH", "DI", "EDI", "MM7", "XMM7"}
+            },
+            {
+                    {"EAX","AX","AL","MM0","XMM0"},
+                    {"ECX","CX","CL","MM1","XMM1"},
+                    {"EDX","DX","DL","MM2","XMM2"},
+                    {"EBX","BX","BL","MM3","XMM3"},
+                    {"ESP","SP","AH","MM4","XMM4"},
+                    {"EBP","BP","CH","MM5","XMM5"},
+                    {"ESI","SI","DH","MM6","XMM6"},
+                    {"EDI","DI","BH","MM7","XMM7"}
+            },
+            {
+                    {"BX+SI","BX+DI","BP+SI","BP+DI","SI","DI","BP","BX"},  //BP  ....
+                    {"EAX","ECX","EDX","EBX", "ESP", "EBP" ,"ESI", "EDI"}  //ESP  EBP ....
+            }
+    };
     protected void processModRMSIB(Instru instru, InstruData data) {
+        String pr=data.getPr1();
+        assert "mr".equals(pr) || "rm".equals(pr);
+        String r2;
+        if(pr.charAt(0)=='r') {
+            r2=instru.getTokens().get(1);
+        } else {
+            r2=instru.getTokens().get(2);
+        }
+        r2=r2.toUpperCase();
+        assert RegMap.containsKey(r2);
 
+        String r2c=null;
+        if(bits==16) {
+
+        } else if(bits==32) {
+
+        }
     }
 
     protected void write(Instru instru, InstruData data) {
-        writer.print("\t\t;#");
         for (Object o : data.getCodes()) {
             if(o instanceof Number) {
                 int n = ((Number) o).intValue();
@@ -198,6 +247,21 @@ public class Assembler {
                     throw new RuntimeException("impl this");
                 }
             }
+        }
+    }
+
+    protected void process(Instru instru, InstruData data) {
+        int position=output.getPosition();
+        output.setMark(position);
+
+        write(instru,data);
+
+        int size=output.getPosition();
+        byte[] buffer=output.getBuffer();
+        writer.print("\t\t;#");
+        for(int i=position;i<size;i++) {
+            writer.print(' ');
+            writer.print(NumberUtils.byte2Hex(buffer[i]));
         }
     }
 
@@ -223,7 +287,7 @@ public class Assembler {
         if (data.isSys()) {
             processSysInstruData(instru, data);
         } else {
-            write(instru,data);
+            process(instru,data);
         }
     }
 
