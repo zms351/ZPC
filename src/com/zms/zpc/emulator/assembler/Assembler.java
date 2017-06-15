@@ -236,7 +236,7 @@ public class Assembler {
         boolean in32 = bits == 32;
         boolean in16 = bits == 16;
         if (r1.startsWith("[") && r1.endsWith("]")) {
-            r1 = r1.substring(1, r1.length() - 1).trim().toUpperCase();
+            r1 = r1.substring(1, r1.length() - 1).replaceAll("\\s+","").toUpperCase();
             if ("BP".equals(r1) || "EBP".equals(r1)) {
                 r1 = r1 + "+0";
             }
@@ -312,7 +312,59 @@ public class Assembler {
                 }
                 if (r1c == 4 && in32) {
                     //sib
-
+                    index=r1.indexOf('+');
+                    if(index>0) {
+                        String p1=r1.substring(0,index).trim();
+                        String p2=r1.substring(index+1).trim();
+                        if(p1.contains("*")) {
+                            String s=p1;
+                            p1=p2;
+                            p2=s;
+                        }
+                        if(!p2.contains("*")) {
+                            if("ESP".equals(p2)) {
+                                String s=p1;
+                                p1=p2;
+                                p2=s;
+                            }
+                            p2=p2+"*1";
+                        }
+                        assert !p1.contains("*");
+                        index=p2.indexOf('*');
+                        assert index>0;
+                        int k;
+                        if(index<3) {
+                            k=Integer.parseInt(p2.substring(0,index).trim());
+                            p2=p2.substring(index+1).trim();
+                        } else {
+                            k=Integer.parseInt(p2.substring(index+1).trim());
+                            p2=p2.substring(0,index).trim();
+                        }
+                        assert !"ESP".equals(p2);
+                        int k1=-1;
+                        int k2=-1;
+                        for (int i = 0; i < 8; i++) {
+                            pattern = (String) ModData[2][1][i];
+                            if(p1.equals(pattern)) {
+                                k1=i;
+                            }
+                            if(p2.equals(pattern)) {
+                                k2=i;
+                            }
+                        }
+                        assert k1>=0 && k2>=0;
+                        assert k2!=4;
+                        if("ESP".equals(p1) || k1==5) {
+                            assert "ESP".equals(p1) && k1==5;
+                            if(r0c==0) {
+                                r0c=1;
+                                ra="+0";
+                                n=0;
+                            }
+                        }
+                    } else {
+                        //todo
+                    }
                 }
             }
         } else {
@@ -343,7 +395,14 @@ public class Assembler {
     }
 
     private boolean eqModRMSIB(String r1, String pattern) {
-        //todo
+        if(pattern.equals(r1)) {
+            return true;
+        }
+        int index=pattern.indexOf('+');
+        if(index>0) {
+            String p=pattern.substring(index+1)+'+'+pattern.substring(0,index);
+            return p.equals(r1);
+        }
         return false;
     }
 
@@ -356,6 +415,14 @@ public class Assembler {
                 write8(getImm(instru).intValue());
             } else if ("/r".equals(o)) {
                 processModRMSIB(instru, data);
+            } else if("o16".equals(o)) {
+                if(bits==32) {
+                    write8(0x66);
+                }
+            } else if("o32".equals(o)) {
+                if(bits==16) {
+                    write8(0x66);
+                }
             } else {
                 if (!("hle".equals(o))) {
                     throw new RuntimeException("impl this");
@@ -436,8 +503,12 @@ public class Assembler {
             token = token.toUpperCase();
             RegData reg = RegMap.get(token);
             if (reg != null) {
-                if (reg.getKlasses2().contains("reg8")) {
+                List<String> k2 = reg.getKlasses2();
+                if (k2.contains("reg8")) {
                     list.add("reg8");
+                }
+                if (k2.contains("reg32")) {
+                    list.add("reg32");
                 }
             }
         }

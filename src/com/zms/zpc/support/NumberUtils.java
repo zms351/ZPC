@@ -29,7 +29,7 @@ public class NumberUtils {
         if (c == '+' || c == '-') {
             return isNumber(s.substring(1));
         }
-        if (s.matches("^[0-9A-Z]+$")) {
+        if (s.matches("^[0-9A-F]+$")) {
             return true;
         }
         if (s.startsWith("0X")) {
