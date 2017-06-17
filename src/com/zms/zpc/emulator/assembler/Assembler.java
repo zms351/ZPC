@@ -429,12 +429,13 @@ public class Assembler {
                             if (r0c == 0) {
                                 ra = "+0";
                                 n = 0;
+                            } else {
+                                r0c=0;
                             }
                             dispLen = 32;
                         }
                     }
                     assert k1 >= 0 && k2 >= 0;
-                    assert k2 != 4;
                     assert k == 1 || k == 2 || k == 4 || k == 8;
                     if (k == 2) {
                         k = 1;
