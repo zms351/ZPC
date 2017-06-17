@@ -467,7 +467,6 @@ public class Assembler {
         }
         assert r0c >= 0;
         assert r1c >= 0;
-        assert regBits > 0;
         if (bits != addressBits) {
             output.addInMark(0x67);
         }
@@ -599,13 +598,7 @@ public class Assembler {
             token = token.toUpperCase();
             RegData reg = RegMap.get(token);
             if (reg != null) {
-                List<String> k2 = reg.getKlasses2();
-                if (k2.contains("reg8")) {
-                    list.add("reg8");
-                }
-                if (k2.contains("reg32")) {
-                    list.add("reg32");
-                }
+                list.addAll(reg.getKlasses2());
             }
         }
         return list;
