@@ -445,7 +445,7 @@ public class Assembler {
                     } else {
                         k = 0;
                     }
-                    sib = 0x40 * k + k1 * 8 + k2;
+                    sib = 0x40 * k + k2 * 8 + k1;
                 }
                 hasDisp = ra != null;
                 disp = (int) n;
@@ -558,7 +558,7 @@ public class Assembler {
     }
 
     protected void process(Instru instru) {
-        System.out.println(instru.getLine());
+        //System.out.println(instru.getLine());
         InstruData data = findInstruData(instru);
         if (data.isSys()) {
             processSysInstruData(instru, data);

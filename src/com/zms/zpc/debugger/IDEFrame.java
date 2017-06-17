@@ -209,7 +209,7 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
 
     public void showNew(String text, String title, boolean silent) {
         FileEditorPane tab = addNew();
-        tabs.setSelectedComponent(tab);
+        select(tab);
         if (title != null) {
             tab.setDocTitle(title);
         }
@@ -231,7 +231,7 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
         }
         switch (command) {
             case "New": {
-                tabs.setSelectedComponent(addNew());
+                select(addNew());
             }
             break;
             case "Save All": {
@@ -261,7 +261,7 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
                 File file = openDialog();
                 if (file != null) {
                     FileEditorPane tab = addNew();
-                    tabs.setSelectedComponent(tab);
+                    select(tab);
                     tab.init(file);
                     refreshTitle(tab);
                 }
@@ -296,6 +296,10 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
             tabs.setTitleAt(index, tab.getDisplayTitle());
             tabs.setTabComponentAt(index,tab.getTabComponent());
         }
+    }
+
+    protected void select(FileEditorPane tab) {
+        tabs.setSelectedComponent(tab);
     }
 
 }
@@ -457,6 +461,8 @@ class TabComponent extends JPanel implements MouseListener,ActionListener {
         this.setOpaque(false);
         label.setOpaque(false);
         closeButton.setOpaque(false);
+
+        this.addMouseListener(this);
     }
 
     public JLabel getLabel() {
@@ -478,27 +484,41 @@ class TabComponent extends JPanel implements MouseListener,ActionListener {
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        close();
+        if(e.getComponent()==closeButton) {
+            close();
+        }
+        if(e.getComponent()==this) {
+            if(e.getButton() ==MouseEvent.BUTTON2) {
+                close();
+            }
+        }
     }
 
     @Override
     public void mousePressed(MouseEvent e) {
-
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
-
+        if(e.getComponent()==this) {
+            if(e.getButton() ==MouseEvent.BUTTON1) {
+                parent.getParentComponent().select(parent);
+            }
+        }
     }
 
     @Override
     public void mouseEntered(MouseEvent e) {
-        closeButton.setIcon(closeHovered);
+        if(e.getComponent()==closeButton) {
+            closeButton.setIcon(closeHovered);
+        }
     }
 
     @Override
     public void mouseExited(MouseEvent e) {
-        closeButton.setIcon(close);
+        if(e.getComponent()==closeButton) {
+            closeButton.setIcon(close);
+        }
     }
 
 }
