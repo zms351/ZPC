@@ -55,10 +55,10 @@ public class NumberUtils {
             return -parseNumber(s.substring(1));
         }
         if(s.startsWith("0X")) {
-            return Long.parseLong(s.substring(2,16));
+            return Long.parseLong(s.substring(2),16);
         }
         if(s.startsWith("0B")) {
-            return Long.parseLong(s.substring(2,2));
+            return Long.parseLong(s.substring(2),2);
         }
         if(s.startsWith("0")) {
             return Long.parseLong(s,8);

@@ -259,12 +259,21 @@ public class Assembler {
             }
             if (NumberUtils.isNumber(r1)) {
                 long n = parseImm(r1).longValue();
-                if (in16 && !NumberUtils.isIn16Bits(n)) {
-                    in32 = true;
-                    in16 = false;
+                if (in16) {
+                    if(NumberUtils.isIn16Bits(n)) {
+                        dispLen=16;
+                    } else {
+                        in32 = true;
+                        in16 = false;
+                        dispLen=32;
+                    }
+                } else {
+                    dispLen=32;
                 }
                 r0c = 0;
                 r1c = 6;
+                hasDisp=true;
+                disp= (int) n;
             } else {
                 int index = r1.lastIndexOf('-');
                 if (index < 0) {
@@ -429,9 +438,9 @@ public class Assembler {
                         k = 0;
                     }
                     sib = 0x40 * k + k1 * 8 + k2;
-                    hasDisp = ra != null;
-                    disp = (int) n;
                 }
+                hasDisp = ra != null;
+                disp = (int) n;
             }
         } else {
             assert RegMap.containsKey(r1);
