@@ -41,7 +41,13 @@ public class AssemblerOutput {
     }
 
     public void addInMark(int n) {
-        //todo
+        write(n);
+        int count=getPosition();
+        if((count-mark)>1) {
+            byte[] buffer = getBuffer();
+            System.arraycopy(buffer,mark,buffer,mark+1,count-mark-1);
+            buffer[mark]=(byte)n;
+        }
     }
 
 }

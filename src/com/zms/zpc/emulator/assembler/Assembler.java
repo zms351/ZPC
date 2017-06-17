@@ -449,8 +449,8 @@ public class Assembler {
                 }
                 hasDisp = ra != null;
                 disp = (int) n;
+                addressBits = regBits;
             }
-            addressBits = regBits;
         } else {
             assert RegMap.containsKey(r1);
             r0c = 3;
@@ -467,11 +467,8 @@ public class Assembler {
         assert r0c >= 0;
         assert r1c >= 0;
         assert regBits > 0;
-        if (bits == regBits) {
-            output.addInMark(0x67);
-        }
         if (bits != addressBits) {
-            output.addInMark(0x66);
+            output.addInMark(0x67);
         }
         int modrm = 0x40 * r0c + r2c * 8 + r1c;
         write8(modrm);
@@ -529,6 +526,14 @@ public class Assembler {
 
         int size = output.getPosition();
         byte[] buffer = output.getBuffer();
+        {
+            if((size-position)>1) {
+                if(buffer[position]==0x67 && buffer[position+1]==0x66) {
+                    buffer[position]=0x66;
+                    buffer[position+1]=0x67;
+                }
+            }
+        }
         writer.print("\t\t;#");
         for (int i = position; i < size; i++) {
             writer.print(' ');
