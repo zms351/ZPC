@@ -189,6 +189,22 @@ public class Assembler {
         output.write(n >>> 24);
     }
 
+    protected void writen(int n, int bits) {
+        switch (bits) {
+            case 8:
+                write8(n);
+                return;
+            case 16:
+                write16(n);
+                return;
+            case 32:
+                write32(n);
+                return;
+            default:
+                throw new RuntimeException("impl this");
+        }
+    }
+
     private static Object[][][] ModData = new Object[][][]{
             {
                     {"AL", "AX", "EAX", "MM0", "XMM0"},
@@ -250,8 +266,8 @@ public class Assembler {
         assert r2c >= 0;
         int r0c = -1;
         int r1c = -1;
-        boolean in32 = bits == 32;
-        boolean in16 = bits == 16;
+        int regBits = 0;
+        int addressBits = bits;
         if (r1.startsWith("[") && r1.endsWith("]")) {
             r1 = r1.substring(1, r1.length() - 1).replaceAll("\\s+", "").toUpperCase();
             if ("BP".equals(r1) || "EBP".equals(r1)) {
@@ -259,21 +275,17 @@ public class Assembler {
             }
             if (NumberUtils.isNumber(r1)) {
                 long n = parseImm(r1).longValue();
-                if (in16) {
-                    if(NumberUtils.isIn16Bits(n)) {
-                        dispLen=16;
-                    } else {
-                        in32 = true;
-                        in16 = false;
-                        dispLen=32;
-                    }
-                } else {
-                    dispLen=32;
+                if (bits == 16) {
+                    dispLen = 16;
+                }
+                if (bits == 32) {
+                    dispLen = 32;
                 }
                 r0c = 0;
                 r1c = 6;
-                hasDisp=true;
-                disp= (int) n;
+                hasDisp = true;
+                disp = (int) n;
+                addressBits = dispLen;
             } else {
                 int index = r1.lastIndexOf('-');
                 if (index < 0) {
@@ -294,29 +306,25 @@ public class Assembler {
                     pattern = (String) ModData[2][0][i];
                     if (eqModRMSIB(r1, pattern)) {
                         r1c = i;
-                        in16 = true;
-                        in32 = false;
+                        regBits = 16;
                         break;
                     }
                     pattern = (String) ModData[2][1][i];
                     if (eqModRMSIB(r1, pattern)) {
                         r1c = i;
-                        in32 = true;
-                        in16 = false;
+                        regBits = 32;
                         break;
                     }
                 }
-                if (in16) {
-                    assert r1c >= 0;
-                }
-                if (r1c == 4 && in32) {
+                if (r1c == 4 && regBits == 32) {
                     assert "ESP".equals(r1);
                 }
                 if (r1c < 0) {
-                    assert in32;
+                    regBits = 32;
                     r1c = 4;
                 }
-                if (in16) {
+                assert regBits>0;
+                if (regBits == 16) {
                     if (ra == null) {
                         r0c = 0;
                     } else if (NumberUtils.isIn8Bits(n)) {
@@ -328,7 +336,7 @@ public class Assembler {
                         dispLen = 16;
                     }
                 }
-                if (in32) {
+                if (regBits == 32) {
                     if (ra == null) {
                         r0c = 0;
                     } else if (NumberUtils.isIn8Bits(n)) {
@@ -340,11 +348,11 @@ public class Assembler {
                         dispLen = 32;
                     }
                 }
-                if (r1c == 4 && in32) {
+                if (r1c == 4 && regBits == 32) {
                     //sib
                     int k1 = -1;
                     int k2 = -1;
-                    int k = -1;
+                    int k;
                     index = r1.indexOf('+');
                     if (index > 0) {
                         String p1 = r1.substring(0, index).trim();
@@ -442,6 +450,7 @@ public class Assembler {
                 hasDisp = ra != null;
                 disp = (int) n;
             }
+            addressBits = regBits;
         } else {
             assert RegMap.containsKey(r1);
             r0c = 3;
@@ -457,15 +466,12 @@ public class Assembler {
         }
         assert r0c >= 0;
         assert r1c >= 0;
-        if (bits == 32) {
-            if (in16) {
-                output.addInMark(0x67);
-            }
+        assert regBits > 0;
+        if (bits == regBits) {
+            output.addInMark(0x67);
         }
-        if (bits == 16) {
-            if (in32) {
-                output.addInMark(0x67);
-            }
+        if (bits != addressBits) {
+            output.addInMark(0x66);
         }
         int modrm = 0x40 * r0c + r2c * 8 + r1c;
         write8(modrm);
@@ -473,15 +479,8 @@ public class Assembler {
             write8(sib);
         }
         if (hasDisp) {
-            if (dispLen == 8) {
-                write8(disp);
-            } else if (dispLen == 16) {
-                write16(disp);
-            } else if (dispLen == 32) {
-                write32(disp);
-            } else {
-                throw new RuntimeException("not impl,bad?");
-            }
+            assert dispLen > 0;
+            writen(disp,dispLen);
         }
     }
 
