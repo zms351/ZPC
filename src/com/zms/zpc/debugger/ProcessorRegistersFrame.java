@@ -1,7 +1,7 @@
 package com.zms.zpc.debugger;
 
 import com.zms.zpc.debugger.util.*;
-import com.zms.zpc.emulator.processor.Reg;
+import com.zms.zpc.emulator.processor.*;
 import com.zms.zpc.support.*;
 
 import javax.swing.*;
@@ -29,7 +29,7 @@ public class ProcessorRegistersFrame extends UtilityFrame {
 
     private void design() {
         Object[] cols = new Object[]{"Register", "7", "6", "5", "4", "3", "2", "1", "0", "Hex"};
-        Reg[] regs = getFrame().getPc().getProcessor().getRegs().getRootRegs();
+        BaseReg[] regs = getFrame().getPc().getProcessor().getRegs().getRootRegs();
         Object[][] data = new Object[regs.length][cols.length];
         for (int i = 0; i < regs.length; i++) {
             data[i][0] = regs[i].getName().toUpperCase();
@@ -106,7 +106,7 @@ public class ProcessorRegistersFrame extends UtilityFrame {
     }
 
     public void refresh1() {
-        Reg[] regs = getFrame().getPc().getProcessor().getRegs().getRootRegs();
+        BaseReg[] regs = getFrame().getPc().getProcessor().getRegs().getRootRegs();
         for (int i = 0; i < regs.length; i++) {
             Long v = regs[i].getRv();
             //v= new Random().nextLong();

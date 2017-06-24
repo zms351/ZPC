@@ -1,0 +1,28 @@
+package com.zms.zpc.emulator.processor;
+
+import java.util.*;
+
+/**
+ * Created by 张小美 on 17/六月/22.
+ * Copyright 2002-2016
+ */
+public class Segment extends Reg {
+
+    public static final Map<Integer,SegmentBase> baseMap=new HashMap<>();
+
+    private SegmentBase base;
+
+    public Segment(String name, Regs regs, int index, int width) {
+        super(name, regs, index, width);
+        assert pos==0;
+        synchronized (baseMap) {
+            base = baseMap.get(index);
+            if (base == null) {
+                String baseName=name.substring(name.length()-2)+"b";
+                base=new SegmentBase(baseName,regs,index);
+                baseMap.put(index,base);
+            }
+        }
+    }
+
+}

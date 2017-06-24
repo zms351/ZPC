@@ -8,37 +8,119 @@ public class Regs {
 
     private final long[] rvs = new long[128];
 
-    private final Reg rax = new Reg("rax", this, 0, 0, 64);
-    private final Reg eax = new Reg("eax", this, 0, 0, 32);
-    private final Reg ax = new Reg("ax", this, 0, 0, 16);
-    private final Reg ah = new Reg("ah", this, 0, 8, 8);
-    private final Reg al = new Reg("al", this, 0, 0, 8);
+    public final BaseReg rax = new Reg("rax", this, 0, 64);
+    public final BaseReg eax = new Reg("eax", this, 0, 32);
+    public final BaseReg ax = new Reg("ax", this, 0, 16);
+    public final BaseReg ah = new Reg8("ah", this, 0);
+    public final BaseReg al = new Reg("al", this, 0, 8);
 
-    private final Reg rbx = new Reg("rbx", this, 1, 0, 64);
-    private final Reg ebx = new Reg("ebx", this, 1, 0, 32);
-    private final Reg bx = new Reg("bx", this, 1, 0, 16);
-    private final Reg bh = new Reg("bh", this, 1, 8, 8);
-    private final Reg bl = new Reg("bl", this, 1, 0, 8);
+    public final BaseReg rbx = new Reg("rbx", this, 1, 64);
+    public final BaseReg ebx = new Reg("ebx", this, 1, 32);
+    public final BaseReg bx = new Reg("bx", this, 1, 16);
+    public final BaseReg bh = new Reg8("bh", this, 1);
+    public final BaseReg bl = new Reg("bl", this, 1, 8);
 
-    private final Reg rcx = new Reg("rcx", this, 2, 0, 64);
-    private final Reg ecx = new Reg("ecx", this, 2, 0, 32);
-    private final Reg cx = new Reg("cx", this, 2, 0, 16);
-    private final Reg ch = new Reg("ch", this, 2, 8, 8);
-    private final Reg cl = new Reg("cl", this, 2, 0, 8);
+    public final BaseReg rcx = new Reg("rcx", this, 2, 64);
+    public final BaseReg ecx = new Reg("ecx", this, 2, 32);
+    public final BaseReg cx = new Reg("cx", this, 2, 16);
+    public final BaseReg ch = new Reg8("ch", this, 2);
+    public final BaseReg cl = new Reg("cl", this, 2, 8);
 
-    private final Reg rdx = new Reg("rdx", this, 3, 0, 64);
-    private final Reg edx = new Reg("edx", this, 3, 0, 32);
-    private final Reg dx = new Reg("dx", this, 3, 0, 16);
-    private final Reg dh = new Reg("dh", this, 3, 8, 8);
-    private final Reg dl = new Reg("dl", this, 3, 0, 8);
+    public final BaseReg rdx = new Reg("rdx", this, 3, 64);
+    public final BaseReg edx = new Reg("edx", this, 3, 32);
+    public final BaseReg dx = new Reg("dx", this, 3, 16);
+    public final BaseReg dh = new Reg8("dh", this, 3);
+    public final BaseReg dl = new Reg("dl", this, 3, 8);
 
-    private final Reg[] rootRegs=new Reg[]{rax,rbx,rcx,rdx};
+    public final BaseReg rsi = new Reg("rsi", this, 4, 64);
+    public final BaseReg esi = new Reg("esi", this, 4, 32);
+    public final BaseReg si = new Reg("si", this, 4, 16);
+    public final BaseReg sil = new Reg("sil", this, 4, 8);
+
+    public final BaseReg rdi = new Reg("rdi", this, 5, 64);
+    public final BaseReg edi = new Reg("edi", this, 5, 32);
+    public final BaseReg di = new Reg("di", this, 5, 16);
+    public final BaseReg dil = new Reg("dil", this, 5, 8);
+
+    public final BaseReg rbp = new Reg("rbp", this, 6, 64);
+    public final BaseReg ebp = new Reg("ebp", this, 6, 32);
+    public final BaseReg bp = new Reg("bp", this, 6, 16);
+    public final BaseReg bpl = new Reg("bpl", this, 6, 8);
+
+    public final BaseReg rsp = new Reg("rsp", this, 7, 64);
+    public final BaseReg esp = new Reg("esp", this, 7, 32);
+    public final BaseReg sp = new Reg("sp", this, 7, 16);
+    public final BaseReg spl = new Reg("spl", this, 7, 8);
+
+    public final BaseReg r8 = new Reg("r8", this, 8, 64);
+    public final BaseReg r8d = new Reg("r8d", this, 8, 32);
+    public final BaseReg r8w = new Reg("r8w", this, 8, 16);
+    public final BaseReg r8b = new Reg("r8b", this, 8, 8);
+
+    public final BaseReg r9 = new Reg("r9", this, 9, 64);
+    public final BaseReg r9d = new Reg("r9d", this, 9, 32);
+    public final BaseReg r9w = new Reg("r9w", this, 9, 16);
+    public final BaseReg r9b = new Reg("r9b", this, 9, 8);
+
+    public final BaseReg r10 = new Reg("r10", this, 10, 64);
+    public final BaseReg r10d = new Reg("r10d", this, 10, 32);
+    public final BaseReg r10w = new Reg("r10w", this, 10, 16);
+    public final BaseReg r10b = new Reg("r10b", this, 10, 8);
+
+    public final BaseReg r11 = new Reg("r11", this, 11, 64);
+    public final BaseReg r11d = new Reg("r11d", this, 11, 32);
+    public final BaseReg r11w = new Reg("r11w", this, 11, 16);
+    public final BaseReg r11b = new Reg("r11b", this, 11, 8);
+
+    public final BaseReg r12 = new Reg("r12", this, 12, 64);
+    public final BaseReg r12d = new Reg("r12d", this, 12, 32);
+    public final BaseReg r12w = new Reg("r12w", this, 12, 16);
+    public final BaseReg r12b = new Reg("r12b", this, 12, 8);
+
+    public final BaseReg r13 = new Reg("r13", this, 13, 64);
+    public final BaseReg r13d = new Reg("r13d", this, 13, 32);
+    public final BaseReg r13w = new Reg("r13w", this, 13, 16);
+    public final BaseReg r13b = new Reg("r13b", this, 13, 8);
+
+    public final BaseReg r14 = new Reg("r14", this, 14, 64);
+    public final BaseReg r14d = new Reg("r14d", this, 14, 32);
+    public final BaseReg r14w = new Reg("r14w", this, 14, 16);
+    public final BaseReg r14b = new Reg("r14b", this, 14, 8);
+
+    public final BaseReg r15 = new Reg("r15", this, 15, 64);
+    public final BaseReg r15d = new Reg("r15d", this, 15, 32);
+    public final BaseReg r15w = new Reg("r15w", this, 15, 16);
+    public final BaseReg r15b = new Reg("r15b", this, 15, 8);
+
+    public final BaseReg rip = new Reg("rip", this, 81, 64);
+    public final BaseReg eip = new Reg("eip", this, 81, 32);
+    public final BaseReg ip = new Reg("ip", this, 81, 16);
+    public final BaseReg ipl = new Reg("ipl", this, 81, 8);
+
+    //ES、CS、SS、DS、FS和GS
+
+    public final Segment ees = new Segment("ees", this, 101, 32);
+    public final Segment es = new Segment("es", this, 101, 16);
+
+    public final Segment ecs = new Segment("ecs", this, 102, 32);
+    public final Segment cs = new Segment("cs", this, 102, 16);
+
+    public final Segment ess = new Segment("ess", this, 103, 32);
+    public final Segment ss = new Segment("ss", this, 103, 16);
+
+    public final Segment eds = new Segment("eds", this, 104, 32);
+    public final Segment ds = new Segment("ds", this, 104, 16);
+
+    public final Segment efs = new Segment("fs", this, 105, 32);
+    public final Segment egs = new Segment("gs", this, 106, 32);
+
+    public final BaseReg[] rootRegs = new BaseReg[]{rax, rbx, rcx, rdx, rsi, rdi, rbp, rsp, r8, r9, r10, r11, r12, r13, r14, r15};
 
     public long[] getRvs() {
         return rvs;
     }
 
-    public Reg[] getRootRegs() {
+    public BaseReg[] getRootRegs() {
         return rootRegs;
     }
 
