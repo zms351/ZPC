@@ -6,6 +6,15 @@ package com.zms.zpc.emulator.processor;
  */
 public abstract class BaseReg {
 
+    public static final long Mask8l=0xffffffffffffff00L;
+    public static final int Mask8r=0xff;
+
+    public static final long Mask16l=0xffffffffffff0000L;
+    public static final int Mask16r=0xffff;
+
+    public static final long Mask32l=0xffffffff00000000L;
+    public static final int Mask32r=0xffffffff;
+
     protected String name;
     protected long[] rvs;
     protected int index;
@@ -50,8 +59,14 @@ public abstract class BaseReg {
         return rvs[index];
     }
 
+    public void setRv(long v) {
+        rvs[index]=v;
+    }
+
     public abstract void setValue32(int v);
 
     public abstract void setValue16(int v);
+
+    public abstract void setValue8(int v);
 
 }

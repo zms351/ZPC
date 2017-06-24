@@ -12,12 +12,26 @@ public class BaseReg_0 extends BaseReg {
 
     @Override
     public void setValue32(int v) {
-
+        assert width == 32;
+        long n = getRv();
+        n = (n & Mask32l) | v;
+        setRv(n);
     }
 
     @Override
     public void setValue16(int v) {
+        assert width == 16;
+        long n = getRv();
+        n = (n & Mask16l) | (v & Mask16r);
+        setRv(n);
+    }
 
+    @Override
+    public void setValue8(int v) {
+        assert width == 8;
+        long n = getRv();
+        n = (n & Mask8l) | (v & Mask8r);
+        setRv(n);
     }
 
 }
