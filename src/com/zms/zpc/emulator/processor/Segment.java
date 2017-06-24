@@ -25,4 +25,14 @@ public class Segment extends Reg {
         }
     }
 
+    @Override
+    public void setValue16(int v) {
+        super.setValue16(v);
+        setBase((v & 0xffff)<<4);
+    }
+
+    public void setBase(int v) {
+        base.setValue32(v);
+    }
+
 }

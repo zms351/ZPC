@@ -1,6 +1,7 @@
 package com.zms.zpc.emulator;
 
-import com.zms.zpc.emulator.processor.Processor;
+import com.zms.zpc.emulator.hardware.*;
+import com.zms.zpc.emulator.processor.*;
 
 /**
  * Created by 张小美 on 17/五月/25.
@@ -11,7 +12,7 @@ public class PC implements Runnable {
     private Processor processor, cpu;
     private PCConfig config;
     private PCState state = PCState.Shutddown;
-    private Memory memory;
+    private RAM memory;
 
     public PC() {
         this(null);
@@ -28,7 +29,7 @@ public class PC implements Runnable {
     private void init() {
         this.processor = new Processor(config.getProcessorConfig());
         this.cpu = this.processor;
-        this.memory = new Memory(config.getMemoryChipLen(), config.getMemoryCount());
+        this.memory = new PhysicalMemory(config.getMemoryChipLen(), config.getMemoryCount());
     }
 
     public PCConfig getConfig() {
@@ -51,7 +52,7 @@ public class PC implements Runnable {
         return cpu;
     }
 
-    public Memory getMemory() {
+    public RAM getMemory() {
         return memory;
     }
 
@@ -84,21 +85,29 @@ public class PC implements Runnable {
 
     private void doReset() {
         synchronized (this) {
-            cpu.regs.cs.setValue16(0xf000);
+            Segment cs = cpu.regs.cs;
+            cs.setValue16(0xf000);
+            //cs.setBase(0xffff0000);
+            cpu.regs.eip.setValue32(0xFFF0);
             state = PCState.Running;
         }
     }
 
     @Override
     public void run() {
-        while (state != PCState.Shutddown) {
-            if (state == PCState.Reset) {
-                doReset();
-                continue;
+        try {
+            while (state != PCState.Shutddown) {
+                if (state == PCState.Reset) {
+                    doReset();
+                    continue;
+                }
+                if (state == PCState.Running) {
+                    //todo
+                }
+                Thread.sleep(1);
             }
-            if (state == PCState.Running) {
-                //todo
-            }
+        } catch (Throwable t) {
+            t.printStackTrace();
         }
     }
 
