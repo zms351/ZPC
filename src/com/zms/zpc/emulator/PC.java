@@ -90,6 +90,7 @@ public class PC implements Runnable {
             cs.setValue16(0xf000);
             //cs.setBase(0xffff0000);
             cpu.regs.eip.setValue32(0xFFF0);
+            cpu.regs.bits.pe.clear();
             state = PCState.Running;
         }
     }

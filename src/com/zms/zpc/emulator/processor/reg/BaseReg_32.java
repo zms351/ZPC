@@ -1,6 +1,6 @@
 package com.zms.zpc.emulator.processor.reg;
 
-import com.zms.zpc.base.NotImplException;
+import com.zms.zpc.support.NotImplException;
 import com.zms.zpc.emulator.processor.Regs;
 
 /**

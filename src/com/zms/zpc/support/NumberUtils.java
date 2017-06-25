@@ -82,4 +82,14 @@ public class NumberUtils {
         return n>=Byte.MIN_VALUE && n<256;
     }
 
+    public static final long[] Powers=new long[64];
+
+    static {
+        long n=1;
+        for(int i=0;i<64;i++) {
+            Powers[i]=n;
+            n*=2;
+        }
+    }
+
 }

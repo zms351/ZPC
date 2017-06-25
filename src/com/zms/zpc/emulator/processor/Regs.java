@@ -135,4 +135,6 @@ public class Regs {
         return rootRegs;
     }
 
+    public Bits bits=new Bits(this);
+
 }
