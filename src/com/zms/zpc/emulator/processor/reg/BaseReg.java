@@ -71,4 +71,6 @@ public abstract class BaseReg {
 
     public abstract void setValue8(int v);
 
+    public abstract int getValue32();
+
 }

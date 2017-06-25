@@ -27,4 +27,9 @@ public class PhysicalMemory extends RAM {
         return memory;
     }
 
+    @Override
+    public int read(long context, long pos) {
+        return memory[(int) pos];
+    }
+
 }

@@ -33,4 +33,10 @@ public class BaseReg_32 extends BaseReg {
         throw new NotImplException();
     }
 
+    @Override
+    public int getValue32() {
+        assert width==32;
+        return (int)(getRv()>>>32);
+    }
+
 }

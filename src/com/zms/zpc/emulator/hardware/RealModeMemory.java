@@ -20,4 +20,9 @@ public class RealModeMemory extends RAM {
         }
     }
 
+    @Override
+    public int read(long context, long pos) {
+        return memory.read(context,pos);
+    }
+
 }

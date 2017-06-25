@@ -37,4 +37,8 @@ public class Segment extends Reg {
         base.setValue32(v);
     }
 
+    public int getBase() {
+        return base.getValue32();
+    }
+
 }

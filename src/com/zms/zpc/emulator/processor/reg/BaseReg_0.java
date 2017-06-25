@@ -1,6 +1,7 @@
 package com.zms.zpc.emulator.processor.reg;
 
 import com.zms.zpc.emulator.processor.Regs;
+import com.zms.zpc.support.NotImplException;
 
 /**
  * Created by 张小美 on 17/六月/24.
@@ -34,6 +35,12 @@ public class BaseReg_0 extends BaseReg {
         long n = getRv();
         n = (n & Mask8l) | (v & Mask8r);
         setRv(n);
+    }
+
+    @Override
+    public int getValue32() {
+        assert width==32;
+        return (int) getRv();
     }
 
 }

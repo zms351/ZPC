@@ -5,4 +5,7 @@ package com.zms.zpc.emulator.hardware;
  * Copyright 2002-2016
  */
 public abstract class RAM {
+
+    public abstract int read(long context,long pos);
+
 }

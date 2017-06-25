@@ -3,6 +3,7 @@ package com.zms.zpc.emulator;
 import com.zms.zpc.emulator.hardware.*;
 import com.zms.zpc.emulator.processor.*;
 import com.zms.zpc.emulator.processor.reg.Segment;
+import com.zms.zpc.execute.*;
 
 /**
  * Created by 张小美 on 17/五月/25.
@@ -10,10 +11,10 @@ import com.zms.zpc.emulator.processor.reg.Segment;
  */
 public class PC implements Runnable {
 
-    private Processor processor, cpu;
+    public Processor processor, cpu;
     private PCConfig config;
     private PCState state = PCState.Shutddown;
-    private RAM memory;
+    public RAM memory;
 
     public PC() {
         this(null);
@@ -47,14 +48,6 @@ public class PC implements Runnable {
 
     public void setState(PCState state) {
         this.state = state;
-    }
-
-    public Processor getCpu() {
-        return cpu;
-    }
-
-    public RAM getMemory() {
-        return memory;
     }
 
     public void powerOn() {
@@ -99,13 +92,16 @@ public class PC implements Runnable {
     @Override
     public void run() {
         try {
+            CodeExecutor executor=new CodeExecutor();
+            CodeInputStream input=new CodeInputStream();
             while (state != PCState.Shutddown) {
                 if (state == PCState.Reset) {
                     doReset();
                     continue;
                 }
                 if (state == PCState.Running) {
-                    //todo
+                    input.seek(this);
+                    executor.execute(this,input);
                 } else {
                     Thread.sleep(100);
                 }
