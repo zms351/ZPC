@@ -4,6 +4,9 @@ import com.zms.zpc.emulator.hardware.*;
 import com.zms.zpc.emulator.processor.*;
 import com.zms.zpc.emulator.processor.reg.Segment;
 import com.zms.zpc.execute.*;
+import com.zms.zpc.support.GarUtils;
+
+import java.io.InputStream;
 
 /**
  * Created by 张小美 on 17/五月/25.
@@ -85,8 +88,21 @@ public class PC implements Runnable {
             cpu.regs.eip.setValue32(0xFFF0);
             cpu.regs.bits.pe.clear();
             memory=new RealModeMemory(memory);
+            installBios();
             state = PCState.Running;
         }
+    }
+
+    private void installBios() {
+        String url="images/"+config.getBios();
+        byte[] bytes;
+        try(InputStream input = this.getClass().getClassLoader().getResourceAsStream(url)) {
+            bytes = GarUtils.readAll(input);
+        } catch (Throwable t) {
+            throw new RuntimeException(t);
+        }
+        assert bytes.length>100;
+        memory.write(0,0x100000-bytes.length,bytes,0,bytes.length);
     }
 
     @Override

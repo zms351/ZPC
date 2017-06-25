@@ -8,4 +8,10 @@ public abstract class RAM {
 
     public abstract int read(long context,long pos);
 
+    public abstract int read(long context,long pos,byte[] bytes,int offset,int size);
+
+    public abstract void write(long context,long pos,int v);
+
+    public abstract int write(long context,long pos,byte[] bytes,int offset,int size);
+
 }

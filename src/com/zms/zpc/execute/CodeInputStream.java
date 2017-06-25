@@ -27,7 +27,7 @@ public class CodeInputStream extends InputStream {
     }
 
     @Override
-    public int read() throws IOException {
+    public int read() {
         return ram.read(0,pos);
     }
 

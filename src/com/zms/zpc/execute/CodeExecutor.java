@@ -1,6 +1,8 @@
 package com.zms.zpc.execute;
 
 import com.zms.zpc.emulator.PC;
+import com.zms.zpc.emulator.processor.Regs;
+import com.zms.zpc.support.NotImplException;
 
 /**
  * Created by 张小美 on 17/六月/25.
@@ -11,7 +13,15 @@ public class CodeExecutor {
     private int bits=16;
 
     public int execute(PC pc,CodeInputStream input) {
-        return 0;
+        Regs regs = pc.cpu.regs;
+        if (regs.bits.pe.get()) {
+            throw new NotImplException();
+        } else {
+            bits=16;
+        }
+        int n=input.read();
+        //todo
+        return n;
     }
 
     public int getBits() {

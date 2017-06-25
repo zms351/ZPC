@@ -85,4 +85,23 @@ public class GarUtils {
         return buffer;
     }
 
+    public static int dump(InputStream input,OutputStream output) throws IOException {
+        byte[] buffer=new byte[10240];
+        int len;
+        int total=0;
+        while((len=input.read(buffer))>=0) {
+            if(len>0) {
+                output.write(buffer,0,len);
+                total+=len;
+            }
+        }
+        return total;
+    }
+
+    public static byte[] readAll(InputStream input) throws IOException {
+        ByteArrayOutputStream output=new ByteArrayOutputStream();
+        dump(input,output);
+        return output.toByteArray();
+    }
+
 }
