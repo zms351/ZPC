@@ -7,13 +7,24 @@ package com.zms.zpc.emulator.hardware;
 public class PhysicalMemory extends RAM {
 
     private long totalSize;
+    private byte[] memory;
 
     public PhysicalMemory(long size, int count) {
         this.totalSize = size * count;
+        init();
     }
 
     public long getTotalSize() {
         return totalSize;
+    }
+
+    private void init() {
+        assert totalSize>0 && totalSize<Integer.MAX_VALUE;
+        memory=new byte[(int) totalSize];
+    }
+
+    public byte[] getMemory() {
+        return memory;
     }
 
 }
