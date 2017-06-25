@@ -1,4 +1,6 @@
-package com.zms.zpc.emulator.processor;
+package com.zms.zpc.emulator.processor.reg;
+
+import com.zms.zpc.emulator.processor.Regs;
 
 /**
  * Created by 张小美 on 17/六月/24.

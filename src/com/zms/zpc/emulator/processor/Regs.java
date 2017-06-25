@@ -1,5 +1,7 @@
 package com.zms.zpc.emulator.processor;
 
+import com.zms.zpc.emulator.processor.reg.*;
+
 /**
  * Created by 张小美 on 17/五月/24.
  * Copyright 2002-2016
@@ -92,10 +94,19 @@ public class Regs {
     public final BaseReg r15w = new Reg("r15w", this, 15, 16);
     public final BaseReg r15b = new Reg("r15b", this, 15, 8);
 
-    public final BaseReg rip = new Reg("rip", this, 81, 64);
-    public final BaseReg eip = new Reg("eip", this, 81, 32);
-    public final BaseReg ip = new Reg("ip", this, 81, 16);
-    public final BaseReg ipl = new Reg("ipl", this, 81, 8);
+    public final BaseReg rip = new Reg("rip", this, 61, 64);
+    public final BaseReg eip = new Reg("eip", this, 61, 32);
+    public final BaseReg ip = new Reg("ip", this, 61, 16);
+    public final BaseReg ipl = new Reg("ipl", this, 61, 8);
+
+    public final Flags rflags=new Flags("rflags",this,62,64);
+    public final Flags eflags=new Flags("eflags",this,62,32);
+
+    public final ControlReg cr0=new ControlReg("cr0",this,80,64);
+    public final ControlReg cr2=new ControlReg("cr2",this,82,64);
+    public final ControlReg cr3=new ControlReg("cr3",this,83,64);
+    public final ControlReg cr4=new ControlReg("cr4",this,84,64);
+    public final ControlReg cr8=new ControlReg("cr8",this,88,64);
 
     //ES、CS、SS、DS、FS和GS
 

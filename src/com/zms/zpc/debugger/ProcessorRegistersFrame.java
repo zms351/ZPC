@@ -1,7 +1,7 @@
 package com.zms.zpc.debugger;
 
 import com.zms.zpc.debugger.util.*;
-import com.zms.zpc.emulator.processor.*;
+import com.zms.zpc.emulator.processor.reg.BaseReg;
 import com.zms.zpc.support.*;
 
 import javax.swing.*;

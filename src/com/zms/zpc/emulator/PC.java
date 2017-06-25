@@ -2,6 +2,7 @@ package com.zms.zpc.emulator;
 
 import com.zms.zpc.emulator.hardware.*;
 import com.zms.zpc.emulator.processor.*;
+import com.zms.zpc.emulator.processor.reg.Segment;
 
 /**
  * Created by 张小美 on 17/五月/25.

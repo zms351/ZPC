@@ -1,4 +1,6 @@
-package com.zms.zpc.emulator.processor;
+package com.zms.zpc.emulator.processor.reg;
+
+import com.zms.zpc.emulator.processor.Regs;
 
 import java.util.*;
 
