@@ -91,6 +91,7 @@ public class PC implements Runnable {
             //cs.setBase(0xffff0000);
             cpu.regs.eip.setValue32(0xFFF0);
             cpu.regs.bits.pe.clear();
+            memory=new RealModeMemory(memory);
             state = PCState.Running;
         }
     }
@@ -105,8 +106,9 @@ public class PC implements Runnable {
                 }
                 if (state == PCState.Running) {
                     //todo
+                } else {
+                    Thread.sleep(100);
                 }
-                Thread.sleep(1);
             }
         } catch (Throwable t) {
             t.printStackTrace();

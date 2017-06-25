@@ -8,7 +8,7 @@ public enum PCState {
 
     Shutddown,
     Reset,
-    PowerOn,
+    //PowerOn,
     Running,
 
 }
