@@ -287,6 +287,10 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
                 }
             }
             break;
+            case "Start Debug": {
+                getFrame().getPc().setPauseCommand(11);
+            }
+            break;
         }
     }
 
@@ -294,7 +298,7 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
         int index = tabs.indexOfComponent(tab);
         if (index >= 0) {
             tabs.setTitleAt(index, tab.getDisplayTitle());
-            tabs.setTabComponentAt(index,tab.getTabComponent());
+            tabs.setTabComponentAt(index, tab.getTabComponent());
         }
     }
 
@@ -420,8 +424,8 @@ class FileEditorPane extends JTextPane implements DocumentListener {
     private TabComponent tabComponent;
 
     public TabComponent getTabComponent() {
-        if(tabComponent==null) {
-            tabComponent=new TabComponent(this);
+        if (tabComponent == null) {
+            tabComponent = new TabComponent(this);
         }
         tabComponent.getLabel().setText(getDisplayTitle());
         return tabComponent;
@@ -433,29 +437,29 @@ class FileEditorPane extends JTextPane implements DocumentListener {
 
 }
 
-class TabComponent extends JPanel implements MouseListener,ActionListener {
+class TabComponent extends JPanel implements MouseListener, ActionListener {
 
     private JLabel label;
     private JButton closeButton;
     private FileEditorPane parent;
 
-    public static Icon close,closeHovered,text;
+    public static Icon close, closeHovered, text;
 
     public TabComponent(FileEditorPane parent) {
         super(new BorderLayout());
         ZPC zpc = parent.getParentComponent().getFrame();
-        if(close==null) {
-            close=zpc.loadIcon("closeNew");
-            closeHovered=zpc.loadIcon("closeNewHovered");
-            text=zpc.loadIcon("text");
+        if (close == null) {
+            close = zpc.loadIcon("closeNew");
+            closeHovered = zpc.loadIcon("closeNewHovered");
+            text = zpc.loadIcon("text");
         }
-        closeButton=new JButton(close);
-        this.add(closeButton,BorderLayout.EAST);
+        closeButton = new JButton(close);
+        this.add(closeButton, BorderLayout.EAST);
         closeButton.setBorderPainted(false);
         closeButton.addMouseListener(this);
-        this.parent=parent;
-        label=new JLabel(parent.getDisplayTitle(),text,JLabel.CENTER);
-        this.add(label,BorderLayout.CENTER);
+        this.parent = parent;
+        label = new JLabel(parent.getDisplayTitle(), text, JLabel.CENTER);
+        this.add(label, BorderLayout.CENTER);
         closeButton.addActionListener(this);
 
         this.setOpaque(false);
@@ -484,11 +488,11 @@ class TabComponent extends JPanel implements MouseListener,ActionListener {
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        if(e.getComponent()==closeButton) {
+        if (e.getComponent() == closeButton) {
             close();
         }
-        if(e.getComponent()==this) {
-            if(e.getButton() ==MouseEvent.BUTTON2) {
+        if (e.getComponent() == this) {
+            if (e.getButton() == MouseEvent.BUTTON2) {
                 close();
             }
         }
@@ -500,8 +504,8 @@ class TabComponent extends JPanel implements MouseListener,ActionListener {
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        if(e.getComponent()==this) {
-            if(e.getButton() ==MouseEvent.BUTTON1) {
+        if (e.getComponent() == this) {
+            if (e.getButton() == MouseEvent.BUTTON1) {
                 parent.getParentComponent().select(parent);
             }
         }
@@ -509,14 +513,14 @@ class TabComponent extends JPanel implements MouseListener,ActionListener {
 
     @Override
     public void mouseEntered(MouseEvent e) {
-        if(e.getComponent()==closeButton) {
+        if (e.getComponent() == closeButton) {
             closeButton.setIcon(closeHovered);
         }
     }
 
     @Override
     public void mouseExited(MouseEvent e) {
-        if(e.getComponent()==closeButton) {
+        if (e.getComponent() == closeButton) {
             closeButton.setIcon(close);
         }
     }

@@ -152,6 +152,12 @@ public class ZPC extends JFrame implements ActionListener {
                     item.setActionCommand(command);
                     menu.add(item);
                 }
+                {
+                    command = "CPUPause";
+                    item = new JIconMenuItem("Pause");
+                    item.setActionCommand(command);
+                    menu.add(item);
+                }
             }
             {
                 menu = new JMenu("Tools");
@@ -345,13 +351,16 @@ public class ZPC extends JFrame implements ActionListener {
                 test3();
                 break;
             case "CPUPowerOn":
-                pc.powerOn();
+                pc.powerOn(false);
                 break;
             case "CPUPowerOff":
                 pc.powerOff();
                 break;
             case "CPUReset":
                 pc.reset();
+                break;
+            case "CPUPause":
+                pc.pause();
                 break;
         }
     }

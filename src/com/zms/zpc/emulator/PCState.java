@@ -10,5 +10,6 @@ public enum PCState {
     Reset,
     //PowerOn,
     Running,
+    Pause,
 
 }

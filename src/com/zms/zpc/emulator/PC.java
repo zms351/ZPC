@@ -1,7 +1,7 @@
 package com.zms.zpc.emulator;
 
 import com.zms.zpc.emulator.hardware.*;
-import com.zms.zpc.emulator.processor.*;
+import com.zms.zpc.emulator.processor.Processor;
 import com.zms.zpc.emulator.processor.reg.Segment;
 import com.zms.zpc.execute.*;
 import com.zms.zpc.support.GarUtils;
@@ -53,9 +53,23 @@ public class PC implements Runnable {
         this.state = state;
     }
 
-    public void powerOn() {
+    private PCState resetBefore;
+    private int pauseCommand;
+
+    public void setPauseCommand(int pauseCommand) {
+        if (this.pauseCommand == 0) {
+            this.pauseCommand = pauseCommand;
+        }
+    }
+
+    public void powerOn(boolean pause) {
         synchronized (this) {
             if (state == PCState.Shutddown) {
+                if (pause) {
+                    resetBefore = PCState.Pause;
+                } else {
+                    resetBefore = state;
+                }
                 state = PCState.Reset;
                 Thread thread = new Thread(this);
                 thread.setDaemon(true);
@@ -75,7 +89,18 @@ public class PC implements Runnable {
     public void reset() {
         synchronized (this) {
             if (state == PCState.Running) {
+                resetBefore = state;
                 state = PCState.Reset;
+            }
+        }
+    }
+
+    public void pause() {
+        synchronized (this) {
+            if (state == PCState.Running) {
+                state = PCState.Pause;
+            } else if (state == PCState.Shutddown) {
+                powerOn(true);
             }
         }
     }
@@ -87,29 +112,33 @@ public class PC implements Runnable {
             //cs.setBase(0xffff0000);
             cpu.regs.eip.setValue32(0xFFF0);
             cpu.regs.bits.pe.clear();
-            memory=new RealModeMemory(memory);
+            memory = new RealModeMemory(memory);
             installBios();
-            state = PCState.Running;
+            if (resetBefore == PCState.Pause) {
+                state = PCState.Pause;
+            } else {
+                state = PCState.Running;
+            }
         }
     }
 
     private void installBios() {
-        String url="images/"+config.getBios();
+        String url = "images/" + config.getBios();
         byte[] bytes;
-        try(InputStream input = this.getClass().getClassLoader().getResourceAsStream(url)) {
+        try (InputStream input = this.getClass().getClassLoader().getResourceAsStream(url)) {
             bytes = GarUtils.readAll(input);
         } catch (Throwable t) {
             throw new RuntimeException(t);
         }
-        assert bytes.length>100;
-        memory.write(0,0x100000-bytes.length,bytes,0,bytes.length);
+        assert bytes.length > 100;
+        memory.write(0, 0x100000 - bytes.length, bytes, 0, bytes.length);
     }
 
     @Override
     public void run() {
         try {
-            CodeExecutor executor=new CodeExecutor();
-            CodeInputStream input=new CodeInputStream();
+            CodeExecutor executor = new CodeExecutor();
+            CodeInputStream input = new CodeInputStream();
             while (state != PCState.Shutddown) {
                 if (state == PCState.Reset) {
                     doReset();
@@ -117,13 +146,26 @@ public class PC implements Runnable {
                 }
                 if (state == PCState.Running) {
                     input.seek(this);
-                    executor.execute(this,input);
+                    executor.execute(this, input);
+                } else if (state == PCState.Pause) {
+                    int command = pauseCommand;
+                    pauseCommand = 0;
+                    switch (command) {
+                        case 11: {     //decompile
+                            //todo
+                            break;
+                        }
+                        default:
+                            Thread.sleep(100);
+                    }
                 } else {
                     Thread.sleep(100);
                 }
             }
         } catch (Throwable t) {
             t.printStackTrace();
+        } finally {
+            System.out.println("code execute exited");
         }
     }
 
