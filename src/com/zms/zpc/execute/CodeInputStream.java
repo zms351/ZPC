@@ -28,7 +28,39 @@ public class CodeInputStream extends InputStream {
 
     @Override
     public int read() {
-        return ram.read(0,pos);
+        return ram.read(0,pos++);
+    }
+
+    @Override
+    public int read(byte[] b, int off, int len) {
+        int n=ram.read(0, pos, b, off, len);
+        if(n>0) {
+            pos+=n;
+        }
+        return n;
+    }
+
+    public void readFully(byte[] b) {
+        readFully(b,0,b.length);
+    }
+
+    public void readFully(byte[] b,int off,int len) {
+        int total=0;
+        int n;
+        while(total<len) {
+            n=read(b,off+total,len-total);
+            if(n>0) {
+                total+=n;
+            }
+        }
+    }
+
+    public long getPos() {
+        return pos;
+    }
+
+    public void setPos(long pos) {
+        this.pos = pos;
     }
 
 }

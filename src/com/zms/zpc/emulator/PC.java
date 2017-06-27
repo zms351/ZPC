@@ -152,7 +152,8 @@ public class PC implements Runnable {
                     pauseCommand = 0;
                     switch (command) {
                         case 11: {     //decompile, step into
-                            //todo
+                            input.seek(this);
+                            executor.execute(this, input);
                             break;
                         }
                         default:

@@ -60,6 +60,10 @@ public class GarUtils {
 
     public static Object saveFile(File file, String text) {
         byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
+        return saveFile(file,bytes);
+    }
+
+    public static Object saveFile(File file, byte[] bytes) {
         try (BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream(file))) {
             output.write(bytes);
             output.flush();

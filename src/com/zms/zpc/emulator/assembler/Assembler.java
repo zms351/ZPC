@@ -323,7 +323,7 @@ public class Assembler {
                     regBits = 32;
                     r1c = 4;
                 }
-                assert regBits>0;
+                assert regBits > 0;
                 if (regBits == 16) {
                     if (ra == null) {
                         r0c = 0;
@@ -430,7 +430,7 @@ public class Assembler {
                                 ra = "+0";
                                 n = 0;
                             } else {
-                                r0c=0;
+                                r0c = 0;
                             }
                             dispLen = 32;
                         }
@@ -477,7 +477,7 @@ public class Assembler {
         }
         if (hasDisp) {
             assert dispLen > 0;
-            writen(disp,dispLen);
+            writen(disp, dispLen);
         }
     }
 
@@ -527,10 +527,10 @@ public class Assembler {
         int size = output.getPosition();
         byte[] buffer = output.getBuffer();
         {
-            if((size-position)>1) {
-                if(buffer[position]==0x67 && buffer[position+1]==0x66) {
-                    buffer[position]=0x66;
-                    buffer[position+1]=0x67;
+            if ((size - position) > 1) {
+                if (buffer[position] == 0x67 && buffer[position + 1] == 0x66) {
+                    buffer[position] = 0x66;
+                    buffer[position + 1] = 0x67;
                 }
             }
         }
@@ -613,17 +613,22 @@ public class Assembler {
         System.out.println(InstruData.Flags);
     }
 
-    private static File tempNativeInput, tempNativeOutput, tempNativeError;
-    private static File Nasm;
+    public static File tempNativeInput, tempNativeOutput, tempNativeError;
+    public static File Nasm, Ndisasm;
+
+    public static void initNative() throws Exception {
+        if (tempNativeInput == null) {
+            tempNativeInput = File.createTempFile("zpc", ".asm");
+            tempNativeOutput = File.createTempFile("zpc", ".bin");
+            tempNativeError = File.createTempFile("zpc", ".log");
+            Nasm = new File("/Users/zms/workspace/api/jpc/gnu/nasm/nasm");
+            Ndisasm = new File("/Users/zms/workspace/api/jpc/gnu/nasm/ndisasm");
+        }
+    }
 
     public static synchronized Object nativeAssemble(String text) {
         try {
-            if (tempNativeInput == null) {
-                tempNativeInput = File.createTempFile("zpc", ".asm");
-                tempNativeOutput = File.createTempFile("zpc", ".bin");
-                tempNativeError = File.createTempFile("zpc", ".log");
-                Nasm = new File("/Users/zms/workspace/api/jpc/gnu/nasm/nasm");
-            }
+            initNative();
             GarUtils.saveFile(tempNativeInput, text);
             ProcessBuilder pb = new ProcessBuilder(Nasm.getPath(), "-o", tempNativeOutput.getPath(), tempNativeInput.getPath());
             pb.redirectErrorStream(true);
