@@ -13,29 +13,36 @@ public class CodeExecutor {
 
     private int bits = 16;
     private byte[] previewBuffer;
+    private boolean doDecodeNative;
 
     public CodeExecutor() {
         previewBuffer = new byte[16];
     }
 
-    public int execute(PC pc, CodeInputStream input) {
+    protected void pre(PC pc) {
         Regs regs = pc.cpu.regs;
         if (regs.bits.pe.get()) {
             throw new NotImplException();
         } else {
             bits = 16;
         }
-        {
-            long pos = input.getPos();
-            try {
-                input.readFully(previewBuffer);
-            } finally {
-                input.setPos(pos);
-            }
-            String output = Disassembler.nativeAssemble(previewBuffer, bits);
-        }
+    }
+
+    public int execute(PC pc, CodeInputStream input) {
+        pre(pc);
         //todo
         return 0;
+    }
+
+    public String decode(PC pc, CodeInputStream input) {
+        pre(pc);
+        long pos = input.getPos();
+        try {
+            input.readFully(previewBuffer);
+        } finally {
+            input.setPos(pos);
+        }
+        return Disassembler.nativeAssemble(previewBuffer, bits);
     }
 
     public int getBits() {

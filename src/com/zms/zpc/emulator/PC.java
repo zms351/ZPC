@@ -1,5 +1,6 @@
 package com.zms.zpc.emulator;
 
+import com.zms.zpc.emulator.debug.*;
 import com.zms.zpc.emulator.hardware.*;
 import com.zms.zpc.emulator.processor.Processor;
 import com.zms.zpc.emulator.processor.reg.Segment;
@@ -55,6 +56,18 @@ public class PC implements Runnable {
 
     private PCState resetBefore;
     private int pauseCommand;
+    private IDebugger _debugger;
+
+    public IDebugger getDebugger() {
+        if (_debugger == null) {
+            _debugger = new DummyDebugger();
+        }
+        return _debugger;
+    }
+
+    public void setDebugger(IDebugger debugger) {
+        this._debugger = debugger;
+    }
 
     public void setPauseCommand(int pauseCommand) {
         if (this.pauseCommand == 0) {
@@ -151,9 +164,15 @@ public class PC implements Runnable {
                     int command = pauseCommand;
                     pauseCommand = 0;
                     switch (command) {
-                        case 11: {     //decompile, step into
+                        case 11: {     //step into
                             input.seek(this);
                             executor.execute(this, input);
+                            break;
+                        }
+                        case 12: {  //decompile
+                            input.seek(this);
+                            String code = executor.decode(this, input);
+                            getDebugger().onMessage(12, code);
                             break;
                         }
                         default:
