@@ -1,7 +1,9 @@
 package com.zms.zpc.debugger;
 
 import com.zms.zpc.debugger.util.*;
+import com.zms.zpc.emulator.PC;
 import com.zms.zpc.emulator.assembler.Assembler;
+import com.zms.zpc.emulator.debug.IDebugger;
 import com.zms.zpc.support.GarUtils;
 
 import javax.swing.*;
@@ -16,7 +18,7 @@ import java.util.*;
  * Created by 张小美 on 17/六月/4.
  * Copyright 2002-2016
  */
-public class IDEFrame extends UtilityFrame implements ActionListener {
+public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger {
 
     public static final String Title = "IDE";
 
@@ -196,6 +198,11 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
             toolButtons.add(button);
             button.setIconCommand("output");
         }
+        {
+            button = new JIconButton("Decompile");
+            toolButtons.add(button);
+            button.setIconCommand("information");
+        }
         getFrame().designToolbar(toolBar, toolButtons);
 
         for (JIconButton one : toolButtons) {
@@ -308,10 +315,22 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
             }
             break;
             case "Step Into": {
-                getFrame().getPc().setPauseCommand(11);
+                PC pc = getFrame().getPc();
+                pc.setDebugger(this);
+                pc.setPauseCommand(11);
+            }
+            break;
+            case "Decompile": {
+                PC pc = getFrame().getPc();
+                //pc.setDebugger(this);
+                pc.setPauseCommand(12);
             }
             break;
         }
+    }
+
+    @Override
+    public void onMessage(int type, String message, Object... params) {
     }
 
     protected void refreshTitle(FileEditorPane tab) {
