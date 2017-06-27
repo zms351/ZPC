@@ -234,6 +234,19 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
         return one;
     }
 
+    public FileEditorPane findTabByName(String name) {
+        if (name == null) {
+            return null;
+        }
+        for (int i = 0; i < tabs.getTabCount(); i++) {
+            FileEditorPane tab = (FileEditorPane) tabs.getComponentAt(i);
+            if (name.equals(tab.getName())) {
+                return tab;
+            }
+        }
+        return null;
+    }
+
     public void showNew(String text, String title, boolean silent) {
         FileEditorPane tab = addNew();
         select(tab);
@@ -322,7 +335,7 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
             break;
             case "Decompile": {
                 PC pc = getFrame().getPc();
-                //pc.setDebugger(this);
+                pc.setDebugger(this);
                 pc.setPauseCommand(12);
             }
             break;
@@ -331,6 +344,25 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
 
     @Override
     public void onMessage(int type, String message, Object... params) {
+        final Object[] os = new Object[2];
+        if (type == 12) {
+            os[0] = "_internal__12__A_";
+            os[1] = "当前代码反编译结果";
+        }
+        if (os[0] != null && os[1] != null) {
+            SwingUtilities.invokeLater(() -> {
+                String name = (String) os[0];
+                FileEditorPane tab = findTabByName(name);
+                if (tab == null) {
+                    tab = addNew();
+                }
+                tab.setName(name);
+                tab.setDocTitle((String) os[1]);
+                tab.setText(message, true);
+                select(tab);
+                refreshTitle(tab);
+            });
+        }
     }
 
     protected void refreshTitle(FileEditorPane tab) {
@@ -341,8 +373,9 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
         }
     }
 
-    protected void select(FileEditorPane tab) {
+    protected FileEditorPane select(FileEditorPane tab) {
         tabs.setSelectedComponent(tab);
+        return tab;
     }
 
 }
@@ -351,6 +384,7 @@ class FileEditorPane extends JTextPane implements DocumentListener {
 
     private DefaultStyledDocument doc;
     private IDEFrame parent;
+    private String name;
 
     public FileEditorPane(IDEFrame parent) {
         super(new DefaultStyledDocument());
@@ -441,6 +475,16 @@ class FileEditorPane extends JTextPane implements DocumentListener {
             modifed = true;
             parent.refreshTitle(this);
         }
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public void setName(String name) {
+        this.name = name;
     }
 
     public void init(File file) {
