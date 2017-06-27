@@ -150,6 +150,16 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
             button.setIconCommand("startDebugger");
         }
         {
+            button = new JIconButton("Step Into");
+            toolButtons.add(button);
+            button.setIconCommand("traceInto");
+        }
+        {
+            button = new JIconButton("Step Over");
+            toolButtons.add(button);
+            button.setIconCommand("traceOver");
+        }
+        {
             button = new JIconButton("Run To Cursor");
             toolButtons.add(button);
             button.setIconCommand("runToCursor");
@@ -175,7 +185,17 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
             toolButtons.add(button);
             button.setIconCommand("rerun");
         }
-
+        toolButtons.add(null);
+        {
+            button = new JIconButton("Compile Native");
+            toolButtons.add(button);
+            button.setIconCommand("compile");
+        }
+        {
+            button = new JIconButton("Compile");
+            toolButtons.add(button);
+            button.setIconCommand("output");
+        }
         getFrame().designToolbar(toolBar, toolButtons);
 
         for (JIconButton one : toolButtons) {
@@ -267,7 +287,7 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
                 }
             }
             break;
-            case "Resume": {
+            case "Compile": {
                 FileEditorPane pane = (FileEditorPane) tabs.getSelectedComponent();
                 if (pane != null) {
                     Object o = new Assembler().assemble(pane.getText());
@@ -277,7 +297,7 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
                 }
             }
             break;
-            case "ReRun": {
+            case "Compile Native": {
                 FileEditorPane tab = (FileEditorPane) tabs.getSelectedComponent();
                 if (tab != null) {
                     Object o = Assembler.nativeAssemble(tab.getText());
@@ -287,7 +307,7 @@ public class IDEFrame extends UtilityFrame implements ActionListener {
                 }
             }
             break;
-            case "Start Debug": {
+            case "Step Into": {
                 getFrame().getPc().setPauseCommand(11);
             }
             break;

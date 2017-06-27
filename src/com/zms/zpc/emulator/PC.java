@@ -151,7 +151,7 @@ public class PC implements Runnable {
                     int command = pauseCommand;
                     pauseCommand = 0;
                     switch (command) {
-                        case 11: {     //decompile
+                        case 11: {     //decompile, step into
                             //todo
                             break;
                         }
