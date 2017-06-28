@@ -3,7 +3,7 @@ package com.zms.zpc.emulator;
 import com.zms.zpc.emulator.debug.*;
 import com.zms.zpc.emulator.hardware.*;
 import com.zms.zpc.emulator.processor.Processor;
-import com.zms.zpc.emulator.processor.reg.Segment;
+import com.zms.zpc.emulator.reg.Segment;
 import com.zms.zpc.execute.*;
 import com.zms.zpc.support.GarUtils;
 

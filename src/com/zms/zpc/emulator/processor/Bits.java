@@ -1,6 +1,6 @@
 package com.zms.zpc.emulator.processor;
 
-import com.zms.zpc.emulator.processor.reg.BitControl;
+import com.zms.zpc.emulator.reg.BitControl;
 
 /**
  * Created by 张小美 on 17/六月/25.

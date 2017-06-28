@@ -1,7 +1,6 @@
-package com.zms.zpc.emulator.processor.reg;
+package com.zms.zpc.emulator.reg;
 
 import com.zms.zpc.emulator.processor.Regs;
-import com.zms.zpc.support.NotImplException;
 
 /**
  * Created by 张小美 on 17/六月/24.
