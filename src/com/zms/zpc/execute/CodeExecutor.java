@@ -1,7 +1,6 @@
 package com.zms.zpc.execute;
 
 import com.zms.zpc.emulator.PC;
-import com.zms.zpc.emulator.assembler.Disassembler;
 import com.zms.zpc.emulator.processor.Regs;
 import com.zms.zpc.support.NotImplException;
 
@@ -13,10 +12,11 @@ public class CodeExecutor {
 
     private int bits = 16;
     private byte[] previewBuffer;
-    private boolean doDecodeNative;
+    private InstructionExecutor instruction;
 
     public CodeExecutor() {
         previewBuffer = new byte[16];
+        instruction = new InstructionExecutor();
     }
 
     protected void pre(PC pc) {
@@ -30,7 +30,15 @@ public class CodeExecutor {
 
     public int execute(PC pc, CodeInputStream input) {
         pre(pc);
-        //todo
+        instruction.setStartPos(input.getPos());
+        instruction.parse1(input, bits);
+        switch (instruction.getOpcode()[0]) {
+            case 0xea:
+                instruction.executeJumpFar(pc, input);
+                break;
+            default:
+                throw new NotImplException();
+        }
         return 0;
     }
 
