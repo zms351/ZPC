@@ -28,7 +28,7 @@ public class CodeInputStream extends InputStream {
 
     @Override
     public int read() {
-        return ram.read(0, pos++);
+        return ram.read(0, pos++) & 0xff;
     }
 
     @Override

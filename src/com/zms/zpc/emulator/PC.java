@@ -93,7 +93,7 @@ public class PC implements Runnable {
 
     public void powerOff() {
         synchronized (this) {
-            if (state == PCState.Running) {
+            if (state == PCState.Running || state==PCState.Pause) {
                 state = PCState.Shutddown;
             }
         }

@@ -16,7 +16,7 @@ public class Instruction {
     private boolean has66,has67;
 
     private int opcodeCount;
-    private int[] opcode;
+    private int[] opcode=new int[20];
 
     public Instruction() {
     }
