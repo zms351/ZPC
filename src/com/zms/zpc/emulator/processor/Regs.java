@@ -99,14 +99,14 @@ public class Regs {
     public final BaseReg ip = new Reg("ip", this, 61, 16);
     public final BaseReg ipl = new Reg("ipl", this, 61, 8);
 
-    public final Flags rflags=new Flags("rflags",this,62,64);
-    public final Flags eflags=new Flags("eflags",this,62,32);
+    public final Flags rflags = new Flags("rflags", this, 62, 64);
+    public final Flags eflags = new Flags("eflags", this, 62, 32);
 
-    public final ControlReg cr0=new ControlReg("cr0",this,80,64);
-    public final ControlReg cr2=new ControlReg("cr2",this,82,64);
-    public final ControlReg cr3=new ControlReg("cr3",this,83,64);
-    public final ControlReg cr4=new ControlReg("cr4",this,84,64);
-    public final ControlReg cr8=new ControlReg("cr8",this,88,64);
+    public final ControlReg cr0 = new ControlReg("cr0", this, 80, 64);
+    public final ControlReg cr2 = new ControlReg("cr2", this, 82, 64);
+    public final ControlReg cr3 = new ControlReg("cr3", this, 83, 64);
+    public final ControlReg cr4 = new ControlReg("cr4", this, 84, 64);
+    public final ControlReg cr8 = new ControlReg("cr8", this, 88, 64);
 
     //ES、CS、SS、DS、FS和GS
 
@@ -118,7 +118,7 @@ public class Regs {
     public final Segment ss = new Segment("ss", this, 106);
     // 107--112  for bases
 
-    public final BaseReg[] rootRegs = new BaseReg[]{rax, rbx, rcx, rdx, rsi, rdi, rbp, rsp, r8, r9, r10, r11, r12, r13, r14, r15};
+    public final BaseReg[] rootRegs = new BaseReg[]{rax, rbx, rcx, rdx, rsi, rdi, rbp, rsp, cs, eip};
 
     public long[] getRvs() {
         return rvs;
@@ -128,6 +128,6 @@ public class Regs {
         return rootRegs;
     }
 
-    public Bits bits=new Bits(this);
+    public Bits bits = new Bits(this);
 
 }

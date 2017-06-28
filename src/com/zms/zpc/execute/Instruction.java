@@ -13,6 +13,8 @@ public class Instruction {
     private int rexPrefixCount;
     private int[] rexPrefix = new int[20];
 
+    private boolean has66,has67;
+
     private int opcodeCount;
     private int[] opcode;
 
@@ -23,15 +25,18 @@ public class Instruction {
         legacyPrefixCount = 0;
         rexPrefixCount = 0;
         int n;
+        has66=has67=false;
         out:
         while (true) {
             n = input.read();
             switch (n) {
                 case 0x66:
                     legacyPrefix[legacyPrefixCount++] = n;
+                    has66=true;
                     break;
                 case 0x67:
                     legacyPrefix[legacyPrefixCount++] = n;
+                    has67=true;
                     break;
                 case 0x2e:
                     legacyPrefix[legacyPrefixCount++] = n;
@@ -108,6 +113,14 @@ public class Instruction {
 
     public void setStartPos(long startPos) {
         this.startPos = startPos;
+    }
+
+    public boolean isHas66() {
+        return has66;
+    }
+
+    public boolean isHas67() {
+        return has67;
     }
 
 }
