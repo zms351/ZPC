@@ -38,7 +38,7 @@ public class PC implements Runnable {
         this.processor = new Processor(config.getProcessorConfig());
         this.cpu = this.processor;
         this.memory = new PhysicalMemory(config.getMemoryChipLen(), config.getMemoryCount());
-        this.board=new MotherBoard();
+        this.board=new MotherBoard(this);
     }
 
     public PCConfig getConfig() {
