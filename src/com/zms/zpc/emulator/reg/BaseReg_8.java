@@ -39,4 +39,9 @@ public class BaseReg_8 extends BaseReg {
         throw new NotImplException();
     }
 
+    @Override
+    public void setValue64(long v) {
+        throw new NotImplException();
+    }
+
 }

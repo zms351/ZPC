@@ -65,6 +65,8 @@ public abstract class BaseReg {
         rvs[index]=v;
     }
 
+    public abstract void setValue64(long v);
+
     public abstract void setValue32(int v);
 
     public abstract void setValue16(int v);
@@ -72,5 +74,10 @@ public abstract class BaseReg {
     public abstract void setValue8(int v);
 
     public abstract int getValue32();
+
+    public long getValue64() {
+        assert width==64;
+        return getRv();
+    }
 
 }

@@ -8,7 +8,13 @@ import com.zms.zpc.emulator.PC;
  */
 public class InstructionExecutor extends Instruction {
 
-    public void executeJumpFar(PC pc, CodeInputStream input) {
+    public int readOdf(CodeExecutor executor,CodeInputStream input) {
+        int bits=executor.getBits();
+        assert bits==16 || bits==32;
+        return 0;
+    }
+
+    public void executeJumpFar(CodeExecutor executor,CodeInputStream input,PC pc) {
 
     }
 

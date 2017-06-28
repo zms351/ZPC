@@ -42,4 +42,10 @@ public class BaseReg_0 extends BaseReg {
         return (int) getRv();
     }
 
+    @Override
+    public void setValue64(long v) {
+        assert width==64;
+        setRv(v);
+    }
+
 }

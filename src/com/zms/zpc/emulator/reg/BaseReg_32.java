@@ -39,4 +39,9 @@ public class BaseReg_32 extends BaseReg {
         return (int)(getRv()>>>32);
     }
 
+    @Override
+    public void setValue64(long v) {
+        throw new NotImplException();
+    }
+
 }

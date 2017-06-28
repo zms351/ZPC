@@ -110,20 +110,13 @@ public class Regs {
 
     //ES、CS、SS、DS、FS和GS
 
-    public final Segment ees = new Segment("ees", this, 101, 32);
-    public final Segment es = new Segment("es", this, 101, 16);
-
-    public final Segment ecs = new Segment("ecs", this, 102, 32);
-    public final Segment cs = new Segment("cs", this, 102, 16);
-
-    public final Segment ess = new Segment("ess", this, 103, 32);
-    public final Segment ss = new Segment("ss", this, 103, 16);
-
-    public final Segment eds = new Segment("eds", this, 104, 32);
-    public final Segment ds = new Segment("ds", this, 104, 16);
-
-    public final Segment efs = new Segment("fs", this, 105, 32);
-    public final Segment egs = new Segment("gs", this, 106, 32);
+    public final Segment cs = new Segment("cs", this, 101);
+    public final Segment ds = new Segment("ds", this, 102);
+    public final Segment es = new Segment("es", this, 103);
+    public final Segment fs = new Segment("fs", this, 104);
+    public final Segment gs = new Segment("gs", this, 105);
+    public final Segment ss = new Segment("ss", this, 106);
+    // 107--112  for bases
 
     public final BaseReg[] rootRegs = new BaseReg[]{rax, rbx, rcx, rdx, rsi, rdi, rbp, rsp, r8, r9, r10, r11, r12, r13, r14, r15};
 

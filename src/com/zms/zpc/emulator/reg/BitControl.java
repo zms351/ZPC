@@ -36,6 +36,11 @@ public class BitControl extends BaseReg {
         throw new NotImplException();
     }
 
+    @Override
+    public void setValue64(long v) {
+        throw new NotImplException();
+    }
+
     public boolean get() {
         return (getRv() & mask)!=0;
     }

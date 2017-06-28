@@ -34,7 +34,7 @@ public class CodeExecutor {
         instruction.parse1(input, bits);
         switch (instruction.getOpcode()[0]) {
             case 0xea:
-                instruction.executeJumpFar(pc, input);
+                instruction.executeJumpFar(this, input, pc);
                 break;
             default:
                 throw new NotImplException();
