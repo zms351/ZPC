@@ -1,7 +1,7 @@
 package com.zms.zpc.execute;
 
 import com.zms.zpc.emulator.PC;
-import com.zms.zpc.emulator.hardware.RAM;
+import com.zms.zpc.emulator.memory.RAM;
 import com.zms.zpc.emulator.processor.Regs;
 import com.zms.zpc.support.NotImplException;
 

@@ -1,4 +1,4 @@
-package com.zms.zpc.emulator.hardware;
+package com.zms.zpc.emulator.memory;
 
 /**
  * Created by 张小美 on 17/六月/25.

@@ -1,4 +1,4 @@
-package com.zms.zpc.emulator.hardware;
+package com.zms.zpc.emulator.memory;
 
 import com.zms.zpc.support.NotImplException;
 

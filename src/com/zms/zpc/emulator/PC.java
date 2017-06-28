@@ -1,7 +1,8 @@
 package com.zms.zpc.emulator;
 
+import com.zms.zpc.emulator.board.MotherBoard;
 import com.zms.zpc.emulator.debug.*;
-import com.zms.zpc.emulator.hardware.*;
+import com.zms.zpc.emulator.memory.*;
 import com.zms.zpc.emulator.processor.Processor;
 import com.zms.zpc.emulator.reg.Segment;
 import com.zms.zpc.execute.*;
@@ -19,6 +20,7 @@ public class PC implements Runnable {
     private PCConfig config;
     private PCState state = PCState.Shutddown;
     public RAM memory;
+    public MotherBoard board;
 
     public PC() {
         this(null);
@@ -36,6 +38,7 @@ public class PC implements Runnable {
         this.processor = new Processor(config.getProcessorConfig());
         this.cpu = this.processor;
         this.memory = new PhysicalMemory(config.getMemoryChipLen(), config.getMemoryCount());
+        this.board=new MotherBoard();
     }
 
     public PCConfig getConfig() {
