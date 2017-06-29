@@ -1,5 +1,7 @@
 package com.zms.zpc.execute;
 
+import com.zms.zpc.support.NotImplException;
+
 /**
  * Created by 张小美 on 17/六月/27.
  * Copyright 2002-2016
@@ -17,8 +19,11 @@ public class Instruction {
 
     private int opcodeCount;
     private int[] opcode = new int[20];
+    private boolean[] reg8Ops = new boolean[256];
 
     public Instruction() {
+        reg8Ops[0x8a] = true; //mov
+        reg8Ops[0x30] = true; //xor
     }
 
     public void parse1(CodeInputStream input, int bits) {
@@ -83,17 +88,11 @@ public class Instruction {
         opcode[opcodeCount++] = n;
     }
 
-    private String reg1;
-    private String reg2;
-    private int addressIndex;
-    private String addressForm;
+    public ModRMSIB mrs = new ModRMSIB();
 
     public void parse2(CodeInputStream input, int bits) {
-        int ModRM = input.read();
-        int mod = ModRM >> 6;
-        int reg = (ModRM >> 3) & 0b111;
-        int rm = ModRM & 0b111;
-        System.out.println("here");
+        mrs.reg8 = reg8Ops[opcode[0]];
+        mrs.parse(this, input, bits);
     }
 
     public int getLegacyPrefixCount() {
@@ -161,7 +160,24 @@ public class Instruction {
         return isHasRex(0b01000001);
     }
 
+    public boolean isHasRex40() {
+        for (int i = 0; i < rexPrefixCount; i++) {
+            if (rexPrefix[i] == 0x40) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public int getOpWidth(int bits) {
+        bits = _getOpWidth(bits);
+        if (bits != 8 && bits != 16 && bits != 32 && bits != 64) {
+            throw new NotImplException();
+        }
+        return bits;
+    }
+
+    private int _getOpWidth(int bits) {
         if (bits == 16) {
             if (isHas66()) {
                 return 32;

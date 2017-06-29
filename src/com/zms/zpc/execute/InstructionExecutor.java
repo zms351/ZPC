@@ -34,9 +34,8 @@ public class InstructionExecutor extends Instruction {
                 return read32(input);
             case 64:
                 return read64(input);
-            default:
-                throw new NotImplException();
         }
+        throw new NotImplException();
     }
 
     public void executeJumpFar(CodeExecutor executor, CodeInputStream input, PC pc) {

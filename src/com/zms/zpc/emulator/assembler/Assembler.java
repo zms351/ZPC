@@ -239,7 +239,8 @@ public class Assembler {
                     {"XMM0","XMM1","XMM2","XMM3","XMM4","XMM5","XMM6","XMM7"},
                     {"ES","CS","SS","DS","FS","GS",null,null},
                     {"CR0","CR1","CR2","CR3","CR4","CR5","CR6","CR7"},
-                    {"DR0","DR1","DR2","DR3","DR4","DR5","DR6","DR7"}
+                    {"DR0","DR1","DR2","DR3","DR4","DR5","DR6","DR7"},
+                    {"AL","CL","DL","BL","SPL","BPL","SIL","DIL"}
             },
             {
                     {"R8B","R9B","R10B","R11B","R12B","R13B","R14B","R15B"},
