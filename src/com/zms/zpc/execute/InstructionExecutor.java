@@ -32,6 +32,7 @@ public class InstructionExecutor extends Instruction {
     }
 
     public void executeXor31(CodeExecutor executor, CodeInputStream input, PC pc) {
+        //System.out.println("here");
     }
 
 }

@@ -386,11 +386,14 @@ public class ZPC extends JFrame implements ActionListener {
         new ZPC().start();
     }
 
-    public void test1() {
+    public void test11() {
         ProcessorRegistersFrame frame = (ProcessorRegistersFrame) frameObjs.get(ProcessorRegistersFrame.Title);
         if (frame != null) {
             frame.refresh1();
         }
+    }
+
+    public void test1() {
     }
 
     public void test2() {

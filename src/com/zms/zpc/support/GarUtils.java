@@ -108,4 +108,8 @@ public class GarUtils {
         return output.toByteArray();
     }
 
+    public static boolean eq(Object a,Object b) {
+        return a == b || (a != null && a.equals(b));
+    }
+
 }
