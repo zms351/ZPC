@@ -13,10 +13,10 @@ public class Instruction {
     private int rexPrefixCount;
     private int[] rexPrefix = new int[20];
 
-    private boolean has66,has67;
+    private boolean has66, has67;
 
     private int opcodeCount;
-    private int[] opcode=new int[20];
+    private int[] opcode = new int[20];
 
     public Instruction() {
     }
@@ -25,18 +25,18 @@ public class Instruction {
         legacyPrefixCount = 0;
         rexPrefixCount = 0;
         int n;
-        has66=has67=false;
+        has66 = has67 = false;
         out:
         while (true) {
             n = input.read();
             switch (n) {
                 case 0x66:
                     legacyPrefix[legacyPrefixCount++] = n;
-                    has66=true;
+                    has66 = true;
                     break;
                 case 0x67:
                     legacyPrefix[legacyPrefixCount++] = n;
-                    has67=true;
+                    has67 = true;
                     break;
                 case 0x2e:
                     legacyPrefix[legacyPrefixCount++] = n;
@@ -83,6 +83,14 @@ public class Instruction {
         opcode[opcodeCount++] = n;
     }
 
+    public void parse2(CodeInputStream input, int bits) {
+        int ModRM = input.read();
+        int mod = ModRM >> 6;
+        int rm = (ModRM >> 3) & 0b111;
+        int reg = ModRM & 0b111;
+        System.out.println("here");
+    }
+
     public int getLegacyPrefixCount() {
         return legacyPrefixCount;
     }
@@ -121,6 +129,19 @@ public class Instruction {
 
     public boolean isHas67() {
         return has67;
+    }
+
+    public boolean isHasRex(int b) {
+        for (int i = 0; i < rexPrefixCount; i++) {
+            if ((rexPrefix[i] & b) == b) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isHasRexW() {
+        return isHasRex(0b01001000);
     }
 
 }

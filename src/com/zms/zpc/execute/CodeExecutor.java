@@ -36,6 +36,10 @@ public class CodeExecutor {
             case 0xea:
                 instruction.executeJumpFar(this, input, pc);
                 break;
+            case 0x31:
+                instruction.parse2(input, bits);
+                instruction.executeXor31(this, input, pc);
+                break;
             default:
                 throw new NotImplException();
         }
