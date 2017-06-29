@@ -83,6 +83,11 @@ public class Instruction {
         opcode[opcodeCount++] = n;
     }
 
+    private String reg1;
+    private String reg2;
+    private int addressIndex;
+    private String addressForm;
+
     public void parse2(CodeInputStream input, int bits) {
         int ModRM = input.read();
         int mod = ModRM >> 6;
@@ -142,6 +147,41 @@ public class Instruction {
 
     public boolean isHasRexW() {
         return isHasRex(0b01001000);
+    }
+
+    public boolean isHasRexR() {
+        return isHasRex(0b01000100);
+    }
+
+    public boolean isHasRexX() {
+        return isHasRex(0b01000010);
+    }
+
+    public boolean isHasRexB() {
+        return isHasRex(0b01000001);
+    }
+
+    public int getOpWidth(int bits) {
+        if (bits == 16) {
+            if (isHas66()) {
+                return 32;
+            }
+        }
+        if (bits == 32) {
+            if (isHas66()) {
+                return 16;
+            }
+        }
+        if (bits == 64) {
+            if (isHasRexW()) {
+                return 64;
+            } else if (isHas66()) {
+                return 16;
+            } else {
+                return 32;
+            }
+        }
+        return bits;
     }
 
 }

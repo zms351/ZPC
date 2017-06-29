@@ -205,7 +205,7 @@ public class Assembler {
         }
     }
 
-    private static Object[][][] ModData = new Object[][][]{
+    public static Object[][][] ModData = new Object[][][]{
             {
                     {"AL", "AX", "EAX", "MM0", "XMM0"},
                     {"CL", "CX", "ECX", "MM1", "XMM1"},
@@ -229,6 +229,28 @@ public class Assembler {
             {
                     {"BX+SI", "BX+DI", "BP+SI", "BP+DI", "SI", "DI", "BP", "BX"},  //BP  ....
                     {"EAX", "ECX", "EDX", "EBX", "ESP", "EBP", "ESI", "EDI"}  //ESP  EBP ....
+            },
+            {
+                    {"AL","CL","DL","BL","AH","CH","DH","BH"},
+                    {"AX","CX","DX","BX","SP","BP","SI","DI"},
+                    {"EAX","ECX","EDX","EBX","ESP","EBP","ESI","EDI"},
+                    {"RAX","RCX","RDX","RBX","RSP","RBP","RSI","RDI"},
+                    {"MMX0","MMX1","MMX2","MMX3","MMX4","MMX5","MMX6","MMX7"},
+                    {"XMM0","XMM1","XMM2","XMM3","XMM4","XMM5","XMM6","XMM7"},
+                    {"ES","CS","SS","DS","FS","GS",null,null},
+                    {"CR0","CR1","CR2","CR3","CR4","CR5","CR6","CR7"},
+                    {"DR0","DR1","DR2","DR3","DR4","DR5","DR6","DR7"}
+            },
+            {
+                    {"R8B","R9B","R10B","R11B","R12B","R13B","R14B","R15B"},
+                    {"R8W","R9W","R10W","R11W","R12W","R13W","R14W","R15W"},
+                    {"R8D","R9D","R10D","R11D","R12D","R13D","R14D","R15D"},
+                    {"R8","R9","R10","R11","R12","R13","R14","R15"},
+                    {"MMX","MMX1","MMX2","MMX3","MMX4","MMX5","MMX6","MMX7"},
+                    {"XMM8","XMM9","XMM10","XMM11","XMM12","XMM13","XMM14","XMM15"},
+                    {"ES","CS","SS","DS","FS","GS",null,null},
+                    {"CR8","CR9","CR10","CR11","CR12","CR13","CR14","CR15"},
+                    {"DR8","DR9","DR10","DR11","DR12","DR13","DR14","DR15"}
             }
     };
 

@@ -24,34 +24,19 @@ public class InstructionExecutor extends Instruction {
     }
 
     public long readOp(CodeExecutor executor, CodeInputStream input) {
-        int bits = executor.getBits();
-        if (bits == 8) {
-            return input.read();
-        }
-        if (bits == 16) {
-            if (isHas66()) {
-                return read32(input);
-            } else {
+        int width = getOpWidth(executor.getBits());
+        switch (width) {
+            case 8:
+                return input.read();
+            case 16:
                 return read16(input);
-            }
-        }
-        if (bits == 32) {
-            if (isHas66()) {
-                return read16(input);
-            } else {
+            case 32:
                 return read32(input);
-            }
-        }
-        if (bits == 64) {
-            if (isHasRexW()) {
+            case 64:
                 return read64(input);
-            } else if (isHas66()) {
-                return read16(input);
-            } else {
-                return read32(input);
-            }
+            default:
+                throw new NotImplException();
         }
-        throw new NotImplException();
     }
 
     public void executeJumpFar(CodeExecutor executor, CodeInputStream input, PC pc) {
