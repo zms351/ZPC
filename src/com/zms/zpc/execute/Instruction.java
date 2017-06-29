@@ -86,8 +86,8 @@ public class Instruction {
     public void parse2(CodeInputStream input, int bits) {
         int ModRM = input.read();
         int mod = ModRM >> 6;
-        int rm = (ModRM >> 3) & 0b111;
-        int reg = ModRM & 0b111;
+        int reg = (ModRM >> 3) & 0b111;
+        int rm = ModRM & 0b111;
         System.out.println("here");
     }
 

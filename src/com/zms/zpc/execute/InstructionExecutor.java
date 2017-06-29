@@ -25,6 +25,9 @@ public class InstructionExecutor extends Instruction {
 
     public long readOp(CodeExecutor executor, CodeInputStream input) {
         int bits = executor.getBits();
+        if (bits == 8) {
+            return input.read();
+        }
         if (bits == 16) {
             if (isHas66()) {
                 return read32(input);
@@ -59,7 +62,6 @@ public class InstructionExecutor extends Instruction {
     }
 
     public void executeXor31(CodeExecutor executor, CodeInputStream input, PC pc) {
-
     }
 
 }
