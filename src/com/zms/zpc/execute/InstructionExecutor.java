@@ -9,20 +9,6 @@ import com.zms.zpc.support.NotImplException;
  */
 public class InstructionExecutor extends Instruction {
 
-    public long read64(CodeInputStream input) {
-        return read32(input) | read32(input) << 32;
-    }
-
-    public long read32(CodeInputStream input) {
-        int a = read16(input);
-        long b = read16(input);
-        return b << 16 | a;
-    }
-
-    public int read16(CodeInputStream input) {
-        return input.read() | (input.read() << 8);
-    }
-
     public long readOp(CodeExecutor executor, CodeInputStream input) {
         int width = getOpWidth(executor.getBits());
         switch (width) {

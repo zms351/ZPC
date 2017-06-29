@@ -200,4 +200,49 @@ public class Instruction {
         return bits;
     }
 
+    public int getAddressWidth(int bits) {
+        bits = _getAddressWidth(bits);
+        if (bits != 16 && bits != 32 && bits != 64) {
+            throw new NotImplException();
+        }
+        return bits;
+    }
+
+    private int _getAddressWidth(int bits) {
+        if (bits == 16) {
+            if (isHas67()) {
+                return 32;
+            }
+        }
+        if (bits == 32) {
+            if (isHas67()) {
+                return 16;
+            }
+        }
+        if (bits == 64) {
+            if (isHas67()) {
+                return 32;
+            }
+        }
+        return bits;
+    }
+
+    public long read64(CodeInputStream input) {
+        return read32(input) | read32(input) << 32;
+    }
+
+    public long read32(CodeInputStream input) {
+        int a = read16(input);
+        long b = read16(input);
+        return b << 16 | a;
+    }
+
+    public int read16(CodeInputStream input) {
+        return input.read() | (input.read() << 8);
+    }
+
+    public int read8(CodeInputStream input) {
+        return input.read();
+    }
+
 }
