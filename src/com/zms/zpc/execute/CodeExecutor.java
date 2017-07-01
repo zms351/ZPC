@@ -34,9 +34,12 @@ public class CodeExecutor {
         instruction.parse1(input, bits);
         switch (instruction.getOpcode()[0]) {
             case 0xea:
+                //org.jpc.emulator.execution.opcodes.rm.jmp_Ap
                 instruction.executeJumpFar(this, input, pc);
                 break;
             case 0x31:
+                //org.jpc.emulator.execution.opcodes.rm.xor_Ew_Gw_mem
+                //org.jpc.emulator.execution.opcodes.rm.xor_Ew_Gw
                 instruction.parse2(input, bits);
                 instruction.executeXor31(this, input, pc);
                 break;

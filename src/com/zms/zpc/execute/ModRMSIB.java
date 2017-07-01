@@ -1,5 +1,6 @@
 package com.zms.zpc.execute;
 
+import com.zms.zpc.emulator.PC;
 import com.zms.zpc.emulator.assembler.Assembler;
 import com.zms.zpc.support.NotImplException;
 
@@ -29,7 +30,10 @@ public class ModRMSIB {
                 result = (String) Assembler.ModData[3][0][reg];
             }
         } else {
-            int width = this.opWidth = instruction.getOpWidth(bits);
+            if (this.opWidth < 0) {
+                this.opWidth = instruction.getOpWidth(bits);
+            }
+            int width = this.opWidth;
             switch (width) {
                 case 8:
                     result = (String) Assembler.ModData[3][0][reg];
@@ -54,6 +58,7 @@ public class ModRMSIB {
         reg = null;
         addressReg = null;
         disp = 0;
+        opWidth = -1;
 
         int ModRM = input.read();
         int mod = ModRM >> 6;
@@ -129,6 +134,36 @@ public class ModRMSIB {
             }
         }
         assert addressType > -50;
+    }
+
+    public long getValReg(PC pc) {
+        return getValReg(pc, this.reg);
+    }
+
+    public long getValReg(PC pc, String reg) {
+
+    }
+
+    public long getValMemory(PC pc) {
+        if (addressReg != null) {
+            return getValReg(pc, this.addressReg);
+        }
+        throw new NotImplException();
+    }
+
+    public int setValReg(PC pc, long val) {
+        return setValReg(pc, this.reg, val);
+    }
+
+    public int setValReg(PC pc, String reg, long val) {
+
+    }
+
+    public int setValMemory(PC pc, long val) {
+        if (addressReg != null) {
+            return setValReg(pc, this.addressReg, val);
+        }
+        throw new NotImplException();
     }
 
 }
