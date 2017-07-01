@@ -38,7 +38,7 @@ public class PC implements Runnable {
         this.processor = new Processor(config.getProcessorConfig());
         this.cpu = this.processor;
         this.memory = new PhysicalMemory(config.getMemoryChipLen(), config.getMemoryCount());
-        this.board=new MotherBoard(this);
+        this.board = new MotherBoard(this);
     }
 
     public PCConfig getConfig() {
@@ -59,6 +59,7 @@ public class PC implements Runnable {
 
     private PCState resetBefore;
     private int pauseCommand;
+    private Object pauseObj;
     private IDebugger _debugger;
 
     public IDebugger getDebugger() {
@@ -72,8 +73,9 @@ public class PC implements Runnable {
         this._debugger = debugger;
     }
 
-    public void setPauseCommand(int pauseCommand) {
+    public void setPause(int pauseCommand, Object pauseObj) {
         if (this.pauseCommand == 0) {
+            this.pauseObj = pauseObj;
             this.pauseCommand = pauseCommand;
         }
     }
@@ -96,7 +98,7 @@ public class PC implements Runnable {
 
     public void powerOff() {
         synchronized (this) {
-            if (state == PCState.Running || state==PCState.Pause) {
+            if (state == PCState.Running || state == PCState.Pause) {
                 state = PCState.Shutddown;
             }
         }
@@ -154,28 +156,36 @@ public class PC implements Runnable {
     public void run() {
         try {
             CodeExecutor executor = new CodeExecutor();
-            CodeInputStream input = new CodeInputStream();
+            CodeStream stream = new CodeStream();
             while (state != PCState.Shutddown) {
                 if (state == PCState.Reset) {
                     doReset();
                     continue;
                 }
                 if (state == PCState.Running) {
-                    input.seek(this);
-                    executor.execute(this, input);
+                    stream.seek(this);
+                    executor.execute(this, stream);
                 } else if (state == PCState.Pause) {
                     int command = pauseCommand;
                     pauseCommand = 0;
                     switch (command) {
                         case 11: {     //step into
-                            input.seek(this);
-                            executor.execute(this, input);
+                            stream.seek(this);
+                            executor.execute(this, stream);
                             break;
                         }
                         case 12: {  //decompile
-                            input.seek(this);
-                            String code = executor.decode(this, input);
+                            stream.seek(this);
+                            String code = executor.decode(this, stream);
                             getDebugger().onMessage(12, code);
+                            break;
+                        }
+                        case 13: {  //replace instruction
+                            byte[] bytes= (byte[]) this.pauseObj;
+                            if(bytes.length>0) {
+                                stream.seek(this);
+                                stream.write(bytes);
+                            }
                             break;
                         }
                         default:

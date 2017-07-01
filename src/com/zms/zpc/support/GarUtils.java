@@ -1,5 +1,8 @@
 package com.zms.zpc.support;
 
+import com.zms.zpc.debugger.*;
+import com.zms.zpc.execute.CodeStream;
+
 import java.awt.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -60,7 +63,7 @@ public class GarUtils {
 
     public static Object saveFile(File file, String text) {
         byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
-        return saveFile(file,bytes);
+        return saveFile(file, bytes);
     }
 
     public static Object saveFile(File file, byte[] bytes) {
@@ -89,27 +92,50 @@ public class GarUtils {
         return buffer;
     }
 
-    public static int dump(InputStream input,OutputStream output) throws IOException {
-        byte[] buffer=new byte[10240];
+    public static byte[] plain2Bytes(String text) {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        for (String tok : text.split("\\s")) {
+            if ((tok = tok.trim().toUpperCase()).length() > 0) {
+                if (tok.length() == 2 && tok.matches("^[0-9A-F]+$")) {
+                    int n = Integer.parseInt(tok, 16);
+                    output.write(n);
+                } else {
+                    return null;
+                }
+            }
+        }
+        return output.toByteArray();
+    }
+
+    public static int dump(InputStream input, OutputStream output) throws IOException {
+        byte[] buffer = new byte[10240];
         int len;
-        int total=0;
-        while((len=input.read(buffer))>=0) {
-            if(len>0) {
-                output.write(buffer,0,len);
-                total+=len;
+        int total = 0;
+        while ((len = input.read(buffer)) >= 0) {
+            if (len > 0) {
+                output.write(buffer, 0, len);
+                total += len;
             }
         }
         return total;
     }
 
     public static byte[] readAll(InputStream input) throws IOException {
-        ByteArrayOutputStream output=new ByteArrayOutputStream();
-        dump(input,output);
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        dump(input, output);
         return output.toByteArray();
     }
 
-    public static boolean eq(Object a,Object b) {
+    public static boolean eq(Object a, Object b) {
         return a == b || (a != null && a.equals(b));
+    }
+
+    public static void main0(String[] args) throws Exception {
+        System.out.println(dump(new ByteArrayInputStream(null), new ByteArrayOutputStream()));
+        new CodeStream().readFully(new byte[10], 2, 3);
+        IDEFrame ide = new IDEFrame(new ZPC());
+        ide.showNew("a", "b", false);
+        System.out.println(ide.select(null));
     }
 
 }

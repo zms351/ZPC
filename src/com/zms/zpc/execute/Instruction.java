@@ -26,7 +26,7 @@ public class Instruction {
         reg8Ops[0x30] = true; //xor
     }
 
-    public void parse1(CodeInputStream input, int bits) {
+    public void parse1(CodeStream input, int bits) {
         legacyPrefixCount = 0;
         rexPrefixCount = 0;
         int n;
@@ -90,7 +90,7 @@ public class Instruction {
 
     public ModRMSIB mrs = new ModRMSIB();
 
-    public void parse2(CodeInputStream input, int bits) {
+    public void parse2(CodeStream input, int bits) {
         mrs.reg8 = reg8Ops[opcode[0]];
         mrs.parse(this, input, bits);
     }
@@ -227,21 +227,21 @@ public class Instruction {
         return bits;
     }
 
-    public long read64(CodeInputStream input) {
+    public long read64(CodeStream input) {
         return read32(input) | read32(input) << 32;
     }
 
-    public long read32(CodeInputStream input) {
+    public long read32(CodeStream input) {
         int a = read16(input);
         long b = read16(input);
         return b << 16 | a;
     }
 
-    public int read16(CodeInputStream input) {
+    public int read16(CodeStream input) {
         return input.read() | (input.read() << 8);
     }
 
-    public int read8(CodeInputStream input) {
+    public int read8(CodeStream input) {
         return input.read();
     }
 

@@ -11,7 +11,7 @@ import java.io.InputStream;
  * Created by 张小美 on 17/六月/25.
  * Copyright 2002-2016
  */
-public class CodeInputStream extends InputStream {
+public class CodeStream extends InputStream {
 
     private long pos;
     private RAM ram;
@@ -53,6 +53,17 @@ public class CodeInputStream extends InputStream {
                 total += n;
             }
         }
+        pos += total;
+    }
+
+    public int write(byte[] bytes) {
+        return write(bytes, 0, bytes.length);
+    }
+
+    public int write(byte[] bytes, int offset, int len) {
+        int n = ram.write(0, pos, bytes, offset, len);
+        pos += n;
+        return n;
     }
 
     public long getPos() {

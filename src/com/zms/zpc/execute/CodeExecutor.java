@@ -28,7 +28,7 @@ public class CodeExecutor {
         }
     }
 
-    public int execute(PC pc, CodeInputStream input) {
+    public int execute(PC pc, CodeStream input) {
         pre(pc);
         instruction.setStartPos(input.getPos());
         instruction.parse1(input, bits);
@@ -46,7 +46,7 @@ public class CodeExecutor {
         return 0;
     }
 
-    public String decode(PC pc, CodeInputStream input) {
+    public String decode(PC pc, CodeStream input) {
         pre(pc);
         long pos = input.getPos();
         try {

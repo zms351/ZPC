@@ -203,6 +203,11 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
             toolButtons.add(button);
             button.setIconCommand("information");
         }
+        {
+            button = new JIconButton("Write Instruction");
+            toolButtons.add(button);
+            button.setIconCommand("write");
+        }
         getFrame().designToolbar(toolBar, toolButtons);
 
         for (JIconButton one : toolButtons) {
@@ -330,13 +335,24 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
             case "Step Into": {
                 PC pc = getFrame().getPc();
                 pc.setDebugger(this);
-                pc.setPauseCommand(11);
+                pc.setPause(11, command);
             }
             break;
             case "Decompile": {
                 PC pc = getFrame().getPc();
                 pc.setDebugger(this);
-                pc.setPauseCommand(12);
+                pc.setPause(12, command);
+            }
+            break;
+            case "Write Instruction": {
+                FileEditorPane tab = (FileEditorPane) tabs.getSelectedComponent();
+                PC pc = getFrame().getPc();
+                if (tab != null) {
+                    byte[] bytes = GarUtils.plain2Bytes(tab.getText());
+                    if (bytes != null && bytes.length > 0) {
+                        pc.setPause(13, bytes);
+                    }
+                }
             }
             break;
         }
@@ -373,7 +389,7 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
         }
     }
 
-    protected FileEditorPane select(FileEditorPane tab) {
+    public FileEditorPane select(FileEditorPane tab) {
         tabs.setSelectedComponent(tab);
         return tab;
     }

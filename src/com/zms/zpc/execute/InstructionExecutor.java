@@ -9,7 +9,7 @@ import com.zms.zpc.support.NotImplException;
  */
 public class InstructionExecutor extends Instruction {
 
-    public long readOp(CodeExecutor executor, CodeInputStream input) {
+    public long readOp(CodeExecutor executor, CodeStream input) {
         int width = getOpWidth(executor.getBits());
         switch (width) {
             case 8:
@@ -24,15 +24,15 @@ public class InstructionExecutor extends Instruction {
         throw new NotImplException();
     }
 
-    public void executeJumpFar(CodeExecutor executor, CodeInputStream input, PC pc) {
+    public void executeJumpFar(CodeExecutor executor, CodeStream input, PC pc) {
         long offset = readOp(executor, input);
         int base = read16(input);
         pc.cpu.regs.cs.setValue16(base, true);
         pc.cpu.regs.eip.setValue32((int) offset);
     }
 
-    public void executeXor31(CodeExecutor executor, CodeInputStream input, PC pc) {
-        //System.out.println("here");
+    public void executeXor31(CodeExecutor executor, CodeStream input, PC pc) {
+        System.out.println("here");
     }
 
 }

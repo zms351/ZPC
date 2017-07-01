@@ -45,7 +45,7 @@ public class ModRMSIB {
         return result;
     }
 
-    public void parse(Instruction instruction, CodeInputStream input, int bits) {
+    public void parse(Instruction instruction, CodeStream input, int bits) {
         address = null;
         addressType = -100;
         reg = null;
