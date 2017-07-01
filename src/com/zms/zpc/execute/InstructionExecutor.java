@@ -34,13 +34,17 @@ public class InstructionExecutor extends Instruction implements Constants {
         pc.cpu.regs.rip.setValue64(offset);
     }
 
-    public void executeXor31(CodeExecutor executor, CodeStream input, PC pc) {
+    public void executeXor30313233(CodeExecutor executor, CodeStream input, PC pc, boolean rm) {
         long v1 = mrs.getValMemory(pc);
         long v2 = mrs.getValReg(pc);
         long v = v1 ^ v2;
         bits.clearOCA();
         bits.result = v;
-        mrs.setValMemory(pc, v);
+        if (rm) {
+            mrs.setValReg(pc, v);
+        } else {
+            mrs.setValMemory(pc, v);
+        }
         bits.status = SZP;
     }
 

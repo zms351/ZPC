@@ -42,11 +42,25 @@ public class CodeExecutor {
                 instruction.executeJumpFar(this, input, pc);
                 jump = true;
                 break;
+            case 0x30:
+                //org.jpc.emulator.execution.opcodes.rm.xor_Eb_Gb_mem
+                //org.jpc.emulator.execution.opcodes.rm.xor_Ew_Gw
+                instruction.parse2(input, bits);
+                instruction.executeXor30313233(this, input, pc, false);
+                break;
             case 0x31:
                 //org.jpc.emulator.execution.opcodes.rm.xor_Ew_Gw_mem
                 //org.jpc.emulator.execution.opcodes.rm.xor_Ew_Gw
                 instruction.parse2(input, bits);
-                instruction.executeXor31(this, input, pc);
+                instruction.executeXor30313233(this, input, pc, false);
+                break;
+            case 0x32:
+                instruction.parse2(input, bits);
+                instruction.executeXor30313233(this, input, pc, true);
+                break;
+            case 0x33:
+                instruction.parse2(input, bits);
+                instruction.executeXor30313233(this, input, pc, true);
                 break;
             default:
                 throw new NotImplException();

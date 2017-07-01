@@ -24,6 +24,7 @@ public class Instruction {
     public Instruction() {
         reg8Ops[0x8a] = true; //mov
         reg8Ops[0x30] = true; //xor
+        reg8Ops[0x32] = true; //xor
     }
 
     public void parse1(CodeStream input, int bits) {
