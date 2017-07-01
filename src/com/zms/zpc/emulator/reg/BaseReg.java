@@ -32,7 +32,6 @@ public abstract class BaseReg {
         this.index = index;
         this.pos = pos;
         this.width = width;
-        assert name.toUpperCase().equals(name);
     }
 
     public String getName() {

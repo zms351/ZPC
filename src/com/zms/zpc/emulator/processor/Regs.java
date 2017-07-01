@@ -153,7 +153,7 @@ public class Regs {
                     if (Modifier.isPublic(modifiers) && Modifier.isFinal(modifiers) && (!Modifier.isStatic(modifiers))) {
                         BaseReg reg = (BaseReg) field.get(this);
                         if (reg != null) {
-                            String name = reg.getName();
+                            String name = reg.getName().toUpperCase().trim();
                             assert !regMap.containsKey(name);
                             regMap.put(name, reg);
                         }
