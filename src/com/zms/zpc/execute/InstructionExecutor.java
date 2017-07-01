@@ -48,4 +48,23 @@ public class InstructionExecutor extends Instruction implements Constants {
         bits.status = SZP;
     }
 
+    public void executeOut(CodeExecutor executor, CodeStream input, PC pc) {
+        int op = getOpcode()[0];
+        int width = getOpWidth(executor.getBits());
+        if (op == 0xe6 || op == 0xee) {
+            width = 8;
+        }
+        if (width != 8 && width != 16 && width != 32) {
+            throw new NotImplException();
+        }
+        long a;
+        if (op == 0xe6 || op == 0xe7) {
+            a = input.read();
+        } else {
+            a = getReg(pc, "DX").getValue();
+        }
+        long v = getReg(pc, "RAX").getValue();
+        pc.board.ios.write(a, v, width);
+    }
+
 }

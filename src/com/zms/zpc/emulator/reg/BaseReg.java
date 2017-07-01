@@ -85,6 +85,10 @@ public abstract class BaseReg {
 
     public abstract int getValue8();
 
+    public long getValue() {
+        return this.getValue(width);
+    }
+
     public long getValue(int width) {
         switch (width) {
             case 8:

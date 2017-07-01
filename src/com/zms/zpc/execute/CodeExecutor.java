@@ -62,6 +62,12 @@ public class CodeExecutor {
                 instruction.parse2(input, bits);
                 instruction.executeXor30313233(this, input, pc, true);
                 break;
+            case 0xe6:
+            case 0xe7:
+            case 0xee:
+            case 0xef:
+                instruction.executeOut(this, input, pc);
+                break;
             default:
                 throw new NotImplException();
         }

@@ -1,5 +1,7 @@
 package com.zms.zpc.execute;
 
+import com.zms.zpc.emulator.PC;
+import com.zms.zpc.emulator.reg.BaseReg;
 import com.zms.zpc.support.NotImplException;
 
 /**
@@ -244,6 +246,10 @@ public class Instruction {
 
     public int read8(CodeStream input) {
         return input.read();
+    }
+
+    public BaseReg getReg(PC pc, String name) {
+        return pc.cpu.regs.getReg(name);
     }
 
 }

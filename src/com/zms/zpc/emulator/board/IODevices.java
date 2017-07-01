@@ -14,4 +14,8 @@ public class IODevices {
         this.pc=pc;
     }
 
+    public void write(long address,long value,int width) {
+        System.out.printf("address: %d\tvalue: %d\twidth: %d\n",address,value,width);
+    }
+
 }
