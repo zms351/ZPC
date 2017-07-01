@@ -13,6 +13,7 @@ public class CodeExecutor {
     private int bits = 16;
     private byte[] previewBuffer;
     private InstructionExecutor instruction;
+    private Regs regs;
 
     public CodeExecutor() {
         previewBuffer = new byte[16];
@@ -32,11 +33,14 @@ public class CodeExecutor {
         pre(pc);
         instruction.setStartPos(input.getPos());
         instruction.parse1(input, bits);
-        instruction.bits=pc.cpu.regs.bits;
+        regs = pc.cpu.regs;
+        instruction.bits = regs.bits;
+        boolean jump = false;
         switch (instruction.getOpcode()[0]) {
             case 0xea:
                 //org.jpc.emulator.execution.opcodes.rm.jmp_Ap
                 instruction.executeJumpFar(this, input, pc);
+                jump = true;
                 break;
             case 0x31:
                 //org.jpc.emulator.execution.opcodes.rm.xor_Ew_Gw_mem
@@ -47,7 +51,14 @@ public class CodeExecutor {
             default:
                 throw new NotImplException();
         }
+        if (!jump) {
+            reLoc(input);
+        }
         return 0;
+    }
+
+    private void reLoc(CodeStream input) {
+        regs.rip.setValue64(regs.rip.getValue64() + (input.getPos() - instruction.getStartPos()));
     }
 
     public String decode(PC pc, CodeStream input) {
