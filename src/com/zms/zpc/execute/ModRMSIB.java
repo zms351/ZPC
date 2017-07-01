@@ -16,17 +16,20 @@ public class ModRMSIB {
     public String reg;
     public String addressReg;
     public long disp;
+    public int opWidth;
+    public int addressWidth;
 
     public String parseReg(Instruction instruction, int bits, int reg) {
         String result = null;
         if (this.reg8) {
+            this.opWidth = 8;
             if (bits == 64 && instruction.isHasRex40()) {
                 result = (String) Assembler.ModData[3][9][reg];
             } else {
                 result = (String) Assembler.ModData[3][0][reg];
             }
         } else {
-            int width = instruction.getOpWidth(bits);
+            int width = this.opWidth = instruction.getOpWidth(bits);
             switch (width) {
                 case 8:
                     result = (String) Assembler.ModData[3][0][reg];
@@ -64,7 +67,7 @@ public class ModRMSIB {
             this.addressReg = parseReg(instruction, bits, rm);
             this.addressType = -1;
         } else {
-            int width = instruction.getAddressWidth(bits);
+            int width = addressWidth = instruction.getAddressWidth(bits);
             this.addressType = 1600 + mod * 10 + rm;
             if (width == 16) {
                 this.address = (String) Assembler.ModData[2][0][rm];
@@ -85,8 +88,8 @@ public class ModRMSIB {
                 } else if (rm == 0b100) {
                     int sib = input.read();
                     int scale = sib >> 6;
-                    base = (sib >> 3) & 0b111;
-                    int index = sib & 0b111;
+                    base = sib & 0b111;
+                    int index = (sib >> 3) & 0b111;
                     String ca;
                     switch (scale) {
                         case 1:
