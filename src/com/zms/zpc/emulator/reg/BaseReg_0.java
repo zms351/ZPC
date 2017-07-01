@@ -37,15 +37,27 @@ public class BaseReg_0 extends BaseReg {
     }
 
     @Override
-    public int getValue32() {
-        assert width==32;
+    public long getValue32() {
+        assert width == 32;
         return (int) getRv();
     }
 
     @Override
     public void setValue64(long v) {
-        assert width==64;
+        assert width == 64;
         setRv(v);
+    }
+
+    @Override
+    public int getValue16() {
+        assert width == 16;
+        return (int) (getRv() & 0xffff);
+    }
+
+    @Override
+    public int getValue8() {
+        assert width == 8;
+        return (int) (getRv() & 0xff);
     }
 
 }

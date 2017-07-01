@@ -32,7 +32,7 @@ public class BitControl extends BaseReg {
     }
 
     @Override
-    public int getValue32() {
+    public long getValue32() {
         throw new NotImplException();
     }
 
@@ -61,6 +61,16 @@ public class BitControl extends BaseReg {
 
     public void clear() {
         set(false);
+    }
+
+    @Override
+    public int getValue16() {
+        throw new NotImplException();
+    }
+
+    @Override
+    public int getValue8() {
+        throw new NotImplException();
     }
 
 }
