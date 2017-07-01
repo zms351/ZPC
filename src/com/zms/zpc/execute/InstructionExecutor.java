@@ -1,13 +1,16 @@
 package com.zms.zpc.execute;
 
 import com.zms.zpc.emulator.PC;
-import com.zms.zpc.support.NotImplException;
+import com.zms.zpc.emulator.processor.Bits;
+import com.zms.zpc.support.*;
 
 /**
  * Created by 张小美 on 17/六月/27.
  * Copyright 2002-2016
  */
-public class InstructionExecutor extends Instruction {
+public class InstructionExecutor extends Instruction implements Constants {
+
+    public Bits bits;
 
     public long readOp(CodeExecutor executor, CodeStream input) {
         int width = getOpWidth(executor.getBits());
@@ -35,7 +38,10 @@ public class InstructionExecutor extends Instruction {
         long v1 = mrs.getValMemory(pc);
         long v2 = mrs.getValReg(pc);
         long v = v1 ^ v2;
+        bits.clearOCA();
+        bits.result = v;
         mrs.setValMemory(pc, v);
+        bits.status = SZP;
     }
 
 }

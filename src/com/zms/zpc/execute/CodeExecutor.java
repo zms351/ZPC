@@ -32,6 +32,7 @@ public class CodeExecutor {
         pre(pc);
         instruction.setStartPos(input.getPos());
         instruction.parse1(input, bits);
+        instruction.bits=pc.cpu.regs.bits;
         switch (instruction.getOpcode()[0]) {
             case 0xea:
                 //org.jpc.emulator.execution.opcodes.rm.jmp_Ap
