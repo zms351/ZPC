@@ -14,6 +14,7 @@ public class PCConfig {
     private int memoryCount;
 
     private String bios;
+    private String name="一个虚拟机";
 
     public PCConfig() {
         setDefault();
@@ -54,6 +55,14 @@ public class PCConfig {
 
     public String getBios() {
         return bios;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
 }

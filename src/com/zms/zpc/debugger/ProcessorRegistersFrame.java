@@ -110,6 +110,13 @@ public class ProcessorRegistersFrame extends UtilityFrame implements Runnable {
 
     }
 
+    private Runnable refresh1 = new Runnable() {
+        @Override
+        public void run() {
+            model.fireTableDataChanged();
+        }
+    };
+
     public void refresh1() {
         BaseReg[] regs = getFrame().getPc().getProcessor().getRegs().getRootRegs();
         int c = 0;
@@ -125,7 +132,7 @@ public class ProcessorRegistersFrame extends UtilityFrame implements Runnable {
             }
         }
         if (c > 0) {
-            model.fireTableDataChanged();
+            GarUtils.runInUI(refresh1);
         }
     }
 

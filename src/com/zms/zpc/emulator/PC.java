@@ -21,6 +21,15 @@ public class PC implements Runnable {
     private PCState state = PCState.Shutddown;
     public RAM memory;
     public MotherBoard board;
+    private String name;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public PC() {
         this(null);
@@ -39,6 +48,7 @@ public class PC implements Runnable {
         this.cpu = this.processor;
         this.memory = new PhysicalMemory(config.getMemoryChipLen(), config.getMemoryCount());
         this.board = new MotherBoard(this);
+        this.setName(config.getName());
     }
 
     public PCConfig getConfig() {
@@ -89,7 +99,7 @@ public class PC implements Runnable {
                     resetBefore = state;
                 }
                 state = PCState.Reset;
-                Thread thread = new Thread(this);
+                Thread thread = new Thread(this,getName()+"执行线程");
                 thread.setDaemon(true);
                 thread.start();
             }
@@ -198,7 +208,7 @@ public class PC implements Runnable {
         } catch (Throwable t) {
             t.printStackTrace();
         } finally {
-            System.out.println("code execute exited");
+            System.out.println(Thread.currentThread().getName() + " exited!");
         }
     }
 

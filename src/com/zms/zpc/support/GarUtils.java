@@ -1,5 +1,6 @@
 package com.zms.zpc.support;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -125,6 +126,10 @@ public class GarUtils {
 
     public static boolean eq(Object a, Object b) {
         return a == b || (a != null && a.equals(b));
+    }
+
+    public static void runInUI(Runnable run) {
+        SwingUtilities.invokeLater(run);
     }
 
 }

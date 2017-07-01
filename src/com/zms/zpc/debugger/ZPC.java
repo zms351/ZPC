@@ -1,7 +1,8 @@
 package com.zms.zpc.debugger;
 
 import com.zms.zpc.debugger.util.*;
-import com.zms.zpc.emulator.PC;
+import com.zms.zpc.emulator.*;
+import com.zms.zpc.support.GarUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,7 +14,7 @@ import java.util.*;
  * Created by 张小美 on 17/五月/24.
  * Copyright 2002-2016
  */
-public class ZPC extends JFrame implements ActionListener {
+public class ZPC extends JFrame implements ActionListener, Runnable {
 
     private PC pc = new PC();
 
@@ -51,6 +52,10 @@ public class ZPC extends JFrame implements ActionListener {
             designIcons();
 
             this.setExtendedState(Frame.MAXIMIZED_BOTH);
+
+            Thread thread = new Thread(this, this.getClass().getName() + " refresh thread");
+            thread.setDaemon(true);
+            thread.start();
         }
     }
 
@@ -288,17 +293,23 @@ public class ZPC extends JFrame implements ActionListener {
     }
 
     public void showMainStatus(String text) {
-        JLabel label = statusLabels.get(mainStatusIndex);
-        if (text == null || text.length() < 1) {
-            text = " ";
-        }
-        label.setText(text);
+        setStatus(mainStatusIndex, text);
     }
 
     public void hideMainStatus(String text) {
         JLabel label = statusLabels.get(mainStatusIndex);
         if (text != null && text.equals(label.getText())) {
             label.setText(" ");
+        }
+    }
+
+    public void setStatus(int index, String text) {
+        JLabel label = statusLabels.get(index);
+        if (text == null || text.length() < 1) {
+            text = " ";
+        }
+        if (!text.equals(label.getText())) {
+            label.setText(text);
         }
     }
 
@@ -401,7 +412,28 @@ public class ZPC extends JFrame implements ActionListener {
     }
 
     public void test3() {
+    }
 
+    @Override
+    public void run() {
+        try {
+            final Object[] vs = new Object[10];
+            Runnable run1 = () -> setStatus(2, String.valueOf(vs[0]));
+            while (this.isVisible() || this.isShowing()) {
+                Thread.sleep(200);
+                {
+                    PCState v = pc.getState();
+                    if (v != vs[0]) {
+                        vs[0] = v;
+                        GarUtils.runInUI(run1);
+                    }
+                }
+            }
+        } catch (Throwable t) {
+            t.printStackTrace();
+        } finally {
+            System.out.println(Thread.currentThread().getName() + " exited!");
+        }
     }
 
 }

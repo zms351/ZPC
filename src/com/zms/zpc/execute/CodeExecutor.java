@@ -36,7 +36,8 @@ public class CodeExecutor {
         regs = pc.cpu.regs;
         instruction.bits = regs.bits;
         boolean jump = false;
-        switch (instruction.getOpcode()[0]) {
+        int op = instruction.getOpcode()[0];
+        switch (op) {
             case 0xea:
                 //org.jpc.emulator.execution.opcodes.rm.jmp_Ap
                 instruction.executeJumpFar(this, input, pc);
@@ -69,7 +70,7 @@ public class CodeExecutor {
                 instruction.executeOut(this, input, pc);
                 break;
             default:
-                throw new NotImplException();
+                throw new NotImplException(String.valueOf(op));
         }
         if (!jump) {
             reLoc(input);
