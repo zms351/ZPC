@@ -2,6 +2,9 @@ package com.zms.zpc.emulator.processor;
 
 import com.zms.zpc.emulator.reg.*;
 
+import java.lang.reflect.*;
+import java.util.*;
+
 /**
  * Created by 张小美 on 17/五月/24.
  * Copyright 2002-2016
@@ -118,7 +121,7 @@ public class Regs {
     public final Segment ss = new Segment("ss", this, 106);
     // 107--112  for bases
 
-    public final BaseReg[] rootRegs = new BaseReg[]{rax, rbx, rcx, rdx, rsi, rdi, rbp, rsp, cs, eip};
+    public final BaseReg[] rootRegs = new BaseReg[]{rax, rbx, rcx, rdx, rsi, rdi, rbp, rsp, cs, rip};
 
     public long[] getRvs() {
         return rvs;
@@ -129,5 +132,37 @@ public class Regs {
     }
 
     public Bits bits = new Bits(this);
+
+    public Regs() {
+        this.init();
+    }
+
+    public Map<String, BaseReg> regMap;
+
+    public BaseReg getReg(String name) {
+        return regMap.get(name.toUpperCase());
+    }
+
+    private void init() {
+        regMap = new HashMap<>();
+        Field[] fields = this.getClass().getFields();
+        try {
+            for (Field field : fields) {
+                if (BaseReg.class.isAssignableFrom(field.getType())) {
+                    int modifiers = field.getModifiers();
+                    if (Modifier.isPublic(modifiers) && Modifier.isFinal(modifiers) && (!Modifier.isStatic(modifiers))) {
+                        BaseReg reg = (BaseReg) field.get(this);
+                        if (reg != null) {
+                            String name = reg.getName();
+                            assert !regMap.containsKey(name);
+                            regMap.put(name, reg);
+                        }
+                    }
+                }
+            }
+        } catch (Throwable t) {
+            throw new RuntimeException(t);
+        }
+    }
 
 }

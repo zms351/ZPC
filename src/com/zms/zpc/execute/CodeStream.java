@@ -22,7 +22,7 @@ public class CodeStream extends InputStream {
             throw new NotImplException();
         } else {
             ram = pc.memory;
-            pos = regs.cs.base.getValue64() + (regs.eip.getValue32() & 0xffffffffL);
+            pos = regs.cs.base.getValue64() + regs.rip.getValue64();
         }
     }
 

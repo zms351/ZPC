@@ -1,7 +1,8 @@
 package com.zms.zpc.support;
 
 import com.zms.zpc.debugger.*;
-import com.zms.zpc.execute.CodeStream;
+import com.zms.zpc.emulator.PC;
+import com.zms.zpc.execute.*;
 
 import java.awt.*;
 import java.io.*;
@@ -136,6 +137,7 @@ public class GarUtils {
         IDEFrame ide = new IDEFrame(new ZPC());
         ide.showNew("a", "b", false);
         System.out.println(ide.select(null));
+        System.out.println(new ModRMSIB().setValMemory(new PC(),0L));
     }
 
 }

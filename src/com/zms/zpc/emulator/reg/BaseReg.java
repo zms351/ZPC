@@ -1,6 +1,7 @@
 package com.zms.zpc.emulator.reg;
 
 import com.zms.zpc.emulator.processor.Regs;
+import com.zms.zpc.support.NotImplException;
 
 /**
  * Created by 张小美 on 17/六月/24.
@@ -8,14 +9,14 @@ import com.zms.zpc.emulator.processor.Regs;
  */
 public abstract class BaseReg {
 
-    public static final long Mask8l=0xffffffffffffff00L;
-    public static final int Mask8r=0xff;
+    public static final long Mask8l = 0xffffffffffffff00L;
+    public static final int Mask8r = 0xff;
 
-    public static final long Mask16l=0xffffffffffff0000L;
-    public static final int Mask16r=0xffff;
+    public static final long Mask16l = 0xffffffffffff0000L;
+    public static final int Mask16r = 0xffff;
 
-    public static final long Mask32l=0xffffffff00000000L;
-    public static final int Mask32r=0xffffffff;
+    public static final long Mask32l = 0xffffffff00000000L;
+    public static final int Mask32r = 0xffffffff;
 
     protected String name;
     protected long[] rvs;
@@ -31,6 +32,7 @@ public abstract class BaseReg {
         this.index = index;
         this.pos = pos;
         this.width = width;
+        assert name.toUpperCase().equals(name);
     }
 
     public String getName() {
@@ -62,7 +64,7 @@ public abstract class BaseReg {
     }
 
     public void setRv(long v) {
-        rvs[index]=v;
+        rvs[index] = v;
     }
 
     public abstract void setValue64(long v);
@@ -73,11 +75,50 @@ public abstract class BaseReg {
 
     public abstract void setValue8(int v);
 
-    public abstract int getValue32();
+    public abstract long getValue32();
 
     public long getValue64() {
-        assert width==64;
+        assert width == 64;
         return getRv();
+    }
+
+    public abstract int getValue16();
+
+    public abstract int getValue8();
+
+    public long getValue(int width) {
+        switch (width) {
+            case 8:
+                return getValue8();
+            case 16:
+                return getValue16();
+            case 32:
+                return getValue32();
+            case 64:
+                return getValue64();
+            default:
+                throw new NotImplException();
+        }
+    }
+
+    public int setValue(int width, long val) {
+        switch (width) {
+            case 8:
+                setValue8((int) val);
+                break;
+            case 16:
+                setValue16((int) val);
+                break;
+            case 32:
+                setValue32((int) val);
+                break;
+            case 64:
+                setValue64(val);
+                break;
+            default:
+                throw new NotImplException();
+        }
+        return this.width;
     }
 
 }

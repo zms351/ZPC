@@ -141,7 +141,7 @@ public class ModRMSIB {
     }
 
     public long getValReg(PC pc, String reg) {
-
+        return pc.cpu.regs.getReg(reg).getValue(this.opWidth);
     }
 
     public long getValMemory(PC pc) {
@@ -156,7 +156,7 @@ public class ModRMSIB {
     }
 
     public int setValReg(PC pc, String reg, long val) {
-
+        return pc.cpu.regs.getReg(reg).setValue(this.opWidth,val);
     }
 
     public int setValMemory(PC pc, long val) {

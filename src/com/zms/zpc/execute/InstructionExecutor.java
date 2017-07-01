@@ -28,11 +28,14 @@ public class InstructionExecutor extends Instruction {
         long offset = readOp(executor, input);
         int base = read16(input);
         pc.cpu.regs.cs.setValue16(base, true);
-        pc.cpu.regs.eip.setValue32((int) offset);
+        pc.cpu.regs.rip.setValue64(offset);
     }
 
     public void executeXor31(CodeExecutor executor, CodeStream input, PC pc) {
-        System.out.println("here");
+        long v1 = mrs.getValMemory(pc);
+        long v2 = mrs.getValReg(pc);
+        long v = v1 ^ v2;
+        mrs.setValMemory(pc, v);
     }
 
 }

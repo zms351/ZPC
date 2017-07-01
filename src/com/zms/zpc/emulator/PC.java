@@ -128,7 +128,7 @@ public class PC implements Runnable {
             Segment cs = cpu.regs.cs;
             cs.setValue16(0xf000, true);
             //cs.base.setValue64(0xffff0000L);
-            cpu.regs.eip.setValue32(0xFFF0);
+            cpu.regs.rip.setValue64(0xFFF0);
             cpu.regs.bits.pe.clear();
             memory = new RealModeMemory(memory);
             installBios();
