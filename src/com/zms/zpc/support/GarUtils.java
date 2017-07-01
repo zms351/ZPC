@@ -1,9 +1,5 @@
 package com.zms.zpc.support;
 
-import com.zms.zpc.debugger.*;
-import com.zms.zpc.emulator.PC;
-import com.zms.zpc.execute.*;
-
 import java.awt.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -129,15 +125,6 @@ public class GarUtils {
 
     public static boolean eq(Object a, Object b) {
         return a == b || (a != null && a.equals(b));
-    }
-
-    public static void main0(String[] args) throws Exception {
-        System.out.println(dump(new ByteArrayInputStream(null), new ByteArrayOutputStream()));
-        new CodeStream().readFully(new byte[10], 2, 3);
-        IDEFrame ide = new IDEFrame(new ZPC());
-        ide.showNew("a", "b", false);
-        System.out.println(ide.select(null));
-        System.out.println(new ModRMSIB().setValMemory(new PC(),0L));
     }
 
 }
