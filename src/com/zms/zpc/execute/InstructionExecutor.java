@@ -46,15 +46,20 @@ public class InstructionExecutor extends Instruction implements Constants {
     public void executeXor30313233(CodeExecutor executor, CodeStream input, PC pc, boolean rm) {
         long v1 = mrs.getValMemory(pc);
         long v2 = mrs.getValReg(pc);
-        long v = v1 ^ v2;
-        bits.clearOCA();
-        bits.result = v;
+        long v = xor_(v1, v2);
         if (rm) {
             mrs.setValReg(pc, v);
         } else {
             mrs.setValMemory(pc, v);
         }
+    }
+
+    private long xor_(long v1, long v2) {
+        long v = v1 ^ v2;
+        bits.clearOCA();
+        bits.result = v;
         bits.status = SZP;
+        return v;
     }
 
     public void executeXor3435(CodeExecutor executor, CodeStream input, PC pc) {
@@ -69,12 +74,9 @@ public class InstructionExecutor extends Instruction implements Constants {
             v1 = readOp(input, width);
         }
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
-        long v2=reg.getValue();
-        long v=v1 ^ v2;
-        bits.clearOCA();
-        bits.result = v;
+        long v2 = reg.getValue();
+        long v = xor_(v1, v2);
         reg.setValue(v);
-        bits.status = SZP;
     }
 
     public void executeOut(CodeExecutor executor, CodeStream input, PC pc) {
