@@ -39,8 +39,12 @@ public class InstructionExecutor extends Instruction implements Constants {
     public void executeJumpFar(CodeExecutor executor, CodeStream input, PC pc) {
         long offset = readOp(executor, input);
         int base = read16(input);
-        pc.cpu.regs.cs.setValue16(base, true);
-        pc.cpu.regs.rip.setValue64(offset);
+        if (executor.getBits() == 16) {
+            pc.cpu.regs.cs.setValue16(base, true);
+            pc.cpu.regs.rip.setValue64(offset);
+        } else {
+            throw new NotImplException();
+        }
     }
 
     public void executeXor30313233(CodeExecutor executor, CodeStream input, PC pc, boolean rm) {

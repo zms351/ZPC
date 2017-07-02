@@ -111,7 +111,17 @@ public class CodeExecutor {
                 instruction.executeMov8ri(this,input,pc);
                 break;
             case 0xea:
+                //JMP		imm|far				[i:	odf ea iwd seg]				8086,ND,NOLONG
+                //JMP		imm16|far			[i:	o16 ea iwd seg]				8086,ND,NOLONG
+                //JMP		imm32|far			[i:	o32 ea iwd seg]				386,ND,NOLONG
+                //JMP		imm:imm				[ji:	odf ea iwd iw]				8086,NOLONG
+                //JMP		imm16:imm			[ji:	o16 ea iw iw]				8086,NOLONG
+                //JMP		imm:imm16			[ji:	o16 ea iw iw]				8086,NOLONG
+                //JMP		imm32:imm			[ji:	o32 ea id iw]				386,NOLONG
+                //JMP		imm:imm32			[ji:	o32 ea id iw]				386,NOLONG
+
                 //org.jpc.emulator.execution.opcodes.rm.jmp_Ap
+
                 instruction.executeJumpFar(this, input, pc);
                 jump = true;
                 break;
