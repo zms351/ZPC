@@ -20,12 +20,22 @@ public class ModRMSIB {
     public int opWidth;
     public int addressWidth;
 
-    public String getR8(int reg) {
-        return (String) Assembler.ModData[3][0][reg];
+    public String getReg(int width,int reg) {
+        switch (width) {
+            case 8:
+                return (String) Assembler.ModData[3][0][reg];
+            case 16:
+                return  (String) Assembler.ModData[3][1][reg];
+            case 32:
+                return (String) Assembler.ModData[3][2][reg];
+            case 64:
+                return (String) Assembler.ModData[3][3][reg];
+        }
+        throw new NotImplException();
     }
 
     public String parseReg(Instruction instruction, int bits, int reg) {
-        String result = null;
+        String result;
         if (this.reg8) {
             this.opWidth = 8;
             if (bits == 64 && instruction.isHasRex40()) {
@@ -38,20 +48,7 @@ public class ModRMSIB {
                 this.opWidth = instruction.getOpWidth(bits);
             }
             int width = this.opWidth;
-            switch (width) {
-                case 8:
-                    result = getR8(reg);
-                    break;
-                case 16:
-                    result = (String) Assembler.ModData[3][1][reg];
-                    break;
-                case 32:
-                    result = (String) Assembler.ModData[3][2][reg];
-                    break;
-                case 64:
-                    result = (String) Assembler.ModData[3][3][reg];
-                    break;
-            }
+            result=getReg(width,reg);
         }
         return result;
     }

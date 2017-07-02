@@ -58,6 +58,10 @@ public class CodeExecutor {
                 instruction.parse2(input, bits);
                 instruction.executeXor30313233(this, input, pc, true);
                 break;
+            case 0x34:
+            case 0x35:
+                instruction.executeXor3435(this,input,pc);
+                break;
             case 0xb0:
             case 0xb1:
             case 0xb2:
