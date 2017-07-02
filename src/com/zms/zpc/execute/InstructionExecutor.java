@@ -2,6 +2,7 @@ package com.zms.zpc.execute;
 
 import com.zms.zpc.emulator.PC;
 import com.zms.zpc.emulator.processor.Bits;
+import com.zms.zpc.emulator.reg.BaseReg;
 import com.zms.zpc.support.*;
 
 /**
@@ -49,7 +50,7 @@ public class InstructionExecutor extends Instruction implements Constants {
     }
 
     public void executeOut(CodeExecutor executor, CodeStream input, PC pc) {
-        int op = getOpcode()[0];
+        int op = getOpcode();
         int width = getOpWidth(executor.getBits());
         if (op == 0xe6 || op == 0xee) {
             width = 8;
@@ -65,6 +66,13 @@ public class InstructionExecutor extends Instruction implements Constants {
         }
         long v = getReg(pc, "RAX").getValue();
         pc.board.ios.write(a, v, width);
+    }
+
+    public void executeMov8ri(CodeExecutor executor, CodeStream input, PC pc) {
+        int v=input.read();
+        int r=getOpcode()-0xb0;
+        BaseReg reg = getReg(pc, mrs.getR8(r));
+        reg.setValue8(v);
     }
 
 }

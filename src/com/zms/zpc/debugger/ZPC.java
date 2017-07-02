@@ -412,6 +412,7 @@ public class ZPC extends JFrame implements ActionListener, Runnable {
     }
 
     public void test3() {
+        showUtilityFrame(ProcessorRegistersFrame.class);
     }
 
     @Override

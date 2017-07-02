@@ -36,13 +36,8 @@ public class CodeExecutor {
         regs = pc.cpu.regs;
         instruction.bits = regs.bits;
         boolean jump = false;
-        int op = instruction.getOpcode()[0];
+        int op = instruction.getOpcode();
         switch (op) {
-            case 0xea:
-                //org.jpc.emulator.execution.opcodes.rm.jmp_Ap
-                instruction.executeJumpFar(this, input, pc);
-                jump = true;
-                break;
             case 0x30:
                 //org.jpc.emulator.execution.opcodes.rm.xor_Eb_Gb_mem
                 //org.jpc.emulator.execution.opcodes.rm.xor_Ew_Gw
@@ -62,6 +57,22 @@ public class CodeExecutor {
             case 0x33:
                 instruction.parse2(input, bits);
                 instruction.executeXor30313233(this, input, pc, true);
+                break;
+            case 0xb0:
+            case 0xb1:
+            case 0xb2:
+            case 0xb3:
+            case 0xb4:
+            case 0xb5:
+            case 0xb6:
+            case 0xb7:
+                //org.jpc.emulator.execution.opcodes.rm.mov_ALr8b_Ib
+                instruction.executeMov8ri(this,input,pc);
+                break;
+            case 0xea:
+                //org.jpc.emulator.execution.opcodes.rm.jmp_Ap
+                instruction.executeJumpFar(this, input, pc);
+                jump = true;
                 break;
             case 0xe6:
             case 0xe7:

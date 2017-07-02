@@ -20,6 +20,10 @@ public class ModRMSIB {
     public int opWidth;
     public int addressWidth;
 
+    public String getR8(int reg) {
+        return (String) Assembler.ModData[3][0][reg];
+    }
+
     public String parseReg(Instruction instruction, int bits, int reg) {
         String result = null;
         if (this.reg8) {
@@ -36,7 +40,7 @@ public class ModRMSIB {
             int width = this.opWidth;
             switch (width) {
                 case 8:
-                    result = (String) Assembler.ModData[3][0][reg];
+                    result = getR8(reg);
                     break;
                 case 16:
                     result = (String) Assembler.ModData[3][1][reg];

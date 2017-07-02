@@ -118,7 +118,11 @@ public class Instruction {
         return opcodeCount;
     }
 
-    public int[] getOpcode() {
+    public int getOpcode() {
+        return getOpcodes()[0];
+    }
+
+    public int[] getOpcodes() {
         return opcode;
     }
 
