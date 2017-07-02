@@ -86,7 +86,7 @@ public abstract class BaseReg {
     public abstract int getValue8();
 
     public long getValue() {
-        return this.getValue(width);
+        return this.getValue(this.width);
     }
 
     public long getValue(int width) {
@@ -102,6 +102,10 @@ public abstract class BaseReg {
             default:
                 throw new NotImplException();
         }
+    }
+
+    public int setValue(long val) {
+        return setValue(this.width,val);
     }
 
     public int setValue(int width, long val) {

@@ -15,10 +15,10 @@ public class InstructionExecutor extends Instruction implements Constants {
 
     public long readOp(CodeExecutor executor, CodeStream input) {
         int width = getOpWidth(executor.getBits());
-        return readOp(input,width);
+        return readOp(input, width);
     }
 
-    public long readOp(CodeStream input,int width) {
+    public long readOp(CodeStream input, int width) {
         switch (width) {
             case 8:
                 return input.read();
@@ -33,7 +33,7 @@ public class InstructionExecutor extends Instruction implements Constants {
     }
 
     public long signExtend32_2_64(long n) {
-        return (int)n;
+        return (int) n;
     }
 
     public void executeJumpFar(CodeExecutor executor, CodeStream input, PC pc) {
@@ -58,17 +58,18 @@ public class InstructionExecutor extends Instruction implements Constants {
     }
 
     public void executeXor3435(CodeExecutor executor, CodeStream input, PC pc) {
-        int width=getOpWidth(executor.getBits());
-        if(getOpcode()==0x34) {
-            width=8;
+        int width = getOpWidth(executor.getBits());
+        if (getOpcode() == 0x34) {
+            width = 8;
         }
         long v;
-        if(width==64) {
-            v= signExtend32_2_64(readOp(input,32));
+        if (width == 64) {
+            v = signExtend32_2_64(readOp(input, 32));
         } else {
-            v=readOp(input,width);
+            v = readOp(input, width);
         }
-
+        BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
+        reg.setValue(v);
     }
 
     public void executeOut(CodeExecutor executor, CodeStream input, PC pc) {
@@ -91,9 +92,9 @@ public class InstructionExecutor extends Instruction implements Constants {
     }
 
     public void executeMov8ri(CodeExecutor executor, CodeStream input, PC pc) {
-        int v=input.read();
-        int r=getOpcode()-0xb0;
-        BaseReg reg = getReg(pc, mrs.getReg(8,r));
+        int v = input.read();
+        int r = getOpcode() - 0xb0;
+        BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));
         reg.setValue8(v);
     }
 

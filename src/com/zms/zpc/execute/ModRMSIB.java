@@ -18,39 +18,34 @@ public class ModRMSIB {
     public String addressReg;
     public long disp;
     public int opWidth;
-    public int addressWidth;
 
-    public String getReg(int width,int reg) {
-        switch (width) {
-            case 8:
-                return (String) Assembler.ModData[3][0][reg];
-            case 16:
-                return  (String) Assembler.ModData[3][1][reg];
-            case 32:
-                return (String) Assembler.ModData[3][2][reg];
-            case 64:
-                return (String) Assembler.ModData[3][3][reg];
-        }
-        throw new NotImplException();
-    }
+    private int addressWidth;
 
     public String parseReg(Instruction instruction, int bits, int reg) {
-        String result;
         if (this.reg8) {
             this.opWidth = 8;
             if (bits == 64 && instruction.isHasRex40()) {
-                result = (String) Assembler.ModData[3][9][reg];
+                return (String) Assembler.ModData[3][9][reg];
             } else {
-                result = (String) Assembler.ModData[3][0][reg];
+                return (String) Assembler.ModData[3][0][reg];
             }
         } else {
             if (this.opWidth < 0) {
                 this.opWidth = instruction.getOpWidth(bits);
             }
             int width = this.opWidth;
-            result=getReg(width,reg);
+            switch (width) {
+                case 8:
+                    return (String) Assembler.ModData[3][0][reg];
+                case 16:
+                    return (String) Assembler.ModData[3][1][reg];
+                case 32:
+                    return (String) Assembler.ModData[3][2][reg];
+                case 64:
+                    return (String) Assembler.ModData[3][3][reg];
+            }
         }
-        return result;
+        throw new NotImplException();
     }
 
     public void parse(Instruction instruction, CodeStream input, int bits) {
@@ -157,7 +152,7 @@ public class ModRMSIB {
     }
 
     public int setValReg(PC pc, String reg, long val) {
-        return pc.cpu.regs.getReg(reg).setValue(this.opWidth,val);
+        return pc.cpu.regs.getReg(reg).setValue(this.opWidth, val);
     }
 
     public int setValMemory(PC pc, long val) {
@@ -165,6 +160,10 @@ public class ModRMSIB {
             return setValReg(pc, this.addressReg, val);
         }
         throw new NotImplException();
+    }
+
+    public int getAddressWidth() {
+        return addressWidth;
     }
 
 }
