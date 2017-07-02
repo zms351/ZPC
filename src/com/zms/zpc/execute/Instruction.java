@@ -21,12 +21,8 @@ public class Instruction {
 
     private int opcodeCount;
     private int[] opcode = new int[20];
-    private boolean[] reg8Ops = new boolean[256];
 
     public Instruction() {
-        reg8Ops[0x8a] = true; //mov
-        reg8Ops[0x30] = true; //xor
-        reg8Ops[0x32] = true; //xor
     }
 
     public void parse1(CodeStream input, int bits) {
@@ -94,7 +90,6 @@ public class Instruction {
     public ModRMSIB mrs = new ModRMSIB();
 
     public void parse2(CodeStream input, int bits) {
-        mrs.reg8 = reg8Ops[opcode[0]];
         mrs.parse(this, input, bits);
     }
 

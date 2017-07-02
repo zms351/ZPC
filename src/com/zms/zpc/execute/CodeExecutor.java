@@ -27,6 +27,7 @@ public class CodeExecutor {
         } else {
             bits = 16;
         }
+        instruction.mrs.reg8=false;
     }
 
     public int execute(PC pc, CodeStream input) {
@@ -41,6 +42,7 @@ public class CodeExecutor {
             case 0x30:
                 //org.jpc.emulator.execution.opcodes.rm.xor_Eb_Gb_mem
                 //org.jpc.emulator.execution.opcodes.rm.xor_Ew_Gw
+                instruction.mrs.reg8=true;
                 instruction.parse2(input, bits);
                 instruction.executeXor30313233(this, input, pc, false);
                 break;
@@ -51,6 +53,7 @@ public class CodeExecutor {
                 instruction.executeXor30313233(this, input, pc, false);
                 break;
             case 0x32:
+                instruction.mrs.reg8=true;
                 instruction.parse2(input, bits);
                 instruction.executeXor30313233(this, input, pc, true);
                 break;
@@ -59,6 +62,7 @@ public class CodeExecutor {
                 instruction.executeXor30313233(this, input, pc, true);
                 break;
             case 0x34:
+                instruction.mrs.reg8=true;
             case 0x35:
                 instruction.executeXor3435(this,input,pc);
                 break;
@@ -71,6 +75,7 @@ public class CodeExecutor {
             case 0xb6:
             case 0xb7:
                 //org.jpc.emulator.execution.opcodes.rm.mov_ALr8b_Ib
+                instruction.mrs.reg8=true;
                 instruction.executeMov8ri(this,input,pc);
                 break;
             case 0xea:
@@ -79,8 +84,9 @@ public class CodeExecutor {
                 jump = true;
                 break;
             case 0xe6:
-            case 0xe7:
             case 0xee:
+                instruction.mrs.reg8=true;
+            case 0xe7:
             case 0xef:
                 instruction.executeOut(this, input, pc);
                 break;
