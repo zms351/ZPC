@@ -28,14 +28,15 @@ public class CodeExecutor {
             bits = 16;
         }
         instruction.mrs.reg8=false;
+        regs = pc.cpu.regs;
+        instruction.bits = regs.bits;
+        instruction.bits.status=0;
     }
 
     public int execute(PC pc, CodeStream input) {
         pre(pc);
         instruction.setStartPos(input.getPos());
         instruction.parse1(input, bits);
-        regs = pc.cpu.regs;
-        instruction.bits = regs.bits;
         boolean jump = false;
         int op = instruction.getOpcode();
         switch (op) {
@@ -115,10 +116,19 @@ public class CodeExecutor {
                 jump = true;
                 break;
             case 0xe6:
+                //OUT		imm,reg_al			[i-:	e6 ib,u]				8086,SB
             case 0xee:
+                //OUT		reg_dx,reg_al			[--:	ee]					8086
+
                 instruction.mrs.reg8=true;
             case 0xe7:
+                //OUT		imm,reg_ax			[i-:	o16 e7 ib,u]				8086,SB
+                //OUT		imm,reg_eax			[i-:	o32 e7 ib,u]				386,SB
+
             case 0xef:
+                //OUT		reg_dx,reg_ax			[--:	o16 ef]					8086
+                //OUT		reg_dx,reg_eax			[--:	o32 ef]					386
+
                 instruction.executeOut(this, input, pc);
                 break;
             default:

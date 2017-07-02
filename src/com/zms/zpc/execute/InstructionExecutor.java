@@ -62,14 +62,19 @@ public class InstructionExecutor extends Instruction implements Constants {
         if (getOpcode() == 0x34) {
             width = 8;
         }
-        long v;
+        long v1;
         if (width == 64) {
-            v = signExtend32_2_64(readOp(input, 32));
+            v1 = signExtend32_2_64(readOp(input, 32));
         } else {
-            v = readOp(input, width);
+            v1 = readOp(input, width);
         }
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
+        long v2=reg.getValue();
+        long v=v1 ^ v2;
+        bits.clearOCA();
+        bits.result = v;
         reg.setValue(v);
+        bits.status = SZP;
     }
 
     public void executeOut(CodeExecutor executor, CodeStream input, PC pc) {
