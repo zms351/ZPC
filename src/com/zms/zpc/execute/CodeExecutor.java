@@ -40,30 +40,58 @@ public class CodeExecutor {
         int op = instruction.getOpcode();
         switch (op) {
             case 0x30:
+                //XOR		mem,reg8			[mr:	hle 30 /r]				8086,SM,LOCK
+                //XOR		reg8,reg8			[mr:	30 /r]					8086
+
                 //org.jpc.emulator.execution.opcodes.rm.xor_Eb_Gb_mem
                 //org.jpc.emulator.execution.opcodes.rm.xor_Ew_Gw
+
                 instruction.mrs.reg8=true;
                 instruction.parse2(input, bits);
                 instruction.executeXor30313233(this, input, pc, false);
                 break;
             case 0x31:
+                //XOR		mem,reg16			[mr:	hle o16 31 /r]				8086,SM,LOCK
+                //XOR		reg16,reg16			[mr:	o16 31 /r]				8086
+                //XOR		mem,reg32			[mr:	hle o32 31 /r]				386,SM,LOCK
+                //XOR		reg32,reg32			[mr:	o32 31 /r]				386
+                //XOR		mem,reg64			[mr:	hle o64 31 /r]				X64,SM,LOCK
+                //XOR		reg64,reg64			[mr:	o64 31 /r]				X64
+
                 //org.jpc.emulator.execution.opcodes.rm.xor_Ew_Gw_mem
                 //org.jpc.emulator.execution.opcodes.rm.xor_Ew_Gw
+
                 instruction.parse2(input, bits);
                 instruction.executeXor30313233(this, input, pc, false);
                 break;
             case 0x32:
+                //XOR		reg8,mem			[rm:	32 /r]					8086,SM
+                //XOR		reg8,reg8			[rm:	32 /r]					8086
+
                 instruction.mrs.reg8=true;
                 instruction.parse2(input, bits);
                 instruction.executeXor30313233(this, input, pc, true);
                 break;
             case 0x33:
+                //XOR		reg16,mem			[rm:	o16 33 /r]				8086,SM
+                //XOR		reg16,reg16			[rm:	o16 33 /r]				8086
+                //XOR		reg32,mem			[rm:	o32 33 /r]				386,SM
+                //XOR		reg32,reg32			[rm:	o32 33 /r]				386
+                //XOR		reg64,mem			[rm:	o64 33 /r]				X64,SM
+                //XOR		reg64,reg64			[rm:	o64 33 /r]				X64
+
                 instruction.parse2(input, bits);
                 instruction.executeXor30313233(this, input, pc, true);
                 break;
             case 0x34:
+                //XOR		reg_al,imm			[-i:	34 ib]					8086,SM
+
                 instruction.mrs.reg8=true;
             case 0x35:
+                //XOR		reg_ax,imm			[-i:	o16 35 iw]				8086,SM
+                //XOR		reg_eax,imm			[-i:	o32 35 id]				386,SM
+                //XOR		reg_rax,imm			[-i:	o64 35 id,s]				X64,SM
+
                 instruction.executeXor3435(this,input,pc);
                 break;
             case 0xb0:
@@ -74,7 +102,10 @@ public class CodeExecutor {
             case 0xb5:
             case 0xb6:
             case 0xb7:
+                //MOV		reg8,imm			[ri:	b0+r ib]				8086,SM
+
                 //org.jpc.emulator.execution.opcodes.rm.mov_ALr8b_Ib
+
                 instruction.mrs.reg8=true;
                 instruction.executeMov8ri(this,input,pc);
                 break;
