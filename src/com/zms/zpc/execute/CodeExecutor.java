@@ -124,6 +124,21 @@ public class CodeExecutor {
                 instruction.executeJumpFar(this, input, pc);
                 jump = true;
                 break;
+            case 0xe4:
+                //IN		reg_al,imm			[-i:	e4 ib,u]				8086,SB
+            case 0xec:
+                //IN		reg_al,reg_dx			[--:	ec]					8086
+
+                instruction.mrs.reg8=true;
+            case 0xe5:
+                //IN		reg_ax,imm			[-i:	o16 e5 ib,u]				8086,SB
+                //IN		reg_eax,imm			[-i:	o32 e5 ib,u]				386,SB
+            case 0xed:
+                //IN		reg_ax,reg_dx			[--:	o16 ed]					8086
+                //IN		reg_eax,reg_dx			[--:	o32 ed]					386
+
+                instruction.executeIn(this, input, pc);
+                break;
             case 0xe6:
                 //OUT		imm,reg_al			[i-:	e6 ib,u]				8086,SB
             case 0xee:

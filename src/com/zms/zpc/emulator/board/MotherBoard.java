@@ -12,6 +12,7 @@ public class MotherBoard {
     public IODevices ios;
     public DMAController dma1;
     public DMAController dma2;
+    public RTC rtc;
 
     public MotherBoard(PC pc) {
         this.pc = pc;
@@ -19,9 +20,10 @@ public class MotherBoard {
     }
 
     private void init() {
-        ios = new IODevices(pc);
-        dma1 = new DMAController();
-        dma2 = new DMAController();
+        ios = new IODevices(this);
+        dma1 = new DMAController(this);
+        dma2 = new DMAController(this);
+        rtc = new RTC(this);
     }
 
 }

@@ -92,14 +92,33 @@ public class InstructionExecutor extends Instruction implements Constants {
         if (width != 8 && width != 16 && width != 32) {
             throw new NotImplException();
         }
-        long a;
+        int a;
         if (op == 0xe6 || op == 0xe7) {
             a = input.read();
         } else {
-            a = getReg(pc, "DX").getValue();
+            a = getReg(pc, "DX").getValue16();
         }
         long v = getReg(pc, "RAX").getValue();
         pc.board.ios.write(a, v, width);
+    }
+
+    public void executeIn(CodeExecutor executor, CodeStream input, PC pc) {
+        int op = getOpcode();
+        int width = getOpWidth(executor.getBits());
+        if (op == 0xe4 || op == 0xec) {
+            width = 8;
+        }
+        if (width != 8 && width != 16 && width != 32) {
+            throw new NotImplException();
+        }
+        int a;
+        if (op == 0xe4 || op == 0xe5) {
+            a = input.read();
+        } else {
+            a = getReg(pc, "DX").getValue16();
+        }
+        long v = pc.board.ios.read(a, width);
+        getReg(pc, "RAX").setValue(width, v);
     }
 
     public void executeMov8ri(CodeExecutor executor, CodeStream input, PC pc) {
