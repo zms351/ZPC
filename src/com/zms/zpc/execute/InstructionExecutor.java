@@ -98,7 +98,8 @@ public class InstructionExecutor extends Instruction implements Constants {
         } else {
             a = getReg(pc, "DX").getValue16();
         }
-        long v = getReg(pc, "RAX").getValue();
+        BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
+        long v = reg.getValue();
         pc.board.ios.write(a, v, width);
     }
 
@@ -118,7 +119,8 @@ public class InstructionExecutor extends Instruction implements Constants {
             a = getReg(pc, "DX").getValue16();
         }
         long v = pc.board.ios.read(a, width);
-        getReg(pc, "RAX").setValue(width, v);
+        BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
+        reg.setValue(width,v);
     }
 
     public void executeMov8ri(CodeExecutor executor, CodeStream input, PC pc) {

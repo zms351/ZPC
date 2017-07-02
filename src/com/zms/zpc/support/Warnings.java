@@ -2,6 +2,8 @@ package com.zms.zpc.support;
 
 import com.zms.zpc.debugger.*;
 import com.zms.zpc.emulator.PC;
+import com.zms.zpc.emulator.processor.Regs;
+import com.zms.zpc.emulator.reg.BaseReg_0;
 import com.zms.zpc.execute.*;
 
 import java.io.*;
@@ -21,6 +23,7 @@ public class Warnings {
         ModRMSIB mod = new ModRMSIB();
         System.out.println(mod.setValMemory(new PC(), 0L));
         System.out.println(mod.setValReg(new PC(), 2));
+        System.out.println(new BaseReg_0("a",new Regs(),1,1).setValue(123));
     }
 
 }
