@@ -107,6 +107,11 @@ public class InstructionExecutor extends Instruction implements Constants {
         __reg.setValue(xor_(__v1, __reg.getValue()));
     }
 
+    public void executeCmp3c3d(CodeExecutor executor, CodeStream input, PC pc) {
+        read1(executor,input,pc);
+        cmp_(__reg.getValue(),__v1);
+    }
+
     public void executeCmp_rm_mr(CodeExecutor executor, CodeStream input, PC pc, boolean rm) {
         long v1 = mrs.getValMemory(pc);
         long v2 = mrs.getValReg(pc);

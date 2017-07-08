@@ -136,6 +136,8 @@ public class CodeExecutor {
                 //CMP		reg_eax,imm			[-i:	o32 3d id]				386,SM
                 //CMP		reg_rax,imm			[-i:	o64 3d id,s]				X64,SM
 
+                instruction.executeCmp3c3d(this,input,pc);
+                break;
 
             case 0x88:
                 //MOV		mem,reg8			[mr:	hlexr 88 /r]				8086,SM
