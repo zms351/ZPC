@@ -180,6 +180,9 @@ public class Instruction {
     }
 
     private int _getOpWidth(int bits) {
+        if(mrs.reg8) {
+            return 8;
+        }
         if (bits == 16) {
             if (isHas66()) {
                 return 32;
