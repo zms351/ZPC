@@ -48,9 +48,6 @@ public class CodeExecutor {
                 //org.jpc.emulator.execution.opcodes.rm.xor_Ew_Gw
 
                 mrs.reg8 = true;
-                instruction.parse2(input, bits);
-                instruction.executeXor30313233(this, input, pc, false);
-                break;
             case 0x31:
                 //XOR		mem,reg16			[mr:	hle o16 31 /r]				8086,SM,LOCK
                 //XOR		reg16,reg16			[mr:	o16 31 /r]				8086
@@ -65,14 +62,12 @@ public class CodeExecutor {
                 instruction.parse2(input, bits);
                 instruction.executeXor30313233(this, input, pc, false);
                 break;
+
             case 0x32:
                 //XOR		reg8,mem			[rm:	32 /r]					8086,SM
                 //XOR		reg8,reg8			[rm:	32 /r]					8086
 
                 mrs.reg8 = true;
-                instruction.parse2(input, bits);
-                instruction.executeXor30313233(this, input, pc, true);
-                break;
             case 0x33:
                 //XOR		reg16,mem			[rm:	o16 33 /r]				8086,SM
                 //XOR		reg16,reg16			[rm:	o16 33 /r]				8086
@@ -84,6 +79,7 @@ public class CodeExecutor {
                 instruction.parse2(input, bits);
                 instruction.executeXor30313233(this, input, pc, true);
                 break;
+
             case 0x34:
                 //XOR		reg_al,imm			[-i:	34 ib]					8086,SM
 
@@ -94,6 +90,40 @@ public class CodeExecutor {
                 //XOR		reg_rax,imm			[-i:	o64 35 id,s]				X64,SM
 
                 instruction.executeXor3435(this, input, pc);
+                break;
+
+            case 0x38:
+                //CMP		mem,reg8			[mr:	38 /r]					8086,SM
+                //CMP		reg8,reg8			[mr:	38 /r]					8086
+
+                mrs.reg8 = true;
+            case 0x39:
+                //CMP		mem,reg16			[mr:	o16 39 /r]				8086,SM
+                //CMP		reg16,reg16			[mr:	o16 39 /r]				8086
+                //CMP		mem,reg32			[mr:	o32 39 /r]				386,SM
+                //CMP		reg32,reg32			[mr:	o32 39 /r]				386
+                //CMP		mem,reg64			[mr:	o64 39 /r]				X64,SM
+                //CMP		reg64,reg64			[mr:	o64 39 /r]				X64
+
+                instruction.parse2(input, bits);
+                instruction.executeCmp_rm_mr(this, input, pc, false);
+                break;
+
+            case 0x3a:
+                //CMP		reg8,mem			[rm:	3a /r]					8086,SM
+                //CMP		reg8,reg8			[rm:	3a /r]					8086
+
+                mrs.reg8 = true;
+            case 0x3b:
+                //CMP		reg16,mem			[rm:	o16 3b /r]				8086,SM
+                //CMP		reg16,reg16			[rm:	o16 3b /r]				8086
+                //CMP		reg32,mem			[rm:	o32 3b /r]				386,SM
+                //CMP		reg32,reg32			[rm:	o32 3b /r]				386
+                //CMP		reg64,mem			[rm:	o64 3b /r]				X64,SM
+                //CMP		reg64,reg64			[rm:	o64 3b /r]				X64
+
+                instruction.parse2(input, bits);
+                instruction.executeCmp_rm_mr(this, input, pc, true);
                 break;
 
             case 0x88:
@@ -122,6 +152,25 @@ public class CodeExecutor {
                 mrs.reg8 = true;
                 instruction.executeMov8ri(this, input, pc);
                 break;
+
+            case 0xb8:
+            case 0xb9:
+            case 0xba:
+            case 0xbb:
+            case 0xbc:
+            case 0xbd:
+            case 0xbe:
+            case 0xbf:
+                //MOV		reg16,imm			[ri:	o16 b8+r iw]				8086,SM
+                //MOV		reg32,imm			[ri:	o32 b8+r id]				386,SM
+                //MOV		reg64,udword			[ri:	o64nw b8+r id]				X64,SM,OPT,ND
+                //MOV		reg64,imm			[ri:	o64 b8+r iq]				X64,SM
+
+                //org.jpc.emulator.execution.opcodes.rm.mov_rAXr8_Iw
+
+                instruction.executeMovri(this, input, pc);
+                break;
+
             case 0xea:
                 //JMP		imm|far				[i:	odf ea iwd seg]				8086,ND,NOLONG
                 //JMP		imm16|far			[i:	o16 ea iwd seg]				8086,ND,NOLONG

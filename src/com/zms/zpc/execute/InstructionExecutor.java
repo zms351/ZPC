@@ -36,6 +36,10 @@ public class InstructionExecutor extends Instruction implements Constants {
         return (int) n;
     }
 
+    public long zeroExtend32_2_64(long n) {
+        return n & 0xffffffffL;
+    }
+
     public void executeJumpFar(CodeExecutor executor, CodeStream input, PC pc) {
         long offset = readOp(executor, input);
         int base = read16(input);
@@ -83,6 +87,10 @@ public class InstructionExecutor extends Instruction implements Constants {
         reg.setValue(v);
     }
 
+    public void executeCmp_rm_mr(CodeExecutor executor, CodeStream input, PC pc, boolean rm) {
+
+    }
+
     public void executeOut(CodeExecutor executor, CodeStream input, PC pc) {
         int op = getOpcode();
         int width = getOpWidth(executor.getBits());
@@ -124,10 +132,17 @@ public class InstructionExecutor extends Instruction implements Constants {
     }
 
     public void executeMov8ri(CodeExecutor executor, CodeStream input, PC pc) {
-        int v = input.read();
         int r = getOpcode() - 0xb0;
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));
-        reg.setValue8(v);
+        long v = readOp(executor,input);
+        reg.setValue(v);
+    }
+
+    public void executeMovri(CodeExecutor executor, CodeStream input, PC pc) {
+        int r=getOpcode()-0xb8;
+        BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));
+        long v=readOp(executor,input);
+        reg.setValue(v);
     }
 
     public void executeMov8rm(CodeExecutor executor, CodeStream input, PC pc) {
