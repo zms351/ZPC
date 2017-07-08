@@ -2,7 +2,7 @@ package com.zms.zpc.execute;
 
 import com.zms.zpc.emulator.PC;
 import com.zms.zpc.emulator.processor.Bits;
-import com.zms.zpc.emulator.reg.*;
+import com.zms.zpc.emulator.reg.BaseReg;
 import com.zms.zpc.support.*;
 
 /**
@@ -70,92 +70,75 @@ public class InstructionExecutor extends Instruction implements Constants {
         return v;
     }
 
-    public void executeXor3435(CodeExecutor executor, CodeStream input, PC pc) {
+    private long __v1, __v2;
+    private BaseReg __reg;
+    private int __width, __v3;
+
+    private void read1(CodeExecutor executor, CodeStream input, PC pc) {
         int width = getOpWidth(executor.getBits());
-        if (getOpcode() == 0x34) {
+        if (width == 64) {
+            __v1 = signExtend32_2_64(readOp(input, 32));
+        } else {
+            __v1 = readOp(input, width);
+        }
+        __reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
+    }
+
+    private void read2(CodeExecutor executor, CodeStream input, PC pc, int a, int b, int c, int d) {
+        int op = getOpcode();
+        int width = getOpWidth(executor.getBits());
+        if (op == a || op == b) {
             width = 8;
         }
-        long v1;
-        if (width == 64) {
-            v1 = signExtend32_2_64(readOp(input, 32));
-        } else {
-            v1 = readOp(input, width);
+        if (width != 8 && width != 16 && width != 32) {
+            throw new NotImplException();
         }
-        BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
-        long v2 = reg.getValue();
-        long v = xor_(v1, v2);
-        reg.setValue(v);
+        __width = width;
+        if (op == c || op == d) {
+            __v3 = input.read();
+        } else {
+            __v3 = getReg(pc, "DX").getValue16();
+        }
+        __reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
+    }
+
+    public void executeXor3435(CodeExecutor executor, CodeStream input, PC pc) {
+        read1(executor, input, pc);
+        __reg.setValue(xor_(__v1, __reg.getValue()));
     }
 
     public void executeCmp_rm_mr(CodeExecutor executor, CodeStream input, PC pc, boolean rm) {
         long v1 = mrs.getValMemory(pc);
         long v2 = mrs.getValReg(pc);
-        long v;
-        if(rm) {
-            v=v2-v1;
-            bits.op1=v2;
-            bits.op2=v1;
+        if (rm) {
+            cmp_(v2, v1);
         } else {
-            v=v1-v2;
-            bits.op1=v1;
-            bits.op2=v2;
+            cmp_(v1, v2);
         }
-        bits.result=v;
-        bits.ins=SUB;
-        bits.status=OSZAPC;
+    }
+
+    private void cmp_(long v1, long v2) {
+        bits.op1 = v1;
+        bits.op2 = v2;
+        bits.result = v1 - v2;
+        bits.ins = SUB;
+        bits.status = OSZAPC;
     }
 
     public void executeOut(CodeExecutor executor, CodeStream input, PC pc) {
-        int op = getOpcode();
-        int width = getOpWidth(executor.getBits());
-        if (op == 0xe6 || op == 0xee) {
-            width = 8;
-        }
-        if (width != 8 && width != 16 && width != 32) {
-            throw new NotImplException();
-        }
-        int a;
-        if (op == 0xe6 || op == 0xe7) {
-            a = input.read();
-        } else {
-            a = getReg(pc, "DX").getValue16();
-        }
-        BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
-        long v = reg.getValue();
-        pc.board.ios.write(a, v, width);
+        read2(executor, input, pc, 0xe6, 0xee, 0xe6, 0xe7);
+        pc.board.ios.write(__v3, __reg.getValue(), __width);
     }
 
     public void executeIn(CodeExecutor executor, CodeStream input, PC pc) {
-        int op = getOpcode();
-        int width = getOpWidth(executor.getBits());
-        if (op == 0xe4 || op == 0xec) {
-            width = 8;
-        }
-        if (width != 8 && width != 16 && width != 32) {
-            throw new NotImplException();
-        }
-        int a;
-        if (op == 0xe4 || op == 0xe5) {
-            a = input.read();
-        } else {
-            a = getReg(pc, "DX").getValue16();
-        }
-        long v = pc.board.ios.read(a, width);
-        BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
-        reg.setValue(width, v);
+        read2(executor, input, pc, 0xe4, 0xec, 0xe4, 0xe5);
+        __reg.setValue(__width, pc.board.ios.read(__v3, __width));
     }
 
-    public void executeMov8ri(CodeExecutor executor, CodeStream input, PC pc) {
-        int r = getOpcode() - 0xb0;
+    public void executeMovri(CodeExecutor executor, CodeStream input, PC pc, int base) {
+        int r = getOpcode() - base;
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));
-        long v = readOp(executor,input);
-        reg.setValue(v);
-    }
-
-    public void executeMovri(CodeExecutor executor, CodeStream input, PC pc) {
-        int r=getOpcode()-0xb8;
-        BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));
-        long v=readOp(executor,input);
+        long v = readOp(executor, input);
         reg.setValue(v);
     }
 

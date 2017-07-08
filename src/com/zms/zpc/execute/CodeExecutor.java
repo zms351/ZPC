@@ -128,6 +128,15 @@ public class CodeExecutor {
                 instruction.executeCmp_rm_mr(this, input, pc, true);
                 break;
 
+            case 0x3c:
+                //CMP		reg_al,imm			[-i:	3c ib]					8086,SM
+                mrs.reg8 = true;
+            case 0x3d:
+                //CMP		reg_ax,imm			[-i:	o16 3d iw]				8086,SM
+                //CMP		reg_eax,imm			[-i:	o32 3d id]				386,SM
+                //CMP		reg_rax,imm			[-i:	o64 3d id,s]				X64,SM
+
+
             case 0x88:
                 //MOV		mem,reg8			[mr:	hlexr 88 /r]				8086,SM
                 //MOV		reg8,reg8			[mr:	88 /r]					8086
@@ -152,7 +161,7 @@ public class CodeExecutor {
                 //org.jpc.emulator.execution.opcodes.rm.mov_ALr8b_Ib
 
                 mrs.reg8 = true;
-                instruction.executeMov8ri(this, input, pc);
+                instruction.executeMovri(this, input, pc,0xb0);
                 break;
 
             case 0xb8:
@@ -170,7 +179,7 @@ public class CodeExecutor {
 
                 //org.jpc.emulator.execution.opcodes.rm.mov_rAXr8_Iw
 
-                instruction.executeMovri(this, input, pc);
+                instruction.executeMovri(this, input, pc,0xb8);
                 break;
 
             case 0xea:
@@ -230,7 +239,7 @@ public class CodeExecutor {
         if (!jump) {
             reLoc(input);
         }
-        regs.bits.opWidth=mrs.opWidth;
+        regs.bits.opWidth = mrs.opWidth;
         return 0;
     }
 
