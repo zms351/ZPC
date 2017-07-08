@@ -120,7 +120,7 @@ public class InstructionExecutor extends Instruction implements Constants {
         }
         long v = pc.board.ios.read(a, width);
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
-        reg.setValue(width,v);
+        reg.setValue(width, v);
     }
 
     public void executeMov8ri(CodeExecutor executor, CodeStream input, PC pc) {
@@ -128,6 +128,11 @@ public class InstructionExecutor extends Instruction implements Constants {
         int r = getOpcode() - 0xb0;
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));
         reg.setValue8(v);
+    }
+
+    public void executeMov8rm(CodeExecutor executor, CodeStream input, PC pc) {
+        long v = mrs.getValReg(pc);
+        mrs.setValMemory(pc, v);
     }
 
 }
