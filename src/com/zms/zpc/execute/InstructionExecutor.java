@@ -2,7 +2,7 @@ package com.zms.zpc.execute;
 
 import com.zms.zpc.emulator.PC;
 import com.zms.zpc.emulator.processor.Bits;
-import com.zms.zpc.emulator.reg.BaseReg;
+import com.zms.zpc.emulator.reg.*;
 import com.zms.zpc.support.*;
 
 /**
@@ -88,7 +88,21 @@ public class InstructionExecutor extends Instruction implements Constants {
     }
 
     public void executeCmp_rm_mr(CodeExecutor executor, CodeStream input, PC pc, boolean rm) {
-
+        long v1 = mrs.getValMemory(pc);
+        long v2 = mrs.getValReg(pc);
+        long v;
+        if(rm) {
+            v=v2-v1;
+            bits.op1=v2;
+            bits.op2=v1;
+        } else {
+            v=v1-v2;
+            bits.op1=v1;
+            bits.op2=v2;
+        }
+        bits.result=v;
+        bits.ins=SUB;
+        bits.status=OSZAPC;
     }
 
     public void executeOut(CodeExecutor executor, CodeStream input, PC pc) {

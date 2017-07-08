@@ -24,8 +24,8 @@ public class Bits {
         cf=new BitControl("cf",regs,regs.rflags.getIndex(),0);
     }
 
-    public long result;
-    public int status;
+    public long result,op1,op2;
+    public int status,ins,opWidth;
 
     public void clearOCA() {
         of.clear();

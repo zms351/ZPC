@@ -96,6 +96,8 @@ public class CodeExecutor {
                 //CMP		mem,reg8			[mr:	38 /r]					8086,SM
                 //CMP		reg8,reg8			[mr:	38 /r]					8086
 
+                //org.jpc.emulator.execution.opcodes.rm.cmp_Eb_Gb_mem
+
                 mrs.reg8 = true;
             case 0x39:
                 //CMP		mem,reg16			[mr:	o16 39 /r]				8086,SM
@@ -203,6 +205,7 @@ public class CodeExecutor {
 
                 instruction.executeIn(this, input, pc);
                 break;
+
             case 0xe6:
                 //OUT		imm,reg_al			[i-:	e6 ib,u]				8086,SB
             case 0xee:
@@ -227,6 +230,7 @@ public class CodeExecutor {
         if (!jump) {
             reLoc(input);
         }
+        regs.bits.opWidth=mrs.opWidth;
         return 0;
     }
 
