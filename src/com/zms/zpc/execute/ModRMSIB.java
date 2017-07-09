@@ -15,6 +15,7 @@ public class ModRMSIB {
     public String address;
     public int addressType;
     public String reg;
+    public int regIndex;
     public String addressReg;
     public long disp;
     public int opWidth;
@@ -33,7 +34,7 @@ public class ModRMSIB {
             if (this.opWidth < 0) {
                 this.opWidth = instruction.getOpWidth(bits);
             }
-            instruction.__width=this.opWidth;
+            instruction.__width = this.opWidth;
             int width = this.opWidth;
             switch (width) {
                 case 8:
@@ -59,7 +60,7 @@ public class ModRMSIB {
 
         int ModRM = input.read();
         int mod = ModRM >> 6;
-        int reg = (ModRM >> 3) & 0b111;
+        int reg = regIndex = (ModRM >> 3) & 0b111;
         int rm = ModRM & 0b111;
 
         this.reg = parseReg(instruction, bits, reg);

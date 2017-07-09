@@ -136,26 +136,37 @@ public class CodeExecutor {
                 //CMP		reg_eax,imm			[-i:	o32 3d id]				386,SM
                 //CMP		reg_rax,imm			[-i:	o64 3d id,s]				X64,SM
 
-                instruction.executeCmp3c3d(this,input,pc);
+                instruction.executeCmp3c3d(this, input, pc);
                 break;
 
             case 0x83:
-                //CMP		rm16,imm8			[mi:	o16 83 /7 ib,s]				8086
-                //CMP		rm32,imm8			[mi:	o32 83 /7 ib,s]				386
-                //CMP		rm64,imm8			[mi:	o64 83 /7 ib,s]				X64
-                //CMP		reg_ax,sbyteword		[mi:	o16 83 /7 ib,s]				8086,SM,ND
-                //CMP		reg_eax,sbytedword		[mi:	o32 83 /7 ib,s]				386,SM,ND
-                //CMP		reg_rax,sbytedword		[mi:	o64 83 /7 ib,s]				X64,SM,ND
-                //CMP		rm16,sbyteword			[mi:	o16 83 /7 ib,s]				8086,SM,ND
-                //CMP		rm32,sbytedword			[mi:	o32 83 /7 ib,s]				386,SM,ND
-                //CMP		rm64,sbytedword			[mi:	o64 83 /7 ib,s]				X64,SM,ND
+                instruction.parse2(input, bits);
+                switch (mrs.regIndex) {
+                    case 7:
+                        //CMP		rm16,imm8			[mi:	o16 83 /7 ib,s]				8086
+                        //CMP		rm32,imm8			[mi:	o32 83 /7 ib,s]				386
+                        //CMP		rm64,imm8			[mi:	o64 83 /7 ib,s]				X64
+                        //CMP		reg_ax,sbyteword		[mi:	o16 83 /7 ib,s]				8086,SM,ND
+                        //CMP		reg_eax,sbytedword		[mi:	o32 83 /7 ib,s]				386,SM,ND
+                        //CMP		reg_rax,sbytedword		[mi:	o64 83 /7 ib,s]				X64,SM,ND
+                        //CMP		rm16,sbyteword			[mi:	o16 83 /7 ib,s]				8086,SM,ND
+                        //CMP		rm32,sbytedword			[mi:	o32 83 /7 ib,s]				386,SM,ND
+                        //CMP		rm64,sbytedword			[mi:	o64 83 /7 ib,s]				X64,SM,ND
 
-                //CMP		mem,sbyteword16			[mi:	o16 83 /7 ib,s]				8086,SM,ND
-                //CMP		mem,sbytedword32		[mi:	o32 83 /7 ib,s]				386,SM,ND
+                        //CMP		mem,sbyteword16			[mi:	o16 83 /7 ib,s]				8086,SM,ND
+                        //CMP		mem,sbytedword32		[mi:	o32 83 /7 ib,s]				386,SM,ND
 
-                instruction.parse2(input,bits);
-                instruction.executeCmp83(this,input,pc);
+                        instruction.executeCmp83(this, input, pc);
+                        break;
+                    default:
+                        throw new NotImplException();
+                }
                 break;
+
+            case 0x80:
+                //CMP		rm8,imm				[mi:	80 /7 ib]				8086,SM
+                //CMP		mem,imm8			[mi:	80 /7 ib]				8086,SM
+                mrs.reg8 = true;
 
             case 0x88:
                 //MOV		mem,reg8			[mr:	hlexr 88 /r]				8086,SM
@@ -181,7 +192,7 @@ public class CodeExecutor {
                 //org.jpc.emulator.execution.opcodes.rm.mov_ALr8b_Ib
 
                 mrs.reg8 = true;
-                instruction.executeMovri(this, input, pc,0xb0);
+                instruction.executeMovri(this, input, pc, 0xb0);
                 break;
 
             case 0xb8:
@@ -199,7 +210,7 @@ public class CodeExecutor {
 
                 //org.jpc.emulator.execution.opcodes.rm.mov_rAXr8_Iw
 
-                instruction.executeMovri(this, input, pc,0xb8);
+                instruction.executeMovri(this, input, pc, 0xb8);
                 break;
 
             case 0xea:
