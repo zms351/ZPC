@@ -33,6 +33,7 @@ public class ModRMSIB {
             if (this.opWidth < 0) {
                 this.opWidth = instruction.getOpWidth(bits);
             }
+            instruction.__width=this.opWidth;
             int width = this.opWidth;
             switch (width) {
                 case 8:

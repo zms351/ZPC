@@ -36,6 +36,35 @@ public class InstructionExecutor extends Instruction implements Constants {
         return (int) n;
     }
 
+    public long signExtend8_2_64(long n) {
+        return (byte) n;
+    }
+
+    public long signExtend8_2_32(long n) {
+        int v = (byte) n;
+        return v & 0xffffffffL;
+    }
+
+    public long signExtend8_2_16(long n) {
+        int v = (byte) n;
+        return v & 0xffffL;
+    }
+
+    public long signExtend8(long n, int width) {
+        switch (width) {
+            case 8:
+                return n & 0xff;
+            case 16:
+                return signExtend8_2_16(n);
+            case 32:
+                return signExtend8_2_32(n);
+            case 64:
+                return signExtend8_2_64(n);
+            default:
+                throw new NotImplException();
+        }
+    }
+
     public long zeroExtend32_2_64(long n) {
         return n & 0xffffffffL;
     }
@@ -81,6 +110,7 @@ public class InstructionExecutor extends Instruction implements Constants {
         } else {
             __v1 = readOp(input, width);
         }
+        __width = width;
         __reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
     }
 
@@ -108,8 +138,15 @@ public class InstructionExecutor extends Instruction implements Constants {
     }
 
     public void executeCmp3c3d(CodeExecutor executor, CodeStream input, PC pc) {
-        read1(executor,input,pc);
-        cmp_(__reg.getValue(),__v1);
+        read1(executor, input, pc);
+        cmp_(__reg.getValue(), __v1);
+    }
+
+    public void executeCmp83(CodeExecutor executor, CodeStream input, PC pc) {
+        long v2 = readOp(input, 8);
+        v2 = signExtend8(v2, mrs.opWidth);
+        long v1 = mrs.getValMemory(pc);
+        cmp_(v1, v2);
     }
 
     public void executeCmp_rm_mr(CodeExecutor executor, CodeStream input, PC pc, boolean rm) {

@@ -22,6 +22,8 @@ public class Instruction {
     private int opcodeCount;
     private int[] opcode = new int[20];
 
+    public int __width;
+
     public Instruction() {
     }
 

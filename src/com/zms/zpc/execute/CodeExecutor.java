@@ -139,6 +139,24 @@ public class CodeExecutor {
                 instruction.executeCmp3c3d(this,input,pc);
                 break;
 
+            case 0x83:
+                //CMP		rm16,imm8			[mi:	o16 83 /7 ib,s]				8086
+                //CMP		rm32,imm8			[mi:	o32 83 /7 ib,s]				386
+                //CMP		rm64,imm8			[mi:	o64 83 /7 ib,s]				X64
+                //CMP		reg_ax,sbyteword		[mi:	o16 83 /7 ib,s]				8086,SM,ND
+                //CMP		reg_eax,sbytedword		[mi:	o32 83 /7 ib,s]				386,SM,ND
+                //CMP		reg_rax,sbytedword		[mi:	o64 83 /7 ib,s]				X64,SM,ND
+                //CMP		rm16,sbyteword			[mi:	o16 83 /7 ib,s]				8086,SM,ND
+                //CMP		rm32,sbytedword			[mi:	o32 83 /7 ib,s]				386,SM,ND
+                //CMP		rm64,sbytedword			[mi:	o64 83 /7 ib,s]				X64,SM,ND
+
+                //CMP		mem,sbyteword16			[mi:	o16 83 /7 ib,s]				8086,SM,ND
+                //CMP		mem,sbytedword32		[mi:	o32 83 /7 ib,s]				386,SM,ND
+
+                instruction.parse2(input,bits);
+                instruction.executeCmp83(this,input,pc);
+                break;
+
             case 0x88:
                 //MOV		mem,reg8			[mr:	hlexr 88 /r]				8086,SM
                 //MOV		reg8,reg8			[mr:	88 /r]					8086
