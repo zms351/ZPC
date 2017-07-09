@@ -80,6 +80,24 @@ public class InstructionExecutor extends Instruction implements Constants {
         }
     }
 
+    public boolean executeJcc(CodeExecutor executor, CodeStream input, PC pc) {
+        int jump = (byte) input.read();
+        switch (getOpcode()) {
+            case 0x74:
+                if (!bits.zf()) {
+                    jump = 0;
+                }
+                break;
+            default:
+                throw new NotImplException();
+        }
+        if (jump != 0) {
+            BaseReg rip = pc.cpu.regs.rip;
+            rip.setValue(rip.getValue() + jump);
+        }
+        return false;
+    }
+
     public void executeXor30313233(CodeExecutor executor, CodeStream input, PC pc, boolean rm) {
         long v1 = mrs.getValMemory(pc);
         long v2 = mrs.getValReg(pc);

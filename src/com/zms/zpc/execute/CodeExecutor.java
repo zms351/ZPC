@@ -29,7 +29,6 @@ public class CodeExecutor {
         }
         instruction.mrs.reg8 = false;
         instruction.bits = regs.bits;
-        instruction.bits.status = 0;
     }
 
     public int execute(PC pc, CodeStream input) {
@@ -137,6 +136,11 @@ public class CodeExecutor {
                 //CMP		reg_rax,imm			[-i:	o64 3d id,s]				X64,SM
 
                 instruction.executeCmp3c3d(this, input, pc);
+                break;
+
+            case 0x74:
+                mrs.reg8=true;
+                jump=instruction.executeJcc(this,input,pc);
                 break;
 
             case 0x83:
