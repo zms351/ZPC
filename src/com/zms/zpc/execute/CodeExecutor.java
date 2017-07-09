@@ -166,7 +166,24 @@ public class CodeExecutor {
             case 0x80:
                 //CMP		rm8,imm				[mi:	80 /7 ib]				8086,SM
                 //CMP		mem,imm8			[mi:	80 /7 ib]				8086,SM
+            case 0x82:
+                //CMP		rm8,imm				[mi:	82 /7 ib]				8086,SM,ND,NOLONG
                 mrs.reg8 = true;
+            case 0x81:
+                //CMP		rm16,imm			[mi:	o16 81 /7 iw]				8086,SM
+                //CMP		rm32,imm			[mi:	o32 81 /7 id]				386,SM
+                //CMP		rm64,imm			[mi:	o64 81 /7 id,s]				X64,SM
+                //CMP		mem,imm16			[mi:	o16 81 /7 iw]				8086,SM
+                //CMP		mem,imm32			[mi:	o32 81 /7 id]				386,SM
+                instruction.parse2(input, bits);
+                switch (mrs.regIndex) {
+                    case 7:
+                        instruction.executeCmp82(this, input, pc);
+                        break;
+                    default:
+                        throw new NotImplException();
+                }
+                break;
 
             case 0x88:
                 //MOV		mem,reg8			[mr:	hlexr 88 /r]				8086,SM

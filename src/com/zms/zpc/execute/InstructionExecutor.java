@@ -103,7 +103,7 @@ public class InstructionExecutor extends Instruction implements Constants {
     private BaseReg __reg;
     private int __width, __v3;
 
-    private void read1(CodeExecutor executor, CodeStream input, PC pc) {
+    private void read0(CodeExecutor executor, CodeStream input, PC pc) {
         int width = getOpWidth(executor.getBits());
         if (width == 64) {
             __v1 = signExtend32_2_64(readOp(input, 32));
@@ -111,6 +111,10 @@ public class InstructionExecutor extends Instruction implements Constants {
             __v1 = readOp(input, width);
         }
         __width = width;
+    }
+
+    private void read1(CodeExecutor executor, CodeStream input, PC pc) {
+        read0(executor, input, pc);
         __reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
     }
 
@@ -147,6 +151,12 @@ public class InstructionExecutor extends Instruction implements Constants {
         v2 = signExtend8(v2, mrs.opWidth);
         long v1 = mrs.getValMemory(pc);
         cmp_(v1, v2);
+    }
+
+    public void executeCmp82(CodeExecutor executor, CodeStream input, PC pc) {
+        read0(executor, input, pc);
+        long v = mrs.getValMemory(pc);
+        cmp_(v, __v1);
     }
 
     public void executeCmp_rm_mr(CodeExecutor executor, CodeStream input, PC pc, boolean rm) {
