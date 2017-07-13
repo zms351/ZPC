@@ -1,7 +1,7 @@
 package com.zms.zpc.emulator.processor;
 
 import com.zms.zpc.emulator.reg.BitControl;
-import com.zms.zpc.support.Constants;
+import com.zms.zpc.support.*;
 
 /**
  * Created by 张小美 on 17/六月/25.
@@ -64,7 +64,25 @@ public class Bits implements Constants {
     }
 
     public boolean cf() {
-        return false;//todo
+        if ((status & CF) == 0) {
+            return cf.get();
+        } else {
+            return testCF();
+        }
+    }
+
+    private boolean testCF() {
+        switch (opWidth) {
+            case 8:
+                return (result & 0xff)!=result;
+            case 16:
+                return (result & 0xffff)!=result;
+            case 32:
+                return (result & 0xffffffffL)!=result;
+            //case 64:
+            default:
+                throw new NotImplException();
+        }
     }
 
 }

@@ -29,7 +29,7 @@ public class RTC implements IODevice {
         ios.register(IOB, this);
 
         cmos = new byte[128];
-        cmos[0xf] = 0; //shutdown status
+        this.reset();
     }
 
     @Override
@@ -67,7 +67,7 @@ public class RTC implements IODevice {
     }
 
     public void reset() {
-
+        cmos[0xf] = 0x0; //shutdown status
     }
 
 }
