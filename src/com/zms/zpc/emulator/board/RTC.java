@@ -66,4 +66,8 @@ public class RTC implements IODevice {
         }
     }
 
+    public void reset() {
+
+    }
+
 }

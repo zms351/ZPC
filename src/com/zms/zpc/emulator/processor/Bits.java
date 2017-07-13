@@ -17,14 +17,17 @@ public class Bits implements Constants {
     public final BitControl af; //BCD相关进位
     public final BitControl cf; //进位
     public final BitControl zf; //进位
+    public final BitControl pf; //奇偶
 
     public Bits(Regs regs) {
         this.regs = regs;
         pe = new BitControl("pe", regs, regs.cr0.getIndex(), 0);
-        of = new BitControl("of", regs, regs.rflags.getIndex(), 11);
-        af = new BitControl("af", regs, regs.rflags.getIndex(), 4);
-        cf = new BitControl("cf", regs, regs.rflags.getIndex(), 0);
-        zf = new BitControl("zf", regs, regs.rflags.getIndex(), 6);
+        int index = regs.rflags.getIndex();
+        of = new BitControl("of", regs, index, 11);
+        af = new BitControl("af", regs, index, 4);
+        cf = new BitControl("cf", regs, index, 0);
+        zf = new BitControl("zf", regs, index, 6);
+        pf = new BitControl("pf", regs, index, 2);
     }
 
     public long result, op1, op2;
@@ -42,6 +45,26 @@ public class Bits implements Constants {
         } else {
             return result == 0;
         }
+    }
+
+    private static final boolean[] parityMap;
+
+    static {
+        parityMap = new boolean[256];
+        for (int i = 0; i < parityMap.length; i++)
+            parityMap[i] = ((Integer.bitCount(i) & 0x1) == 0);
+    }
+
+    public boolean pf() {
+        if ((status & PF) == 0) {
+            return pf.get();
+        } else {
+            return parityMap[(int) (result) & 0xff];
+        }
+    }
+
+    public boolean cf() {
+        return false;//todo
     }
 
 }

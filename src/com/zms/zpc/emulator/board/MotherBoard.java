@@ -26,4 +26,8 @@ public class MotherBoard {
         rtc = new RTC(this);
     }
 
+    public void reset() {
+        rtc.reset();
+    }
+
 }

@@ -80,16 +80,26 @@ public class InstructionExecutor extends Instruction implements Constants {
         }
     }
 
-    public boolean executeJcc(CodeExecutor executor, CodeStream input, PC pc) {
-        int jump = (byte) input.read();
-        switch (getOpcode()) {
-            case 0x74:
-                if (!bits.zf()) {
-                    jump = 0;
-                }
-                break;
+    public boolean testCondition(int code) {
+        code = code & 0xf;
+        switch (code) {
+            case 0x2:
+                return bits.cf();
+            case 0x3:
+                return !bits.cf();
+            case 0x4:
+                return bits.zf();
+            case 0x5:
+                return !bits.zf();
             default:
                 throw new NotImplException();
+        }
+    }
+
+    public boolean executeJcc(CodeExecutor executor, CodeStream input, PC pc) {
+        int jump = (byte) input.read();
+        if(!testCondition(getOpcode())) {
+            jump=0;
         }
         if (jump != 0) {
             BaseReg rip = pc.cpu.regs.rip;

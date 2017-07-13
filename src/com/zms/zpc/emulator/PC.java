@@ -135,6 +135,7 @@ public class PC implements Runnable {
 
     private void doReset() {
         synchronized (this) {
+            board.reset();
             Segment cs = cpu.regs.cs;
             cs.setValue16(0xf000, true);
             //cs.base.setValue64(0xffff0000L);
