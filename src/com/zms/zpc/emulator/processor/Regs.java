@@ -121,7 +121,7 @@ public class Regs {
     public final Segment ss = new Segment("ss", this, 106);
     // 107--112  for bases
 
-    public final BaseReg[] rootRegs = new BaseReg[]{rax, rbx, rcx, rdx, rsi, rdi, rbp, rsp, cs, rip};
+    public final BaseReg[] rootRegs = new BaseReg[]{rax, rbx, rcx, rdx, rsi, rdi, rbp, rsp, cs, rip, ss, rsp, rflags};
 
     public long[] getRvs() {
         return rvs;
