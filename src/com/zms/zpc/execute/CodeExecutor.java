@@ -1,5 +1,6 @@
 package com.zms.zpc.execute;
 
+import com.sun.org.apache.bcel.internal.generic.PUSH;
 import com.zms.zpc.emulator.PC;
 import com.zms.zpc.emulator.processor.Regs;
 import com.zms.zpc.support.NotImplException;
@@ -136,6 +137,23 @@ public class CodeExecutor {
                 //CMP		reg_rax,imm			[-i:	o64 3d id,s]				X64,SM
 
                 instruction.executeCmp3c3d(this, input, pc);
+                break;
+
+            case 0x50:
+            case 0x51:
+            case 0x52:
+            case 0x53:
+            case 0x54:
+            case 0x55:
+            case 0x56:
+            case 0x57:
+                //PUSH		reg16				[r:	o16 50+r]				8086
+                //PUSH reg32				[r:	o32 50+r]				386,NOLONG
+                //PUSH		reg64				[r:	o64nw 50+r]				X64
+
+                //org.jpc.emulator.execution.opcodes.rm.push_o16_rBXr11
+
+                instruction.executePush50(this,input,pc,0x50);
                 break;
 
             case 0x70:

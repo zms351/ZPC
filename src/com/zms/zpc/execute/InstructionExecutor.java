@@ -222,6 +222,12 @@ public class InstructionExecutor extends Instruction implements Constants {
         reg.setValue(v);
     }
 
+    public void executePush50(CodeExecutor executor, CodeStream input, PC pc, int base) {
+        int r = getOpcode() - base;
+        BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));
+        throw new NotImplException("todo");
+    }
+
     public void executeMov8rm(CodeExecutor executor, CodeStream input, PC pc) {
         long v = mrs.getValReg(pc);
         mrs.setValMemory(pc, v);
