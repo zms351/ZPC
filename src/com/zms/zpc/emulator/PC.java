@@ -6,7 +6,7 @@ import com.zms.zpc.emulator.memory.*;
 import com.zms.zpc.emulator.processor.Processor;
 import com.zms.zpc.emulator.reg.Segment;
 import com.zms.zpc.execute.*;
-import com.zms.zpc.support.GarUtils;
+import com.zms.zpc.support.*;
 
 import java.io.InputStream;
 
@@ -174,8 +174,13 @@ public class PC implements Runnable {
                     continue;
                 }
                 if (state == PCState.Running) {
-                    stream.seek(this);
-                    executor.execute(this, stream);
+                    try {
+                        stream.seek(this);
+                        executor.execute(this, stream);
+                    } catch (NotImplException t) {
+                        t.printStackTrace();
+                        state=PCState.Pause;
+                    }
                 } else if (state == PCState.Pause) {
                     int command = pauseCommand;
                     pauseCommand = 0;

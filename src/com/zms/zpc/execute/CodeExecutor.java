@@ -228,8 +228,35 @@ public class CodeExecutor {
                 //org.jpc.emulator.execution.opcodes.rm.mov_Eb_Gb_mem
 
                 mrs.reg8 = true;
+
+            case 0x89:
+                //MOV		mem,reg16			[mr:	hlexr o16 89 /r]			8086,SM
+                //MOV		reg16,reg16			[mr:	o16 89 /r]				8086
+                //MOV		mem,reg32			[mr:	hlexr o32 89 /r]			386,SM
+                //MOV		reg32,reg32			[mr:	o32 89 /r]				386
+                //MOV		mem,reg64			[mr:	hlexr o64 89 /r]			X64,SM
+                //MOV		reg64,reg64			[mr:	o64 89 /r]				X64
+
                 instruction.parse2(input, bits);
-                instruction.executeMov8rm(this, input, pc);
+                instruction.executeMovMR(this, input, pc);
+                break;
+
+            case 0x8a:
+                //MOV		reg8,mem			[rm:	8a /r]					8086,SM
+                //MOV		reg8,reg8			[rm:	8a /r]					8086
+
+                mrs.reg8 = true;
+
+            case 0x8b:
+                //MOV		reg16,mem			[rm:	o16 8b /r]				8086,SM
+                //MOV		reg16,reg16			[rm:	o16 8b /r]				8086
+                //MOV		reg32,mem			[rm:	o32 8b /r]				386,SM
+                //MOV		reg32,reg32			[rm:	o32 8b /r]				386
+                //MOV		reg64,mem			[rm:	o64 8b /r]				X64,SM
+                //MOV		reg64,reg64			[rm:	o64 8b /r]				X64
+
+                instruction.parse2(input, bits);
+                instruction.executeMovRM(this, input, pc);
                 break;
 
             case 0xb0:

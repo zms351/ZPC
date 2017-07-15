@@ -228,9 +228,14 @@ public class InstructionExecutor extends Instruction implements Constants {
         throw new NotImplException("todo");
     }
 
-    public void executeMov8rm(CodeExecutor executor, CodeStream input, PC pc) {
+    public void executeMovMR(CodeExecutor executor, CodeStream input, PC pc) {
         long v = mrs.getValReg(pc);
         mrs.setValMemory(pc, v);
+    }
+
+    public void executeMovRM(CodeExecutor executor, CodeStream input, PC pc) {
+        long v = mrs.getValMemory(pc);
+        mrs.setValReg(pc, v);
     }
 
     public void executeCMC(CodeExecutor executor, CodeStream input, PC pc) {
