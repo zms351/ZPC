@@ -29,6 +29,7 @@ public class CodeExecutor {
         }
         instruction.mrs.reg8 = false;
         instruction.bits = regs.bits;
+        instruction.mrs.regType=0;
     }
 
     public int execute(PC pc, CodeStream input) {
@@ -255,6 +256,32 @@ public class CodeExecutor {
                 //MOV		reg64,mem			[rm:	o64 8b /r]				X64,SM
                 //MOV		reg64,reg64			[rm:	o64 8b /r]				X64
 
+                instruction.parse2(input, bits);
+                instruction.executeMovRM(this, input, pc);
+                break;
+
+            case 0x8c:
+                //MOV		mem,reg_sreg			[mr:	8c /r]					8086,SW
+                //MOV		reg16,reg_sreg			[mr:	o16 8c /r]				8086
+                //MOV		reg32,reg_sreg			[mr:	o32 8c /r]				386
+                //MOV		reg64,reg_sreg			[mr:	o64nw 8c /r]				X64,OPT,ND
+                //MOV		rm64,reg_sreg			[mr:	o64 8c /r]				X64
+
+                instruction.mrs.regType=1;
+                instruction.parse2(input, bits);
+                instruction.executeMovMR(this, input, pc);
+                break;
+
+            case 0x8e:
+                //MOV		reg_sreg,mem			[rm:	8e /r]					8086,SW
+                //MOV		reg_sreg,reg16			[rm:	8e /r]					8086,OPT,ND
+                //MOV		reg_sreg,reg32			[rm:	8e /r]					386,OPT,ND
+                //MOV		reg_sreg,reg64			[rm:	o64nw 8e /r]				X64,OPT,ND
+                //MOV		reg_sreg,reg16			[rm:	o16 8e /r]				8086
+                //MOV		reg_sreg,reg32			[rm:	o32 8e /r]				386
+                //MOV		reg_sreg,rm64			[rm:	o64 8e /r]				X64
+
+                instruction.mrs.regType=1;
                 instruction.parse2(input, bits);
                 instruction.executeMovRM(this, input, pc);
                 break;

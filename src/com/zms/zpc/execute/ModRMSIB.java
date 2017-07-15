@@ -19,6 +19,7 @@ public class ModRMSIB {
     public String addressReg;
     public long disp;
     public int opWidth;
+    public int regType;
 
     private int addressWidth;
 
@@ -63,7 +64,16 @@ public class ModRMSIB {
         int reg = regIndex = (ModRM >> 3) & 0b111;
         int rm = ModRM & 0b111;
 
-        this.reg = parseReg(instruction, bits, reg);
+        switch (regType) {
+            case 0:
+                this.reg = parseReg(instruction, bits, reg);
+                break;
+            case 1:
+                this.reg = (String) Assembler.ModData[3][6][reg];
+                break;
+            default:
+                throw new NotImplException();
+        }
         assert this.reg != null;
 
         if (mod == 0b11) {
