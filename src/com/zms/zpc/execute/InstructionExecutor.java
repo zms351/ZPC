@@ -233,4 +233,22 @@ public class InstructionExecutor extends Instruction implements Constants {
         mrs.setValMemory(pc, v);
     }
 
+    public void executeCMC(CodeExecutor executor, CodeStream input, PC pc) {
+        bits.cf.not();
+        bits.status &= NCF;
+    }
+
+    public void executeCF_(CodeExecutor executor, CodeStream input, PC pc,boolean set) {
+        bits.cf.set(set);
+        bits.status &= NCF;
+    }
+
+    public void executeIF_(CodeExecutor executor, CodeStream input, PC pc,boolean set) {
+        bits.if_.set(set);
+    }
+
+    public void executeDF_(CodeExecutor executor, CodeStream input, PC pc,boolean set) {
+        bits.df.set(set);
+    }
+
 }

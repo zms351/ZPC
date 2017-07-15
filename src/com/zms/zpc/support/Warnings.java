@@ -24,6 +24,11 @@ public class Warnings {
         System.out.println(mod.setValMemory(new PC(), 0L));
         System.out.println(mod.setValReg(new PC(), 2));
         System.out.println(new BaseReg_0("a",new Regs(),1,1).setValue(123));
+
+        InstructionExecutor is=new InstructionExecutor();
+        is.executePush50(new CodeExecutor(),new CodeStream(),new PC(),123);
+        is.executeIF_(new CodeExecutor(),new CodeStream(),new PC(),true);
+        is.executeDF_(new CodeExecutor(),new CodeStream(),new PC(),true);
     }
 
 }

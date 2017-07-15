@@ -1,6 +1,5 @@
 package com.zms.zpc.execute;
 
-import com.sun.org.apache.bcel.internal.generic.PUSH;
 import com.zms.zpc.emulator.PC;
 import com.zms.zpc.emulator.processor.Regs;
 import com.zms.zpc.support.NotImplException;
@@ -153,7 +152,7 @@ public class CodeExecutor {
 
                 //org.jpc.emulator.execution.opcodes.rm.push_o16_rBXr11
 
-                instruction.executePush50(this,input,pc,0x50);
+                instruction.executePush50(this, input, pc, 0x50);
                 break;
 
             case 0x70:
@@ -172,8 +171,8 @@ public class CodeExecutor {
             case 0x7d:
             case 0x7e:
             case 0x7f:
-                mrs.reg8=true;
-                jump=instruction.executeJcc(this,input,pc);
+                mrs.reg8 = true;
+                jump = instruction.executeJcc(this, input, pc);
                 break;
 
             case 0x83:
@@ -318,6 +317,32 @@ public class CodeExecutor {
 
                 instruction.executeOut(this, input, pc);
                 break;
+
+            case 0xf5:
+                //CMC		void				[	f5]					8086
+                instruction.executeCMC(this,input,pc);
+                break;
+
+            case 0xf8:
+                //CLC		void				[	f8]					8086
+                instruction.executeCF_(this,input,pc,false);
+                break;
+
+            case 0xf9:
+                //STC		void				[	f9]					8086
+                instruction.executeCF_(this,input,pc,true);
+                break;
+
+            case 0xfa:
+                //CLI		void				[	fa]					8086
+                instruction.executeIF_(this,input,pc,false);
+                break;
+
+            case 0xfc:
+                //CLD		void				[	fc]					8086
+                instruction.executeDF_(this,input,pc,false);
+                break;
+
             default:
                 throw new NotImplException(String.valueOf(op));
         }

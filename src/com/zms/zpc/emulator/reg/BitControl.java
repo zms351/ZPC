@@ -73,4 +73,8 @@ public class BitControl extends BaseReg {
         throw new NotImplException();
     }
 
+    public void not() {
+        set(!get());
+    }
+
 }

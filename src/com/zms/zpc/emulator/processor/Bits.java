@@ -18,6 +18,8 @@ public class Bits implements Constants {
     public final BitControl cf; //进位
     public final BitControl zf; //进位
     public final BitControl pf; //奇偶
+    public final BitControl if_; //中断
+    public final BitControl df; //direction
 
     public Bits(Regs regs) {
         this.regs = regs;
@@ -28,6 +30,8 @@ public class Bits implements Constants {
         cf = new BitControl("cf", regs, index, 0);
         zf = new BitControl("zf", regs, index, 6);
         pf = new BitControl("pf", regs, index, 2);
+        if_ = new BitControl("if", regs, index, 9);
+        df = new BitControl("df", regs, index, 10);
     }
 
     public long result, op1, op2;
