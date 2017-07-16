@@ -19,6 +19,11 @@ public class Segment extends Reg {
         base = new Reg(name + "b", regs, index + 6, 64);
     }
 
+    @Override
+    public void setValue16(int v) {
+        this.setValue16(v,true);
+    }
+
     public void setValue16(int v, boolean changeBase) {
         super.setValue16(v);
         if (changeBase) {

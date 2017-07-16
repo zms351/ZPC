@@ -137,7 +137,7 @@ public class PC implements Runnable {
         synchronized (this) {
             board.reset();
             Segment cs = cpu.regs.cs;
-            cs.setValue16(0xf000, true);
+            cs.setValue(0xf000);
             //cs.base.setValue64(0xffff0000L);
             cpu.regs.rip.setValue64(0xFFF0);
             cpu.regs.bits.pe.clear();

@@ -73,7 +73,7 @@ public class InstructionExecutor extends Instruction implements Constants {
         long offset = readOp(executor, input);
         int base = read16(input);
         if (executor.getBits() == 16) {
-            pc.cpu.regs.cs.setValue16(base, true);
+            pc.cpu.regs.cs.setValue(base);
             pc.cpu.regs.rip.setValue64(offset);
         } else {
             throw new NotImplException();
