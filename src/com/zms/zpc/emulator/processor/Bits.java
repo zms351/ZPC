@@ -89,4 +89,8 @@ public class Bits implements Constants {
         }
     }
 
+    public CPUMode getMode() {
+        return CPUMode.Real;
+    }
+
 }

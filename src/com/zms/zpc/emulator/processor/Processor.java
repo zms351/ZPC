@@ -28,4 +28,8 @@ public class Processor {
         return regs;
     }
 
+    public CPUMode getMode() {
+        return regs.bits.getMode();
+    }
+
 }
