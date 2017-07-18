@@ -64,7 +64,6 @@ public class ModRMSIB {
         reg = null;
         addressReg = null;
         disp = 0;
-        opWidth = -1;
 
         int ModRM = input.read();
         int mod = ModRM >> 6;

@@ -129,7 +129,7 @@ public class Regs {
             rflags,
             cs, rip,
             ss, rsp,
-            rbp,
+            ds,rbp,
     };
 
     public long[] getRvs() {
