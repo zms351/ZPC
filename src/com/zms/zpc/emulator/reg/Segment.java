@@ -31,8 +31,12 @@ public class Segment extends Reg {
         }
     }
 
+    public long getAddress(long address) {
+        return base.getValue() + address;
+    }
+
     public long getAddress(BaseReg pointer) {
-        return base.getValue64() + pointer.getValue64();
+        return getAddress(pointer.getValue());
     }
 
 }

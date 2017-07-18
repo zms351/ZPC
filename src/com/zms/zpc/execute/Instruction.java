@@ -23,6 +23,7 @@ public class Instruction {
     private int[] opcode = new int[20];
 
     public int __width;
+    public String segBase;
 
     public Instruction() {
     }
@@ -46,21 +47,27 @@ public class Instruction {
                     break;
                 case 0x2e:
                     legacyPrefix[legacyPrefixCount++] = n;
+                    segBase="CS";
                     break;
                 case 0x3e:
                     legacyPrefix[legacyPrefixCount++] = n;
+                    segBase="DS";
                     break;
                 case 0x26:
                     legacyPrefix[legacyPrefixCount++] = n;
+                    segBase="ES";
                     break;
                 case 0x64:
                     legacyPrefix[legacyPrefixCount++] = n;
+                    segBase="FS";
                     break;
                 case 0x65:
                     legacyPrefix[legacyPrefixCount++] = n;
+                    segBase="GS";
                     break;
                 case 0x36:
                     legacyPrefix[legacyPrefixCount++] = n;
+                    segBase="SS";
                     break;
                 case 0xf3:
                     legacyPrefix[legacyPrefixCount++] = n;
@@ -89,7 +96,7 @@ public class Instruction {
         opcode[opcodeCount++] = n;
     }
 
-    public ModRMSIB mrs = new ModRMSIB();
+    public ModRMSIB mrs = new ModRMSIB(this);
 
     public void parse2(CodeStream input, int bits) {
         mrs.parse(this, input, bits);

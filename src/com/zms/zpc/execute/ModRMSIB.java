@@ -2,6 +2,7 @@ package com.zms.zpc.execute;
 
 import com.zms.zpc.emulator.PC;
 import com.zms.zpc.emulator.assembler.Assembler;
+import com.zms.zpc.emulator.reg.Segment;
 import com.zms.zpc.support.NotImplException;
 
 /**
@@ -9,6 +10,12 @@ import com.zms.zpc.support.NotImplException;
  * Copyright 2002-2016
  */
 public class ModRMSIB {
+
+    Instruction instru;
+
+    public ModRMSIB(Instruction instru) {
+        this.instru=instru;
+    }
 
     public boolean reg8;
 
@@ -156,7 +163,8 @@ public class ModRMSIB {
         if (addressReg != null) {
             return getValReg(pc, this.addressReg);
         }
-        throw new NotImplException();
+        long address=getMemoryAddress(pc);
+        return pc.memory.read(0,address,this.opWidth);
     }
 
     public int setValReg(PC pc, long val) {
@@ -171,7 +179,33 @@ public class ModRMSIB {
         if (addressReg != null) {
             return setValReg(pc, this.addressReg, val);
         }
-        throw new NotImplException();
+        long address=getMemoryAddress(pc);
+        pc.memory.write(0,address,val,this.opWidth);
+        return this.opWidth;
+    }
+
+    private long getMemoryAddress(PC pc) {
+        long address=calAddress(pc,this.address)+this.disp;
+        Segment seg= (Segment) pc.cpu.regs.getReg(instru.segBase);
+        return seg.getAddress(address);
+    }
+
+    private long calAddress(PC pc,String expr) {
+        if(expr==null || (expr=expr.trim()).length()<1) {
+            return 0;
+        }
+        if(expr.length()==1) {
+            return Integer.parseInt(expr);
+        }
+        int index=expr.indexOf('+');
+        if(index>0) {
+            return calAddress(pc,expr.substring(0,index).trim())+calAddress(pc,expr.substring(index+1).trim());
+        }
+        index=expr.indexOf('*');
+        if(index>0) {
+            return calAddress(pc,expr.substring(0,index).trim())*calAddress(pc,expr.substring(index+1).trim());
+        }
+        return pc.cpu.regs.getReg(expr).getValue(addressWidth);
     }
 
     public int getAddressWidth() {

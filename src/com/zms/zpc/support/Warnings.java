@@ -3,7 +3,7 @@ package com.zms.zpc.support;
 import com.zms.zpc.debugger.*;
 import com.zms.zpc.emulator.PC;
 import com.zms.zpc.emulator.processor.Regs;
-import com.zms.zpc.emulator.reg.BaseReg_0;
+import com.zms.zpc.emulator.reg.*;
 import com.zms.zpc.execute.*;
 
 import java.io.*;
@@ -20,15 +20,18 @@ public class Warnings {
         IDEFrame ide = new IDEFrame(new ZPC());
         ide.showNew("a", "b", false);
         System.out.println(ide.select(null));
-        ModRMSIB mod = new ModRMSIB();
+        InstructionExecutor is=new InstructionExecutor();
+        ModRMSIB mod = new ModRMSIB(is);
         System.out.println(mod.setValMemory(new PC(), 0L));
         System.out.println(mod.setValReg(new PC(), 2));
         System.out.println(new BaseReg_0("a",new Regs(),1,1).setValue(123));
 
-        InstructionExecutor is=new InstructionExecutor();
-        is.executePush50(new CodeExecutor(),new CodeStream(),new PC(),123);
+        PC pc = new PC();
+        is.executePush50(new CodeExecutor(),new CodeStream(), pc,123);
         is.executeIF_(new CodeExecutor(),new CodeStream(),new PC(),true);
         is.executeDF_(new CodeExecutor(),new CodeStream(),new PC(),true);
+        Segment seg= (Segment) pc.cpu.regs.getReg("DS");
+        seg.setValue16(12,false);
     }
 
 }

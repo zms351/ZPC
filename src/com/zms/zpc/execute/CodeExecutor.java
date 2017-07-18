@@ -30,6 +30,7 @@ public class CodeExecutor {
         instruction.mrs.reg8 = false;
         instruction.bits = regs.bits;
         instruction.mrs.regType=0;
+        instruction.segBase="DS";
     }
 
     public int execute(PC pc, CodeStream input) {
