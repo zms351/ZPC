@@ -291,4 +291,38 @@ public class InstructionExecutor extends Instruction implements Constants {
         mrs.memoryWrite(pc, address, val, width);
     }
 
+    public void executeLODS(CodeExecutor executor, CodeStream input, PC pc) {
+        BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
+        Segment base = (Segment) getReg(pc, "DS");
+        BaseReg offr = getReg(pc, "SI").getRegWithWidth(getAddressWidth(executor.getBits()));
+
+        int width = mrs.opWidth;
+        long off = offr.getValue();
+        boolean df = bits.df.get();
+        int n = width / 8;
+        assert n * 8 == width;
+
+        if (isHasf2() || isHasf3()) {
+            BaseReg cr = getReg(pc, "CX").getRegWithWidth(getAddressWidth(executor.getBits()));
+            long c = cr.getValue();
+            while (c != 0) {
+                executor.checkIR();
+                executeLODS_(pc, base, off, width,reg);
+                off = df ? off - n : off + n;
+                c--;
+            }
+            cr.setValue(0);
+            offr.setValue(off);
+        } else {
+            executeLODS_(pc, base, off, width,reg);
+            off = df ? off - n : off + n;
+            offr.setValue(off);
+        }
+    }
+
+    public void executeLODS_(PC pc, Segment base, long off, int width,BaseReg reg) {
+        long val = mrs.memoryRead(pc, base.getAddress(off), width);
+        reg.setValue(width,val);
+    }
+
 }

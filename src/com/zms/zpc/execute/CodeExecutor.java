@@ -302,6 +302,17 @@ public class CodeExecutor {
                 instruction.executeSTOS(this, input, pc);
                 break;
 
+            case 0xac:
+                //LODSB		void				[	ac]					8086
+                mrs.reg8=true;
+            case 0xad:
+                //LODSD		void				[	o32 ad]					386
+                //LODSQ		void				[	o64 ad]					X64
+                //LODSW		void				[	o16 ad]					8086
+
+                instruction.executeLODS(this, input, pc);
+                break;
+
             case 0xb0:
             case 0xb1:
             case 0xb2:
