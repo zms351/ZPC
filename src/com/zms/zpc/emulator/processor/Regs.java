@@ -186,9 +186,9 @@ public class Regs {
         for (BaseReg reg : regMap1.values()) {
             if(reg.getPos()==0) {
                 Integer index= reg.getIndex();
-                BaseReg[] regs = regMap2.computeIfAbsent(index, k -> new BaseReg[4]);
+                BaseReg[] regs = regMap2.computeIfAbsent(index, k -> new BaseReg[9]);
                 int width = reg.getWidth();
-                int i=width/8;
+                int i=width/8;  //8 1  16  2   32  4  64 8
                 assert i*8==width;
                 assert regs[i]==null;
                 regs[i]=reg;

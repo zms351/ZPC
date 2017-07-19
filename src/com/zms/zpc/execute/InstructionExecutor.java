@@ -98,8 +98,8 @@ public class InstructionExecutor extends Instruction implements Constants {
 
     public boolean executeJcc(CodeExecutor executor, CodeStream input, PC pc) {
         int jump = (byte) input.read();
-        if(!testCondition(getOpcode())) {
-            jump=0;
+        if (!testCondition(getOpcode())) {
+            jump = 0;
         }
         if (jump != 0) {
             BaseReg rip = pc.cpu.regs.rip;
@@ -243,41 +243,52 @@ public class InstructionExecutor extends Instruction implements Constants {
         bits.status &= NCF;
     }
 
-    public void executeCF_(CodeExecutor executor, CodeStream input, PC pc,boolean set) {
+    public void executeCF_(CodeExecutor executor, CodeStream input, PC pc, boolean set) {
         bits.cf.set(set);
         bits.status &= NCF;
     }
 
-    public void executeIF_(CodeExecutor executor, CodeStream input, PC pc,boolean set) {
+    public void executeIF_(CodeExecutor executor, CodeStream input, PC pc, boolean set) {
         bits.if_.set(set);
     }
 
-    public void executeDF_(CodeExecutor executor, CodeStream input, PC pc,boolean set) {
+    public void executeDF_(CodeExecutor executor, CodeStream input, PC pc, boolean set) {
         bits.df.set(set);
     }
 
     public void executeSTOS(CodeExecutor executor, CodeStream input, PC pc) {
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
-        Segment base= (Segment) getReg(pc,"ES");
-        BaseReg offr=getReg(pc,"DI").getRegWithWidth(getAddressWidth(executor.getBits()));
+        Segment base = (Segment) getReg(pc, "ES");
+        BaseReg offr = getReg(pc, "DI").getRegWithWidth(getAddressWidth(executor.getBits()));
 
-        long val=reg.getValue();
-        int width=mrs.opWidth;
-        long off=offr.getValue();
-        boolean df=bits.df.get();
-        int n=width/8;
-        assert n*8==width;
+        long val = reg.getValue();
+        int width = mrs.opWidth;
+        long off = offr.getValue();
+        boolean df = bits.df.get();
+        int n = width / 8;
+        assert n * 8 == width;
 
-
-        executeSTOS_(pc,base,off,val,width);
-        off=df?off-n:off+n;
-        offr.setValue(off);
-
+        if (isHasf2() || isHasf3()) {
+            BaseReg cr = getReg(pc, "CX").getRegWithWidth(getAddressWidth(executor.getBits()));
+            long c = cr.getValue();
+            while (c != 0) {
+                executor.checkIR();
+                executeSTOS_(pc, base, off, val, width);
+                off = df ? off - n : off + n;
+                c--;
+            }
+            cr.setValue(0);
+            offr.setValue(off);
+        } else {
+            executeSTOS_(pc, base, off, val, width);
+            off = df ? off - n : off + n;
+            offr.setValue(off);
+        }
     }
 
-    public void executeSTOS_(PC pc,Segment base,long off,long val,int width) {
-        long address=base.getAddress(off);
-        mrs.memoryWrite(pc,address,val,width);
+    public void executeSTOS_(PC pc, Segment base, long off, long val, int width) {
+        long address = base.getAddress(off);
+        mrs.memoryWrite(pc, address, val, width);
     }
 
 }

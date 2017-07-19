@@ -420,6 +420,7 @@ public class CodeExecutor {
             reLoc(input);
         }
         regs.bits.opWidth = mrs.opWidth;
+        checkIR();
         return 0;
     }
 
@@ -444,6 +445,9 @@ public class CodeExecutor {
 
     public void setBits(int bits) {
         this.bits = bits;
+    }
+
+    public void checkIR() {
     }
 
 }

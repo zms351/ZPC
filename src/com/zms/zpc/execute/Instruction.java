@@ -18,6 +18,7 @@ public class Instruction {
     private int[] rexPrefix = new int[20];
 
     private boolean has66, has67;
+    private boolean hasf3, hasf2;
 
     private int opcodeCount;
     private int[] opcode = new int[20];
@@ -33,6 +34,7 @@ public class Instruction {
         rexPrefixCount = 0;
         int n;
         has66 = has67 = false;
+        hasf3 = hasf2 = false;
         out:
         while (true) {
             n = input.read();
@@ -47,33 +49,35 @@ public class Instruction {
                     break;
                 case 0x2e:
                     legacyPrefix[legacyPrefixCount++] = n;
-                    segBase="CS";
+                    segBase = "CS";
                     break;
                 case 0x3e:
                     legacyPrefix[legacyPrefixCount++] = n;
-                    segBase="DS";
+                    segBase = "DS";
                     break;
                 case 0x26:
                     legacyPrefix[legacyPrefixCount++] = n;
-                    segBase="ES";
+                    segBase = "ES";
                     break;
                 case 0x64:
                     legacyPrefix[legacyPrefixCount++] = n;
-                    segBase="FS";
+                    segBase = "FS";
                     break;
                 case 0x65:
                     legacyPrefix[legacyPrefixCount++] = n;
-                    segBase="GS";
+                    segBase = "GS";
                     break;
                 case 0x36:
                     legacyPrefix[legacyPrefixCount++] = n;
-                    segBase="SS";
+                    segBase = "SS";
                     break;
                 case 0xf3:
                     legacyPrefix[legacyPrefixCount++] = n;
+                    hasf3=true;
                     break;
                 case 0xf2:
                     legacyPrefix[legacyPrefixCount++] = n;
+                    hasf2=true;
                     break;
                 case 0xf0:
                     legacyPrefix[legacyPrefixCount++] = n;
@@ -146,6 +150,14 @@ public class Instruction {
         return has67;
     }
 
+    public boolean isHasf3() {
+        return hasf3;
+    }
+
+    public boolean isHasf2() {
+        return hasf2;
+    }
+
     public boolean isHasRex(int b) {
         for (int i = 0; i < rexPrefixCount; i++) {
             if ((rexPrefix[i] & b) == b) {
@@ -189,7 +201,7 @@ public class Instruction {
     }
 
     private int _getOpWidth(int bits) {
-        if(mrs.reg8) {
+        if (mrs.reg8) {
             return 8;
         }
         if (bits == 16) {
