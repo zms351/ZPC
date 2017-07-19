@@ -2,7 +2,7 @@ package com.zms.zpc.execute;
 
 import com.zms.zpc.emulator.PC;
 import com.zms.zpc.emulator.processor.Bits;
-import com.zms.zpc.emulator.reg.BaseReg;
+import com.zms.zpc.emulator.reg.*;
 import com.zms.zpc.support.*;
 
 /**
@@ -254,6 +254,30 @@ public class InstructionExecutor extends Instruction implements Constants {
 
     public void executeDF_(CodeExecutor executor, CodeStream input, PC pc,boolean set) {
         bits.df.set(set);
+    }
+
+    public void executeSTOS(CodeExecutor executor, CodeStream input, PC pc) {
+        BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
+        Segment base= (Segment) getReg(pc,"ES");
+        BaseReg offr=getReg(pc,"DI").getRegWithWidth(getAddressWidth(executor.getBits()));
+
+        long val=reg.getValue();
+        int width=mrs.opWidth;
+        long off=offr.getValue();
+        boolean df=bits.df.get();
+        int n=width/8;
+        assert n*8==width;
+
+
+        executeSTOS_(pc,base,off,val,width);
+        off=df?off-n:off+n;
+        offr.setValue(off);
+
+    }
+
+    public void executeSTOS_(PC pc,Segment base,long off,long val,int width) {
+        long address=base.getAddress(off);
+        mrs.memoryWrite(pc,address,val,width);
     }
 
 }

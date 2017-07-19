@@ -128,4 +128,8 @@ public abstract class BaseReg {
         return this.width;
     }
 
+    public BaseReg getRegWithWidth(int width) {
+        return regs.getRegWithWidth(getIndex(),width);
+    }
+
 }

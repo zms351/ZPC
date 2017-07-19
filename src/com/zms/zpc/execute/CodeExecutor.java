@@ -288,6 +288,20 @@ public class CodeExecutor {
                 instruction.executeMovRM(this, input, pc);
                 break;
 
+            case 0xaa:
+                //STOSB		void				[	aa]					8086
+                mrs.reg8=true;
+            case 0xab:
+                //STOSD		void				[	o32 ab]					386
+                //STOSQ		void				[	o64 ab]					X64
+                //STOSW		void				[	o16 ab]					8086
+
+                //org.jpc.emulator.execution.opcodes.rm.stosb_a16
+                //org.jpc.emulator.execution.opcodes.rm.stosw_a16
+
+                instruction.executeSTOS(this, input, pc);
+                break;
+
             case 0xb0:
             case 0xb1:
             case 0xb2:

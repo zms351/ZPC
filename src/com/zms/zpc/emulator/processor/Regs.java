@@ -148,14 +148,22 @@ public class Regs {
         this.init();
     }
 
-    public Map<String, BaseReg> regMap;
+    public Map<String, BaseReg> regMap1;
+    public Map<Integer,BaseReg[]> regMap2;
 
     public BaseReg getReg(String name) {
-        return regMap.get(name.toUpperCase());
+        return regMap1.get(name.toUpperCase());
+    }
+
+    public BaseReg getRegWithWidth(Integer index,int width) {
+        int i=width/8;
+        assert i*8==width;
+        BaseReg[] regs = regMap2.get(index);
+        return regs==null?null:regs[i];
     }
 
     private void init() {
-        regMap = new HashMap<>();
+        regMap1 = new HashMap<>();
         Field[] fields = this.getClass().getFields();
         try {
             for (Field field : fields) {
@@ -165,14 +173,26 @@ public class Regs {
                         BaseReg reg = (BaseReg) field.get(this);
                         if (reg != null) {
                             String name = reg.getName().toUpperCase().trim();
-                            assert !regMap.containsKey(name);
-                            regMap.put(name, reg);
+                            assert !regMap1.containsKey(name);
+                            regMap1.put(name, reg);
                         }
                     }
                 }
             }
         } catch (Throwable t) {
             throw new RuntimeException(t);
+        }
+        regMap2=new HashMap<>();
+        for (BaseReg reg : regMap1.values()) {
+            if(reg.getPos()==0) {
+                Integer index= reg.getIndex();
+                BaseReg[] regs = regMap2.computeIfAbsent(index, k -> new BaseReg[4]);
+                int width = reg.getWidth();
+                int i=width/8;
+                assert i*8==width;
+                assert regs[i]==null;
+                regs[i]=reg;
+            }
         }
     }
 

@@ -163,7 +163,7 @@ public class ModRMSIB {
             return getValReg(pc, this.addressReg);
         }
         long address=getMemoryAddress(pc);
-        return pc.memory.read(0,address,this.opWidth);
+        return memoryRead(pc,address,this.opWidth);
     }
 
     public int setValReg(PC pc, long val) {
@@ -179,8 +179,16 @@ public class ModRMSIB {
             return setValReg(pc, this.addressReg, val);
         }
         long address=getMemoryAddress(pc);
-        pc.memory.write(0,address,val,this.opWidth);
+        memoryWrite(pc,address,val,this.opWidth);
         return this.opWidth;
+    }
+
+    public void memoryWrite(PC pc,long address,long val,int width) {
+        pc.memory.write(0,address,val,width);
+    }
+
+    public long memoryRead(PC pc,long address,int width) {
+        return pc.memory.read(0,address,width);
     }
 
     private long getMemoryAddress(PC pc) {
