@@ -231,10 +231,11 @@ public class InstructionExecutor extends Instruction implements Constants {
 
     public void push_(PC pc,long val,int width) {
         Regs regs=pc.cpu.regs;
+        BaseReg rsp = regs.rsp;
         int n=width/8;
         assert n*8==width;
-        regs.rsp.setValue(regs.rsp.getValue()-n);
-        long address=regs.ss.getAddress(regs.rsp);
+        rsp.setValue(rsp.getValue()-n);
+        long address=regs.ss.getAddress(rsp);
         mrs.memoryWrite(pc,address,val,width);
     }
 
