@@ -42,20 +42,43 @@ public class CodeExecutor {
         ModRMSIB mrs = instruction.mrs;
         int op = instruction.getOpcode();
         switch (op) {
+
+            case 0x06:
+                //PUSH		reg_es				[-:	06]					8086,NOLONG
+                instruction.executePush(pc, regs.es, instruction.getOpWidth(getBits()));
+                break;
+
             case 0x07:
                 //POP		reg_es				[-:	07]					8086,NOLONG
                 instruction.executePop(pc, regs.es, instruction.getOpWidth(getBits()));
                 break;
 
+            case 0x0e:
+                //PUSH		reg_cs				[-:	0e]					8086,NOLONG
+                instruction.executePush(pc, regs.cs, instruction.getOpWidth(getBits()));
+                break;
+
             case 0x0f:
-                //POP		reg_cs				[-:	0f]					8086,UNDOC,ND,OBSOLETE
+                //POP		reg_cs				[-:	0f]					8086,UNDOC,ND,OBSOLETE  ： use RET
+
                 instruction.readNextOp(input);
                 op = instruction.getOpcode(1);
                 switch (op) {
+                    case 0xa0:
+                        //PUSH		reg_fs				[-:	0f a0]					386
+                        instruction.executePush(pc, regs.fs, instruction.getOpWidth(getBits()));
+                        break;
+
                     case 0xa1:
                         //POP		reg_fs				[-:	0f a1]					386
                         instruction.executePop(pc, regs.fs, instruction.getOpWidth(getBits()));
                         break;
+
+                    case 0xa8:
+                        //PUSH		reg_gs				[-:	0f a8]					386
+                        instruction.executePush(pc, regs.gs, instruction.getOpWidth(getBits()));
+                        break;
+
                     case 0xa9:
                         //POP		reg_gs				[-:	0f a9]					386
                         instruction.executePop(pc, regs.gs, instruction.getOpWidth(getBits()));
@@ -65,9 +88,19 @@ public class CodeExecutor {
                 }
                 break;
 
+            case 0x16:
+                //PUSH		reg_ss				[-:	16]					8086,NOLONG
+                instruction.executePush(pc, regs.ss, instruction.getOpWidth(getBits()));
+                break;
+
             case 0x17:
                 //POP		reg_ss				[-:	17]					8086,NOLONG
                 instruction.executePop(pc, regs.ss, instruction.getOpWidth(getBits()));
+                break;
+
+            case 0x1e:
+                //PUSH		reg_ds				[-:	1e]					8086,NOLONG
+                instruction.executePush(pc, regs.ds, instruction.getOpWidth(getBits()));
                 break;
 
             case 0x1f:
