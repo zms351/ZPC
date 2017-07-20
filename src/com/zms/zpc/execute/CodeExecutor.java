@@ -197,6 +197,23 @@ public class CodeExecutor {
 
                         instruction.executeCmp83(this, input, pc);
                         break;
+
+                    case 0:
+                        //ADD		rm16,imm8			[mi:	hle o16 83 /0 ib,s]			8086,LOCK
+                        //ADD		rm32,imm8			[mi:	hle o32 83 /0 ib,s]			386,LOCK
+                        //ADD		rm64,imm8			[mi:	hle o64 83 /0 ib,s]			X64,LOCK
+                        //ADD		reg_ax,sbyteword		[mi:	o16 83 /0 ib,s]				8086,SM,ND
+                        //ADD		reg_eax,sbytedword		[mi:	o32 83 /0 ib,s]				386,SM,ND
+                        //ADD		reg_rax,sbytedword		[mi:	o64 83 /0 ib,s]				X64,SM,ND
+                        //ADD		rm16,sbyteword			[mi:	hle o16 83 /0 ib,s]			8086,SM,LOCK,ND
+                        //ADD		rm32,sbytedword			[mi:	hle o32 83 /0 ib,s]			386,SM,LOCK,ND
+                        //ADD		rm64,sbytedword			[mi:	hle o64 83 /0 ib,s]			X64,SM,LOCK,ND
+                        //ADD		mem,sbyteword16			[mi:	hle o16 83 /0 ib,s]			8086,SM,LOCK,ND
+                        //ADD		mem,sbytedword32		[mi:	hle o32 83 /0 ib,s]			386,SM,LOCK,ND
+
+                        instruction.executeAdd83(this, input, pc);
+                        break;
+
                     default:
                         throw new NotImplException();
                 }

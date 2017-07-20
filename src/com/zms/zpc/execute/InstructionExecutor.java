@@ -181,6 +181,14 @@ public class InstructionExecutor extends Instruction implements Constants {
         cmp_(v1, v2);
     }
 
+    public void executeAdd83(CodeExecutor executor, CodeStream input, PC pc) {
+        long v2 = readOp(input, 8);
+        v2 = signExtend8(v2, mrs.opWidth);
+        long v1 = mrs.getValMemory(pc);
+        long v=add_(v1, v2);
+        mrs.setValMemory(pc,v);
+    }
+
     public void executeCmp82(CodeExecutor executor, CodeStream input, PC pc) {
         read0(executor, input, pc);
         long v = mrs.getValMemory(pc);
@@ -203,6 +211,15 @@ public class InstructionExecutor extends Instruction implements Constants {
         bits.result = v1 - v2;
         bits.ins = SUB;
         bits.status = OSZAPC;
+    }
+
+    private long add_(long v1, long v2) {
+        bits.op1 = v1;
+        bits.op2 = v2;
+        bits.result = v1 + v2;
+        bits.ins = ADD;
+        bits.status = OSZAPC;
+        return bits.result;
     }
 
     public void executeOut(CodeExecutor executor, CodeStream input, PC pc) {
