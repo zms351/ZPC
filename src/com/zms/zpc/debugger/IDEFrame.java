@@ -360,6 +360,10 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
 
     @Override
     public void onMessage(int type, String message, Object... params) {
+        if(type==DEBUG) {
+            System.err.printf(message,params);
+            return;
+        }
         final Object[] os = new Object[2];
         if (type == 12) {
             os[0] = "_internal__12__A_";

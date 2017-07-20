@@ -2,13 +2,13 @@ package com.zms.zpc.execute;
 
 import com.zms.zpc.emulator.PC;
 import com.zms.zpc.emulator.reg.BaseReg;
-import com.zms.zpc.support.NotImplException;
+import com.zms.zpc.support.*;
 
 /**
  * Created by 张小美 on 17/六月/27.
  * Copyright 2002-2016
  */
-public class Instruction {
+public class Instruction implements Constants {
 
     private long startPos;
     private int legacyPrefixCount;

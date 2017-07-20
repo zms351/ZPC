@@ -28,4 +28,6 @@ public interface Constants {
     int SUB = 136137138;
     int ADD = 136137139;
 
+    int DEBUG=31;
+
 }

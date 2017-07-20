@@ -1,12 +1,13 @@
 package com.zms.zpc.emulator.board;
 
 import com.zms.zpc.emulator.PC;
+import com.zms.zpc.support.Constants;
 
 /**
  * Created by 张小美 on 17/六月/28.
  * Copyright 2002-2016
  */
-public class IODevices {
+public class IODevices implements Constants {
 
     public MotherBoard mb;
     public PC pc;
@@ -23,7 +24,7 @@ public class IODevices {
         if (device != null) {
             device.write(address, value, width);
         } else {
-            System.err.printf("io write,address: %d\tvalue: %d\twidth: %d\n", address, value, width);
+            pc.getDebugger().onMessage(DEBUG,"io write,address: %d\tvalue: %d\twidth: %d\n", address, value, width);
         }
     }
 
@@ -32,7 +33,7 @@ public class IODevices {
         if (device != null) {
             return device.read(address,width);
         } else {
-            System.err.printf("io read,address: %d\twidth: %d\n", address, width);
+            pc.getDebugger().onMessage(DEBUG,"io read,address: %d\twidth: %d\n", address, width);
             return 0;
         }
     }

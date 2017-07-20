@@ -369,15 +369,19 @@ public class InstructionExecutor extends Instruction implements Constants {
     public void executeCallNear(CodeExecutor executor, CodeStream input, PC pc) {
         int width=getOpWidth(executor.getBits());
         long offset=readOp(input,width);
-        executor.reLoc(input);
         BaseReg rip = pc.cpu.regs.rip;
+        executor.reLoc(input);
+        long from=rip.getValue();
         push_(pc,rip.getValue(),width);
-        rip.setValue(rip.getValue()+offset);
+        long to=rip.getValue()+offset;
+        pc.getDebugger().onMessage(DEBUG,"Call Near from %H to %H\n",from,to);
+        rip.setValue(to);
     }
 
     public void executeRetNear(CodeExecutor executor, CodeStream input, PC pc) {
         int width=getOpWidth(executor.getBits());
         long v=pop_(pc,width);
+        pc.getDebugger().onMessage(DEBUG,"Ret to %H\n",v);
         pc.cpu.regs.rip.setValue(v);
     }
 
