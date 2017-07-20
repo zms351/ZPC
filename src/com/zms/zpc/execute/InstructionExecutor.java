@@ -246,6 +246,18 @@ public class InstructionExecutor extends Instruction implements Constants {
         push_(pc,val,mrs.opWidth);
     }
 
+    public void executePop58(CodeExecutor executor, CodeStream input, PC pc, int base) {
+        int r = getOpcode() - base;
+        BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));
+        long val=pop_(pc,mrs.opWidth);
+        reg.setValue(val);
+    }
+
+    public void executePop8f(CodeExecutor executor, CodeStream input, PC pc) {
+        long val=pop_(pc,mrs.opWidth);
+        mrs.setValMemory(pc,val);
+    }
+
     public void push_(PC pc,long val,int width) {
         Regs regs=pc.cpu.regs;
         BaseReg rsp = regs.rsp;

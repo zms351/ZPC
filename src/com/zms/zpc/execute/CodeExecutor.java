@@ -158,6 +158,21 @@ public class CodeExecutor {
                 instruction.executePush50(this, input, pc, 0x50);
                 break;
 
+            case 0x58:
+            case 0x59:
+            case 0x5a:
+            case 0x5b:
+            case 0x5c:
+            case 0x5d:
+            case 0x5e:
+            case 0x5f:
+                //POP reg16				[r:	o16 58+r]				8086
+                //POP		reg32				[r:	o32 58+r]				386,NOLONG
+                //POP		reg64				[r:	o64nw 58+r]				X64
+
+                instruction.executePop58(this, input, pc, 0x58);
+                break;
+
             case 0x70:
             case 0x71:
             case 0x72:
@@ -305,6 +320,21 @@ public class CodeExecutor {
                 instruction.executeMovRM(this, input, pc);
                 break;
 
+            case 0x8f:
+                instruction.parse2(input, bits);
+                switch (mrs.regIndex) {
+                    case 0:
+                        //POP rm16				[m:	o16 8f /0]				8086
+                        //POP		rm32				[m:	o32 8f /0]				386,NOLONG
+                        //POP		rm64				[m:	o64nw 8f /0]				X64
+
+                        instruction.executePop8f(this, input, pc);
+                        break;
+                    default:
+                        throw new NotImplException();
+                }
+                break;
+
             case 0xaa:
                 //STOSB		void				[	aa]					8086
                 mrs.reg8 = true;
@@ -368,8 +398,8 @@ public class CodeExecutor {
                 //RET		void				[	c3]					8086,BND
                 //RETN		void				[	c3]					8086,BND
 
-                instruction.executeRetNear(this,input,pc);
-                jump=true;
+                instruction.executeRetNear(this, input, pc);
+                jump = true;
                 break;
 
             case 0xea:
@@ -435,8 +465,8 @@ public class CodeExecutor {
                 //CALL		imm64				[i:	o64nw e8 rel]				X64,BND
                 //CALL		imm64|near			[i:	o64nw e8 rel]				X64,ND,BND
 
-                instruction.executeCallNear(this,input,pc);
-                jump=true;
+                instruction.executeCallNear(this, input, pc);
+                jump = true;
                 break;
 
             case 0xf5:
