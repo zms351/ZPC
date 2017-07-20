@@ -364,6 +364,14 @@ public class CodeExecutor {
                 instruction.executeMovri(this, input, pc, 0xb8);
                 break;
 
+            case 0xc3:
+                //RET		void				[	c3]					8086,BND
+                //RETN		void				[	c3]					8086,BND
+
+                instruction.executeRetNear(this,input,pc);
+                jump=true;
+                break;
+
             case 0xea:
                 //JMP		imm|far				[i:	odf ea iwd seg]				8086,ND,NOLONG
                 //JMP		imm16|far			[i:	o16 ea iwd seg]				8086,ND,NOLONG

@@ -256,6 +256,17 @@ public class InstructionExecutor extends Instruction implements Constants {
         mrs.memoryWrite(pc,address,val,width);
     }
 
+    public long pop_(PC pc,int width) {
+        Regs regs=pc.cpu.regs;
+        BaseReg rsp = regs.rsp;
+        int n=width/8;
+        assert n*8==width;
+        long address=regs.ss.getAddress(rsp);
+        long v=mrs.memoryRead(pc,address,width);
+        rsp.setValue(rsp.getValue()+n);
+        return v;
+    }
+
     public void executeMovMR(CodeExecutor executor, CodeStream input, PC pc) {
         long v = mrs.getValReg(pc);
         mrs.setValMemory(pc, v);
@@ -362,6 +373,12 @@ public class InstructionExecutor extends Instruction implements Constants {
         BaseReg rip = pc.cpu.regs.rip;
         push_(pc,rip.getValue(),width);
         rip.setValue(rip.getValue()+offset);
+    }
+
+    public void executeRetNear(CodeExecutor executor, CodeStream input, PC pc) {
+        int width=getOpWidth(executor.getBits());
+        long v=pop_(pc,width);
+        pc.cpu.regs.rip.setValue(v);
     }
 
 }
