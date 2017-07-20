@@ -29,6 +29,10 @@ public class Instruction implements Constants {
     public Instruction() {
     }
 
+    public void readNextOp(CodeStream input) {
+        opcode[opcodeCount++] = input.read();
+    }
+
     public void parse1(CodeStream input, int bits) {
         legacyPrefixCount = 0;
         rexPrefixCount = 0;
@@ -127,7 +131,12 @@ public class Instruction implements Constants {
     }
 
     public int getOpcode() {
-        return getOpcodes()[0];
+        return getOpcode(0);
+    }
+
+    public int getOpcode(int index) {
+        assert index<opcodeCount;
+        return getOpcodes()[index];
     }
 
     public int[] getOpcodes() {

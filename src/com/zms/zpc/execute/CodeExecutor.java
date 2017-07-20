@@ -42,6 +42,39 @@ public class CodeExecutor {
         ModRMSIB mrs = instruction.mrs;
         int op = instruction.getOpcode();
         switch (op) {
+            case 0x07:
+                //POP		reg_es				[-:	07]					8086,NOLONG
+                instruction.executePop(pc, regs.es, instruction.getOpWidth(getBits()));
+                break;
+
+            case 0x0f:
+                //POP		reg_cs				[-:	0f]					8086,UNDOC,ND,OBSOLETE
+                instruction.readNextOp(input);
+                op = instruction.getOpcode(1);
+                switch (op) {
+                    case 0xa1:
+                        //POP		reg_fs				[-:	0f a1]					386
+                        instruction.executePop(pc, regs.fs, instruction.getOpWidth(getBits()));
+                        break;
+                    case 0xa9:
+                        //POP		reg_gs				[-:	0f a9]					386
+                        instruction.executePop(pc, regs.gs, instruction.getOpWidth(getBits()));
+                        break;
+                    default:
+                        throw new NotImplException("op2: " + op);
+                }
+                break;
+
+            case 0x17:
+                //POP		reg_ss				[-:	17]					8086,NOLONG
+                instruction.executePop(pc, regs.ss, instruction.getOpWidth(getBits()));
+                break;
+
+            case 0x1f:
+                //POP		reg_ds				[-:	1f]					8086,NOLONG
+                instruction.executePop(pc, regs.ds, instruction.getOpWidth(getBits()));
+                break;
+
             case 0x30:
                 //XOR		mem,reg8			[mr:	hle 30 /r]				8086,SM,LOCK
                 //XOR		reg8,reg8			[mr:	30 /r]					8086
