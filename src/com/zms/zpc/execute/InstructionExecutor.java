@@ -1,7 +1,7 @@
 package com.zms.zpc.execute;
 
 import com.zms.zpc.emulator.PC;
-import com.zms.zpc.emulator.processor.Bits;
+import com.zms.zpc.emulator.processor.*;
 import com.zms.zpc.emulator.reg.*;
 import com.zms.zpc.support.*;
 
@@ -159,7 +159,7 @@ public class InstructionExecutor extends Instruction implements Constants {
         if (op == c || op == d) {
             __v3 = input.read();
         } else {
-            __v3 = getReg(pc, "DX").getValue16();
+            __v3 = pc.cpu.regs.dx.getValue16();
         }
         __reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
     }
@@ -226,11 +226,16 @@ public class InstructionExecutor extends Instruction implements Constants {
         int r = getOpcode() - base;
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));
         long val=reg.getValue();
-        push_(val,mrs.opWidth);
+        push_(pc,val,mrs.opWidth);
     }
 
-    public void push_(long val,int width) {
-
+    public void push_(PC pc,long val,int width) {
+        Regs regs=pc.cpu.regs;
+        int n=width/8;
+        assert n*8==width;
+        regs.rsp.setValue(regs.rsp.getValue()-n);
+        long address=regs.ss.getAddress(regs.rsp);
+        mrs.memoryWrite(pc,address,val,width);
     }
 
     public void executeMovMR(CodeExecutor executor, CodeStream input, PC pc) {
@@ -262,9 +267,10 @@ public class InstructionExecutor extends Instruction implements Constants {
     }
 
     public void executeSTOS(CodeExecutor executor, CodeStream input, PC pc) {
+        Regs regs=pc.cpu.regs;
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
-        Segment base = (Segment) getReg(pc, "ES");
-        BaseReg offr = getReg(pc, "DI").getRegWithWidth(getAddressWidth(executor.getBits()));
+        Segment base = regs.es;
+        BaseReg offr = regs.di.getRegWithWidth(getAddressWidth(executor.getBits()));
 
         long val = reg.getValue();
         int width = mrs.opWidth;
@@ -274,7 +280,7 @@ public class InstructionExecutor extends Instruction implements Constants {
         assert n * 8 == width;
 
         if (isHasf2() || isHasf3()) {
-            BaseReg cr = getReg(pc, "CX").getRegWithWidth(getAddressWidth(executor.getBits()));
+            BaseReg cr = regs.cx.getRegWithWidth(getAddressWidth(executor.getBits()));
             long c = cr.getValue();
             while (c != 0) {
                 executor.checkIR();
@@ -297,9 +303,10 @@ public class InstructionExecutor extends Instruction implements Constants {
     }
 
     public void executeLODS(CodeExecutor executor, CodeStream input, PC pc) {
+        Regs regs=pc.cpu.regs;
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
-        Segment base = (Segment) getReg(pc, "DS");
-        BaseReg offr = getReg(pc, "SI").getRegWithWidth(getAddressWidth(executor.getBits()));
+        Segment base = regs.ds;
+        BaseReg offr = regs.si.getRegWithWidth(getAddressWidth(executor.getBits()));
 
         int width = mrs.opWidth;
         long off = offr.getValue();
@@ -308,7 +315,7 @@ public class InstructionExecutor extends Instruction implements Constants {
         assert n * 8 == width;
 
         if (isHasf2() || isHasf3()) {
-            BaseReg cr = getReg(pc, "CX").getRegWithWidth(getAddressWidth(executor.getBits()));
+            BaseReg cr = regs.cx.getRegWithWidth(getAddressWidth(executor.getBits()));
             long c = cr.getValue();
             while (c != 0) {
                 executor.checkIR();
@@ -335,7 +342,7 @@ public class InstructionExecutor extends Instruction implements Constants {
         long offset=readOp(input,width);
         executor.reLoc(input);
         BaseReg rip = pc.cpu.regs.rip;
-        push_(rip.getValue(),width);
+        push_(pc,rip.getValue(),width);
         rip.setValue(rip.getValue()+offset);
     }
 
