@@ -494,6 +494,21 @@ public class CodeExecutor {
                 instruction.executeDF_(this, input, pc, false);
                 break;
 
+            case 0xff:
+                instruction.parse2(input, bits);
+                switch (mrs.regIndex) {
+                    case 6:
+                        //PUSH rm16				[m:	o16 ff /6]				8086
+                        //PUSH		rm32				[m:	o32 ff /6]				386,NOLONG
+                        //PUSH		rm64				[m:	o64nw ff /6]				X64
+
+                        instruction.executePushff(this, input, pc);
+                        break;
+                    default:
+                        throw new NotImplException();
+                }
+                break;
+
             default:
                 throw new NotImplException(String.valueOf(op));
         }
