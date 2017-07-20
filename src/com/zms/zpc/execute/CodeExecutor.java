@@ -29,9 +29,9 @@ public class CodeExecutor {
         }
         instruction.mrs.reg8 = false;
         instruction.bits = regs.bits;
-        instruction.mrs.regType=0;
-        instruction.segBase="DS";
-        instruction.mrs.opWidth=-1;
+        instruction.mrs.regType = 0;
+        instruction.segBase = "DS";
+        instruction.mrs.opWidth = -1;
     }
 
     public int execute(PC pc, CodeStream input) {
@@ -269,7 +269,7 @@ public class CodeExecutor {
                 //MOV		reg64,reg_sreg			[mr:	o64nw 8c /r]				X64,OPT,ND
                 //MOV		rm64,reg_sreg			[mr:	o64 8c /r]				X64
 
-                instruction.mrs.regType=1;
+                instruction.mrs.regType = 1;
                 instruction.parse2(input, bits);
                 instruction.executeMovMR(this, input, pc);
                 break;
@@ -283,14 +283,14 @@ public class CodeExecutor {
                 //MOV		reg_sreg,reg32			[rm:	o32 8e /r]				386
                 //MOV		reg_sreg,rm64			[rm:	o64 8e /r]				X64
 
-                instruction.mrs.regType=1;
+                instruction.mrs.regType = 1;
                 instruction.parse2(input, bits);
                 instruction.executeMovRM(this, input, pc);
                 break;
 
             case 0xaa:
                 //STOSB		void				[	aa]					8086
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0xab:
                 //STOSD		void				[	o32 ab]					386
                 //STOSQ		void				[	o64 ab]					X64
@@ -304,7 +304,7 @@ public class CodeExecutor {
 
             case 0xac:
                 //LODSB		void				[	ac]					8086
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0xad:
                 //LODSD		void				[	o32 ad]					386
                 //LODSQ		void				[	o64 ad]					X64
@@ -362,6 +362,7 @@ public class CodeExecutor {
                 instruction.executeJumpFar(this, input, pc);
                 jump = true;
                 break;
+
             case 0xe4:
                 //IN		reg_al,imm			[-i:	e4 ib,u]				8086,SB
             case 0xec:
@@ -399,29 +400,43 @@ public class CodeExecutor {
                 instruction.executeOut(this, input, pc);
                 break;
 
+            case 0xe8:
+                //CALL		imm				[i:	odf e8 rel]				8086,BND
+                //CALL		imm|near			[i:	odf e8 rel]				8086,ND,BND
+                //CALL		imm16				[i:	o16 e8 rel]				8086,NOLONG,BND
+                //CALL		imm16|near			[i:	o16 e8 rel]				8086,ND,NOLONG,BND
+                //CALL		imm32				[i:	o32 e8 rel]				386,NOLONG,BND
+                //CALL		imm32|near			[i:	o32 e8 rel]				386,ND,NOLONG,BND
+                //CALL		imm64				[i:	o64nw e8 rel]				X64,BND
+                //CALL		imm64|near			[i:	o64nw e8 rel]				X64,ND,BND
+
+                instruction.executeCallNear(this,input,pc);
+                jump=true;
+                break;
+
             case 0xf5:
                 //CMC		void				[	f5]					8086
-                instruction.executeCMC(this,input,pc);
+                instruction.executeCMC(this, input, pc);
                 break;
 
             case 0xf8:
                 //CLC		void				[	f8]					8086
-                instruction.executeCF_(this,input,pc,false);
+                instruction.executeCF_(this, input, pc, false);
                 break;
 
             case 0xf9:
                 //STC		void				[	f9]					8086
-                instruction.executeCF_(this,input,pc,true);
+                instruction.executeCF_(this, input, pc, true);
                 break;
 
             case 0xfa:
                 //CLI		void				[	fa]					8086
-                instruction.executeIF_(this,input,pc,false);
+                instruction.executeIF_(this, input, pc, false);
                 break;
 
             case 0xfc:
                 //CLD		void				[	fc]					8086
-                instruction.executeDF_(this,input,pc,false);
+                instruction.executeDF_(this, input, pc, false);
                 break;
 
             default:
@@ -435,7 +450,7 @@ public class CodeExecutor {
         return 0;
     }
 
-    private void reLoc(CodeStream input) {
+    public void reLoc(CodeStream input) {
         regs.rip.setValue64(regs.rip.getValue64() + (input.getPos() - instruction.getStartPos()));
     }
 

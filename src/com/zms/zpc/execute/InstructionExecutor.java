@@ -225,7 +225,12 @@ public class InstructionExecutor extends Instruction implements Constants {
     public void executePush50(CodeExecutor executor, CodeStream input, PC pc, int base) {
         int r = getOpcode() - base;
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));
-        throw new NotImplException("todo");
+        long val=reg.getValue();
+        push_(val,mrs.opWidth);
+    }
+
+    public void push_(long val,int width) {
+
     }
 
     public void executeMovMR(CodeExecutor executor, CodeStream input, PC pc) {
@@ -323,6 +328,15 @@ public class InstructionExecutor extends Instruction implements Constants {
     public void executeLODS_(PC pc, Segment base, long off, int width,BaseReg reg) {
         long val = mrs.memoryRead(pc, base.getAddress(off), width);
         reg.setValue(width,val);
+    }
+
+    public void executeCallNear(CodeExecutor executor, CodeStream input, PC pc) {
+        int width=getOpWidth(executor.getBits());
+        long offset=readOp(input,width);
+        executor.reLoc(input);
+        BaseReg rip = pc.cpu.regs.rip;
+        push_(rip.getValue(),width);
+        rip.setValue(rip.getValue()+offset);
     }
 
 }

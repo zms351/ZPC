@@ -144,7 +144,10 @@ public class Regs {
 
     public Bits bits = new Bits(this);
 
-    public Regs() {
+    public Processor cpu;
+
+    public Regs(Processor cpu) {
+        this.cpu=cpu;
         this.init();
     }
 

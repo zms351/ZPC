@@ -17,7 +17,7 @@ public class Processor {
     }
 
     private void init() {
-        regs = new Regs();
+        regs = new Regs(this);
     }
 
     public ProcessorConfig getConfig() {

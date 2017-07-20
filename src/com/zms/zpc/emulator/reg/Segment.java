@@ -1,6 +1,7 @@
 package com.zms.zpc.emulator.reg;
 
-import com.zms.zpc.emulator.processor.Regs;
+import com.zms.zpc.emulator.processor.*;
+import com.zms.zpc.support.NotImplException;
 
 /**
  * Created by 张小美 on 17/六月/22.
@@ -21,7 +22,7 @@ public class Segment extends Reg {
 
     @Override
     public void setValue16(int v) {
-        this.setValue16(v,true);
+        this.setValue16(v, true);
     }
 
     public void setValue16(int v, boolean changeBase) {
@@ -32,7 +33,12 @@ public class Segment extends Reg {
     }
 
     public long getAddress(long address) {
-        return base.getValue() + address;
+        CPUMode mode = regs.cpu.getMode();
+        if (mode == CPUMode.Real) {
+            return base.getValue() + (address & 0xffff);
+        } else {
+            throw new NotImplException();
+        }
     }
 
     public long getAddress(BaseReg pointer) {

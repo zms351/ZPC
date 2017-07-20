@@ -2,7 +2,7 @@ package com.zms.zpc.support;
 
 import com.zms.zpc.debugger.*;
 import com.zms.zpc.emulator.PC;
-import com.zms.zpc.emulator.processor.Regs;
+import com.zms.zpc.emulator.processor.*;
 import com.zms.zpc.emulator.reg.*;
 import com.zms.zpc.execute.*;
 
@@ -24,7 +24,8 @@ public class Warnings {
         ModRMSIB mod = new ModRMSIB(is);
         System.out.println(mod.setValMemory(new PC(), 0L));
         System.out.println(mod.setValReg(new PC(), 2));
-        System.out.println(new BaseReg_0("a",new Regs(),1,1).setValue(123));
+        Processor cpu=new Processor(new ProcessorConfig());
+        System.out.println(new BaseReg_0("a",new Regs(cpu),1,1).setValue(123));
 
         PC pc = new PC();
         is.executePush50(new CodeExecutor(),new CodeStream(), pc,123);
