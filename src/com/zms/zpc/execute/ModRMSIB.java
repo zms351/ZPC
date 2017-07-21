@@ -201,7 +201,8 @@ public class ModRMSIB {
 
     private boolean addressUseReg;
 
-    private long getMemoryAddress(PC pc) {
+    public long getMemoryAddress(PC pc) {
+        assert addressReg==null;
         addressUseReg = false;
         long address = calAddress(pc, this.address);
         if (addressUseReg) {

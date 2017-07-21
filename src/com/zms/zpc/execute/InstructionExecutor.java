@@ -389,4 +389,14 @@ public class InstructionExecutor extends Instruction implements Constants {
         pc.cpu.regs.rip.setValue(v);
     }
 
+    public void executeLEA() {
+        int opWidth=getOpWidth();
+        int addressWidth=getAddressWidth(executor.getBits());
+        long address=mrs.getMemoryAddress(pc);
+        if(addressWidth<opWidth) {
+            address=NumberUtils.zeroExtend(address,addressWidth);
+        }
+        mrs.setValReg(pc,address);
+    }
+
 }

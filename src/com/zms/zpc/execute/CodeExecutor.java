@@ -389,6 +389,14 @@ public class CodeExecutor {
                 instruction.executeMovMR();
                 break;
 
+            case 0x8d:
+                //LEA		reg16,mem			[rm:	o16 8d /r]				8086
+                //LEA		reg32,mem			[rm:	o32 8d /r]				386
+                //LEA		reg64,mem			[rm:	o64 8d /r]				X64
+
+                instruction.executeLEA();
+                break;
+
             case 0x8e:
                 //MOV		reg_sreg,mem			[rm:	8e /r]					8086,SW
                 //MOV		reg_sreg,reg16			[rm:	8e /r]					8086,OPT,ND

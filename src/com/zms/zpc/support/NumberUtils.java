@@ -107,7 +107,7 @@ public class NumberUtils {
     }
 
     public static long zeroExtend32_2_64(long n) {
-        return n & 0xffffffffL;
+        return zeroExtend(n,32);
     }
 
     public static long signExtend32_2_64(long n) {
@@ -138,6 +138,21 @@ public class NumberUtils {
                 return signExtend8_2_32(n);
             case 64:
                 return signExtend8_2_64(n);
+            default:
+                throw new NotImplException();
+        }
+    }
+
+    public static long zeroExtend(long n, int width) {
+        switch (width) {
+            case 8:
+                return n & 0xffL;
+            case 16:
+                return n & 0xffffL;
+            case 32:
+                return n & 0xffffffffL;
+            case 64:
+                return n;
             default:
                 throw new NotImplException();
         }
