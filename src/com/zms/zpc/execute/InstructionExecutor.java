@@ -278,6 +278,7 @@ public class InstructionExecutor extends Instruction implements Constants {
         assert n*8==width;
         rsp.setValue(rsp.getValue()-n);
         long address=regs.ss.getAddress(rsp);
+        pc.getDebugger().onMessage(Constants.DEBUG,"push on %H %H %H\n",regs.ss.getValue(),rsp.getValue(),val);
         mrs.memoryWrite(pc,address,val,width);
     }
 
@@ -288,6 +289,7 @@ public class InstructionExecutor extends Instruction implements Constants {
         assert n*8==width;
         long address=regs.ss.getAddress(rsp);
         long v=mrs.memoryRead(pc,address,width);
+        pc.getDebugger().onMessage(Constants.DEBUG,"pop on %H %H %H\n",regs.ss.getValue(),rsp.getValue(),v);
         rsp.setValue(rsp.getValue()+n);
         return v;
     }

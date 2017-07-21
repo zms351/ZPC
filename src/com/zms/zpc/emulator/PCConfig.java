@@ -23,7 +23,7 @@ public class PCConfig {
     private void setDefault() {
         this.processorConfig = new ProcessorConfig();
 
-        this.memoryChipLen=512L*1024*1024;
+        this.memoryChipLen=64L*1024*1024;
         this.memoryCount=1;
 
         this.bios="BIOS-bochs-latest";

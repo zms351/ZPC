@@ -16,7 +16,7 @@ public class CodeExecutor {
     private Regs regs;
 
     public CodeExecutor() {
-        previewBuffer = new byte[16];
+        previewBuffer = new byte[128];
         instruction = new InstructionExecutor();
     }
 
