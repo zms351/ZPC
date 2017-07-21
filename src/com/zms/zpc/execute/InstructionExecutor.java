@@ -12,6 +12,8 @@ import com.zms.zpc.support.*;
 public class InstructionExecutor extends Instruction implements Constants {
 
     public Bits bits;
+    public CodeStream input;
+    public PC pc;
 
     public long readOp(CodeExecutor executor, CodeStream input) {
         int width = getOpWidth(executor.getBits());
@@ -120,11 +122,9 @@ public class InstructionExecutor extends Instruction implements Constants {
     }
 
     private long xor_(long v1, long v2) {
-        long v = v1 ^ v2;
         bits.clearOCA();
-        bits.result = v;
-        bits.status = SZP;
-        return v;
+        bits.setData(v1,v2,v1 ^ v2,XOR,getOpWidth(),SZP);
+        return bits.getResult();
     }
 
     private long __v1, __v2;
@@ -206,11 +206,7 @@ public class InstructionExecutor extends Instruction implements Constants {
     }
 
     private void cmp_(long v1, long v2) {
-        bits.op1 = v1;
-        bits.op2 = v2;
-        bits.result = v1 - v2;
-        bits.ins = SUB;
-        bits.status = OSZAPC;
+        bits.setData(v1,v2,v1-v2,SUB,getOpWidth(),OSZAPC);
     }
 
     private long add_(long v1, long v2,int type) {
@@ -218,17 +214,15 @@ public class InstructionExecutor extends Instruction implements Constants {
             //inc
             bits.cf.set(bits.cf());
         }
-        bits.op1 = v1;
-        bits.op2 = v2;
-        bits.result = v1 + v2;
-        bits.ins = ADD;
+        int status;
         if(type==1) {
             //inc
-            bits.status=NCF;
+            status=NCF;
         } else {
-            bits.status = OSZAPC;
+            status = OSZAPC;
         }
-        return bits.result;
+        bits.setData(v1,v2,v1+v2,ADD,getOpWidth(),status);
+        return bits.getResult();
     }
 
     public void executeOut(CodeExecutor executor, CodeStream input, PC pc) {
@@ -326,12 +320,12 @@ public class InstructionExecutor extends Instruction implements Constants {
 
     public void executeCMC(CodeExecutor executor, CodeStream input, PC pc) {
         bits.cf.not();
-        bits.status &= NCF;
+        bits.setStatus(bits.getStatus() & NCF);
     }
 
     public void executeCF_(CodeExecutor executor, CodeStream input, PC pc, boolean set) {
         bits.cf.set(set);
-        bits.status &= NCF;
+        bits.setStatus(bits.getStatus() & NCF);
     }
 
     public void executeIF_(CodeExecutor executor, CodeStream input, PC pc, boolean set) {

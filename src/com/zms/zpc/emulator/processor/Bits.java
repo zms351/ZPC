@@ -34,8 +34,41 @@ public class Bits implements Constants {
         df = new BitControl("df", regs, index, 10);
     }
 
-    public long result, op1, op2;
-    public int status, ins, opWidth;
+    private long result, op1, op2;
+    private int status, ins, opWidth;
+
+    public void setData(long op1,long op2,long result,int ins,int opWidth,int status) {
+        this.op1=op1;
+        this.op2=op2;
+        this.result=result;
+        this.ins=ins;
+        this.opWidth=opWidth;
+        this.status=status;
+    }
+
+    public long getResult() {
+        return result;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public long getOp1() {
+        return op1;
+    }
+
+    public long getOp2() {
+        return op2;
+    }
+
+    public int getIns() {
+        return ins;
+    }
 
     public void clearOCA() {
         of.clear();
@@ -83,7 +116,7 @@ public class Bits implements Constants {
                 return (result & 0xffff)!=result;
             case 32:
                 return (result & 0xffffffffL)!=result;
-            //case 64:
+            case 64:
             default:
                 throw new NotImplException();
         }

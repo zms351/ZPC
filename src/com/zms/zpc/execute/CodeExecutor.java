@@ -18,6 +18,7 @@ public class CodeExecutor {
     public CodeExecutor() {
         previewBuffer = new byte[128];
         instruction = new InstructionExecutor();
+        instruction.executor=this;
     }
 
     protected void pre(PC pc) {
@@ -32,10 +33,12 @@ public class CodeExecutor {
         instruction.mrs.regType = 0;
         instruction.segBase = "DS";
         instruction.mrs.opWidth = -1;
+        instruction.pc=pc;
     }
 
     public int execute(PC pc, CodeStream input) {
         pre(pc);
+        instruction.input=input;
         instruction.setStartPos(input.getPos());
         instruction.parse1(input, bits);
         boolean jump = false;
@@ -609,7 +612,6 @@ public class CodeExecutor {
         if (!jump) {
             reLoc(input);
         }
-        regs.bits.opWidth = mrs.opWidth;
         checkIR();
         return 0;
     }

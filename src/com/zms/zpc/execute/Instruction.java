@@ -204,6 +204,18 @@ public class Instruction implements Constants {
         return false;
     }
 
+    public CodeExecutor executor;
+
+    public int getOpWidth() {
+        int width=mrs.opWidth;
+        if(width>0) {
+            return width;
+        }
+        width=getOpWidth(executor.getBits());
+        mrs.opWidth=width;
+        return width;
+    }
+
     public int getOpWidth(int bits) {
         bits = _getOpWidth(bits);
         if (bits != 8 && bits != 16 && bits != 32 && bits != 64) {
