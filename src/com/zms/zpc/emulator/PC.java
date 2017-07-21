@@ -177,7 +177,7 @@ public class PC implements Runnable {
                     try {
                         stream.seek(this);
                         executor.execute(this, stream);
-                    } catch (NotImplException t) {
+                    } catch (Throwable t) {
                         t.printStackTrace();
                         state=PCState.Pause;
                     }

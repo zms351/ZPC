@@ -394,6 +394,7 @@ public class CodeExecutor {
                 //LEA		reg32,mem			[rm:	o32 8d /r]				386
                 //LEA		reg64,mem			[rm:	o64 8d /r]				X64
 
+                instruction.parse2(input, bits);
                 instruction.executeLEA();
                 break;
 
