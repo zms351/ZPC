@@ -108,6 +108,9 @@ public class Instruction implements Constants {
 
     public void parse2(CodeStream input, int bits) {
         mrs.parse(this, input, bits);
+        if(mrs.opWidth<0) {
+            mrs.opWidth=getOpWidth(bits);
+        }
     }
 
     public int getLegacyPrefixCount() {
