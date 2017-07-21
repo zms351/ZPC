@@ -207,6 +207,20 @@ public class CodeExecutor {
                 instruction.executeCmp3c3d(this, input, pc);
                 break;
 
+            case 0x40:
+            case 0x41:
+            case 0x42:
+            case 0x43:
+            case 0x44:
+            case 0x45:
+            case 0x46:
+            case 0x47:
+                //INC		reg16				[r:	o16 40+r]				8086,NOLONG
+                //INC		reg32				[r:	o32 40+r]				386,NOLONG
+
+                instruction.executeIncReg(this, input, pc);
+                break;
+
             case 0x50:
             case 0x51:
             case 0x52:
@@ -221,7 +235,7 @@ public class CodeExecutor {
 
                 //org.jpc.emulator.execution.opcodes.rm.push_o16_rBXr11
 
-                instruction.executePush50(this, input, pc, 0x50);
+                instruction.executePush50(this, input, pc);
                 break;
 
             case 0x58:
@@ -236,7 +250,7 @@ public class CodeExecutor {
                 //POP		reg32				[r:	o32 58+r]				386,NOLONG
                 //POP		reg64				[r:	o64nw 58+r]				X64
 
-                instruction.executePop58(this, input, pc, 0x58);
+                instruction.executePop58(this, input, pc);
                 break;
 
             case 0x70:

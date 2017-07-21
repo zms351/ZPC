@@ -28,8 +28,6 @@ public class Warnings {
         System.out.println(new BaseReg_0("a",new Regs(cpu),1,1).setValue(123));
 
         PC pc = new PC();
-        is.executePush50(new CodeExecutor(),new CodeStream(), pc,123);
-        is.executePop58(new CodeExecutor(),new CodeStream(), pc,123);
         is.executeIF_(new CodeExecutor(),new CodeStream(),new PC(),true);
         is.executeDF_(new CodeExecutor(),new CodeStream(),new PC(),true);
         Segment seg= (Segment) pc.cpu.regs.getReg("DS");

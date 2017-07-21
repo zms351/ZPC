@@ -185,7 +185,7 @@ public class InstructionExecutor extends Instruction implements Constants {
         long v2 = readOp(input, 8);
         v2 = signExtend8(v2, mrs.opWidth);
         long v1 = mrs.getValMemory(pc);
-        long v=add_(v1, v2);
+        long v=add_(v1, v2,0);
         mrs.setValMemory(pc,v);
     }
 
@@ -213,12 +213,21 @@ public class InstructionExecutor extends Instruction implements Constants {
         bits.status = OSZAPC;
     }
 
-    private long add_(long v1, long v2) {
+    private long add_(long v1, long v2,int type) {
+        if(type==1) {
+            //inc
+            bits.cf.set(bits.cf());
+        }
         bits.op1 = v1;
         bits.op2 = v2;
         bits.result = v1 + v2;
         bits.ins = ADD;
-        bits.status = OSZAPC;
+        if(type==1) {
+            //inc
+            bits.status=NCF;
+        } else {
+            bits.status = OSZAPC;
+        }
         return bits.result;
     }
 
@@ -239,8 +248,8 @@ public class InstructionExecutor extends Instruction implements Constants {
         reg.setValue(v);
     }
 
-    public void executePush50(CodeExecutor executor, CodeStream input, PC pc, int base) {
-        int r = getOpcode() - base;
+    public void executePush50(CodeExecutor executor, CodeStream input, PC pc) {
+        int r = getOpcode() - 0x50;
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));
         executePush(pc,reg,mrs.opWidth);
     }
@@ -250,10 +259,16 @@ public class InstructionExecutor extends Instruction implements Constants {
         push_(pc,val,mrs.opWidth);
     }
 
-    public void executePop58(CodeExecutor executor, CodeStream input, PC pc, int base) {
-        int r = getOpcode() - base;
+    public void executePop58(CodeExecutor executor, CodeStream input, PC pc) {
+        int r = getOpcode() - 0x58;
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));
         executePop(pc,reg,mrs.opWidth);
+    }
+
+    public void executeIncReg(CodeExecutor executor, CodeStream input, PC pc) {
+        int r = getOpcode() - 0x40;
+        BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));
+        reg.setValue(add_(reg.getValue(),1,1));
     }
 
     public void executePop(PC pc, BaseReg reg,int width) {
