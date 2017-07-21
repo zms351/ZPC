@@ -38,15 +38,15 @@ public abstract class RAM {
                 break;
             case 16:
                 write(context, pos, (int) val);
-                write(context, pos + 1, (int) (val << 8));
+                write(context, pos + 1, (int) (val >>> 8));
                 break;
             case 32:
                 write(context, pos, val, 16);
-                write(context, pos + 2, val << 16, 16);
+                write(context, pos + 2, val >>> 16, 16);
                 break;
             case 64:
                 write(context, pos, val, 32);
-                write(context, pos + 4, val << 32, 32);
+                write(context, pos + 4, val >>> 32, 32);
                 break;
             default:
                 throw new NotImplException();
