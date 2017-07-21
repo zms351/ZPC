@@ -574,9 +574,23 @@ public class CodeExecutor {
                 instruction.executeDF_(this, input, pc, false);
                 break;
 
+            case 0xfe:
+                //INC		rm8				[m:	hle fe /0]				8086,LOCK
+
+                mrs.reg8=true;
+                instruction.executeIncRm(this,input,pc);
+                break;
+
             case 0xff:
                 instruction.parse2(input, bits);
                 switch (mrs.regIndex) {
+                    case 0:
+                        //INC		rm16				[m:	hle o16 ff /0]				8086,LOCK
+                        //INC		rm32				[m:	hle o32 ff /0]				386,LOCK
+                        //INC		rm64				[m:	hle o64 ff /0]				X64,LOCK
+
+                        instruction.executeIncRm(this,input,pc);
+                        break;
                     case 6:
                         //PUSH rm16				[m:	o16 ff /6]				8086
                         //PUSH		rm32				[m:	o32 ff /6]				386,NOLONG

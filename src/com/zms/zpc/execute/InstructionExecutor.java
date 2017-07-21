@@ -271,6 +271,11 @@ public class InstructionExecutor extends Instruction implements Constants {
         reg.setValue(add_(reg.getValue(),1,1));
     }
 
+    public void executeIncRm(CodeExecutor executor, CodeStream input, PC pc) {
+        long val=mrs.getValMemory(pc);
+        mrs.setValMemory(pc,add_(val,1,1));
+    }
+
     public void executePop(PC pc, BaseReg reg,int width) {
         long val=pop_(pc,width);
         reg.setValue(val);
