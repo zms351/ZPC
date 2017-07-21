@@ -48,17 +48,17 @@ public class CodeExecutor {
 
             case 0x06:
                 //PUSH		reg_es				[-:	06]					8086,NOLONG
-                instruction.executePush(pc, regs.es, instruction.getOpWidth(getBits()));
+                instruction.executePush(regs.es, instruction.getOpWidth(getBits()));
                 break;
 
             case 0x07:
                 //POP		reg_es				[-:	07]					8086,NOLONG
-                instruction.executePop(pc, regs.es, instruction.getOpWidth(getBits()));
+                instruction.executePop(regs.es, instruction.getOpWidth(getBits()));
                 break;
 
             case 0x0e:
                 //PUSH		reg_cs				[-:	0e]					8086,NOLONG
-                instruction.executePush(pc, regs.cs, instruction.getOpWidth(getBits()));
+                instruction.executePush(regs.cs, instruction.getOpWidth(getBits()));
                 break;
 
             case 0x0f:
@@ -69,22 +69,22 @@ public class CodeExecutor {
                 switch (op) {
                     case 0xa0:
                         //PUSH		reg_fs				[-:	0f a0]					386
-                        instruction.executePush(pc, regs.fs, instruction.getOpWidth(getBits()));
+                        instruction.executePush(regs.fs, instruction.getOpWidth(getBits()));
                         break;
 
                     case 0xa1:
                         //POP		reg_fs				[-:	0f a1]					386
-                        instruction.executePop(pc, regs.fs, instruction.getOpWidth(getBits()));
+                        instruction.executePop(regs.fs, instruction.getOpWidth(getBits()));
                         break;
 
                     case 0xa8:
                         //PUSH		reg_gs				[-:	0f a8]					386
-                        instruction.executePush(pc, regs.gs, instruction.getOpWidth(getBits()));
+                        instruction.executePush(regs.gs, instruction.getOpWidth(getBits()));
                         break;
 
                     case 0xa9:
                         //POP		reg_gs				[-:	0f a9]					386
-                        instruction.executePop(pc, regs.gs, instruction.getOpWidth(getBits()));
+                        instruction.executePop(regs.gs, instruction.getOpWidth(getBits()));
                         break;
                     default:
                         throw new NotImplException("op2: " + op);
@@ -93,22 +93,22 @@ public class CodeExecutor {
 
             case 0x16:
                 //PUSH		reg_ss				[-:	16]					8086,NOLONG
-                instruction.executePush(pc, regs.ss, instruction.getOpWidth(getBits()));
+                instruction.executePush(regs.ss, instruction.getOpWidth(getBits()));
                 break;
 
             case 0x17:
                 //POP		reg_ss				[-:	17]					8086,NOLONG
-                instruction.executePop(pc, regs.ss, instruction.getOpWidth(getBits()));
+                instruction.executePop(regs.ss, instruction.getOpWidth(getBits()));
                 break;
 
             case 0x1e:
                 //PUSH		reg_ds				[-:	1e]					8086,NOLONG
-                instruction.executePush(pc, regs.ds, instruction.getOpWidth(getBits()));
+                instruction.executePush(regs.ds, instruction.getOpWidth(getBits()));
                 break;
 
             case 0x1f:
                 //POP		reg_ds				[-:	1f]					8086,NOLONG
-                instruction.executePop(pc, regs.ds, instruction.getOpWidth(getBits()));
+                instruction.executePop(regs.ds, instruction.getOpWidth(getBits()));
                 break;
 
             case 0x30:
@@ -131,7 +131,7 @@ public class CodeExecutor {
                 //org.jpc.emulator.execution.opcodes.rm.xor_Ew_Gw
 
                 instruction.parse2(input, bits);
-                instruction.executeXor30313233(this, input, pc, false);
+                instruction.executeXor30313233(false);
                 break;
 
             case 0x32:
@@ -148,7 +148,7 @@ public class CodeExecutor {
                 //XOR		reg64,reg64			[rm:	o64 33 /r]				X64
 
                 instruction.parse2(input, bits);
-                instruction.executeXor30313233(this, input, pc, true);
+                instruction.executeXor30313233(true);
                 break;
 
             case 0x34:
@@ -160,7 +160,7 @@ public class CodeExecutor {
                 //XOR		reg_eax,imm			[-i:	o32 35 id]				386,SM
                 //XOR		reg_rax,imm			[-i:	o64 35 id,s]				X64,SM
 
-                instruction.executeXor3435(this, input, pc);
+                instruction.executeXor3435();
                 break;
 
             case 0x38:
@@ -179,7 +179,7 @@ public class CodeExecutor {
                 //CMP		reg64,reg64			[mr:	o64 39 /r]				X64
 
                 instruction.parse2(input, bits);
-                instruction.executeCmp_rm_mr(this, input, pc, false);
+                instruction.executeCmp_rm_mr(false);
                 break;
 
             case 0x3a:
@@ -196,7 +196,7 @@ public class CodeExecutor {
                 //CMP		reg64,reg64			[rm:	o64 3b /r]				X64
 
                 instruction.parse2(input, bits);
-                instruction.executeCmp_rm_mr(this, input, pc, true);
+                instruction.executeCmp_rm_mr(true);
                 break;
 
             case 0x3c:
@@ -207,7 +207,7 @@ public class CodeExecutor {
                 //CMP		reg_eax,imm			[-i:	o32 3d id]				386,SM
                 //CMP		reg_rax,imm			[-i:	o64 3d id,s]				X64,SM
 
-                instruction.executeCmp3c3d(this, input, pc);
+                instruction.executeCmp3c3d();
                 break;
 
             case 0x40:
@@ -221,7 +221,7 @@ public class CodeExecutor {
                 //INC		reg16				[r:	o16 40+r]				8086,NOLONG
                 //INC		reg32				[r:	o32 40+r]				386,NOLONG
 
-                instruction.executeIncReg(this, input, pc);
+                instruction.executeIncReg();
                 break;
 
             case 0x50:
@@ -238,7 +238,7 @@ public class CodeExecutor {
 
                 //org.jpc.emulator.execution.opcodes.rm.push_o16_rBXr11
 
-                instruction.executePush50(this, input, pc);
+                instruction.executePush50();
                 break;
 
             case 0x58:
@@ -253,7 +253,7 @@ public class CodeExecutor {
                 //POP		reg32				[r:	o32 58+r]				386,NOLONG
                 //POP		reg64				[r:	o64nw 58+r]				X64
 
-                instruction.executePop58(this, input, pc);
+                instruction.executePop58();
                 break;
 
             case 0x70:
@@ -273,7 +273,7 @@ public class CodeExecutor {
             case 0x7e:
             case 0x7f:
                 mrs.reg8 = true;
-                jump = instruction.executeJcc(this, input, pc);
+                jump = instruction.executeJcc();
                 break;
 
             case 0x83:
@@ -293,7 +293,7 @@ public class CodeExecutor {
                         //CMP		mem,sbyteword16			[mi:	o16 83 /7 ib,s]				8086,SM,ND
                         //CMP		mem,sbytedword32		[mi:	o32 83 /7 ib,s]				386,SM,ND
 
-                        instruction.executeCmp83(this, input, pc);
+                        instruction.executeCmp83();
                         break;
 
                     case 0:
@@ -309,7 +309,7 @@ public class CodeExecutor {
                         //ADD		mem,sbyteword16			[mi:	hle o16 83 /0 ib,s]			8086,SM,LOCK,ND
                         //ADD		mem,sbytedword32		[mi:	hle o32 83 /0 ib,s]			386,SM,LOCK,ND
 
-                        instruction.executeAdd83(this, input, pc);
+                        instruction.executeAdd83();
                         break;
 
                     default:
@@ -332,7 +332,7 @@ public class CodeExecutor {
                 instruction.parse2(input, bits);
                 switch (mrs.regIndex) {
                     case 7:
-                        instruction.executeCmp82(this, input, pc);
+                        instruction.executeCmp82();
                         break;
                     default:
                         throw new NotImplException();
@@ -356,7 +356,7 @@ public class CodeExecutor {
                 //MOV		reg64,reg64			[mr:	o64 89 /r]				X64
 
                 instruction.parse2(input, bits);
-                instruction.executeMovMR(this, input, pc);
+                instruction.executeMovMR();
                 break;
 
             case 0x8a:
@@ -374,7 +374,7 @@ public class CodeExecutor {
                 //MOV		reg64,reg64			[rm:	o64 8b /r]				X64
 
                 instruction.parse2(input, bits);
-                instruction.executeMovRM(this, input, pc);
+                instruction.executeMovRM();
                 break;
 
             case 0x8c:
@@ -386,7 +386,7 @@ public class CodeExecutor {
 
                 instruction.mrs.regType = 1;
                 instruction.parse2(input, bits);
-                instruction.executeMovMR(this, input, pc);
+                instruction.executeMovMR();
                 break;
 
             case 0x8e:
@@ -400,7 +400,7 @@ public class CodeExecutor {
 
                 instruction.mrs.regType = 1;
                 instruction.parse2(input, bits);
-                instruction.executeMovRM(this, input, pc);
+                instruction.executeMovRM();
                 break;
 
             case 0x8f:
@@ -411,7 +411,7 @@ public class CodeExecutor {
                         //POP		rm32				[m:	o32 8f /0]				386,NOLONG
                         //POP		rm64				[m:	o64nw 8f /0]				X64
 
-                        instruction.executePop8f(this, input, pc);
+                        instruction.executePop8f();
                         break;
                     default:
                         throw new NotImplException();
@@ -429,7 +429,7 @@ public class CodeExecutor {
                 //org.jpc.emulator.execution.opcodes.rm.stosb_a16
                 //org.jpc.emulator.execution.opcodes.rm.stosw_a16
 
-                instruction.executeSTOS(this, input, pc);
+                instruction.executeSTOS();
                 break;
 
             case 0xac:
@@ -440,7 +440,7 @@ public class CodeExecutor {
                 //LODSQ		void				[	o64 ad]					X64
                 //LODSW		void				[	o16 ad]					8086
 
-                instruction.executeLODS(this, input, pc);
+                instruction.executeLODS();
                 break;
 
             case 0xb0:
@@ -456,7 +456,7 @@ public class CodeExecutor {
                 //org.jpc.emulator.execution.opcodes.rm.mov_ALr8b_Ib
 
                 mrs.reg8 = true;
-                instruction.executeMovri(this, input, pc, 0xb0);
+                instruction.executeMovri(0xb0);
                 break;
 
             case 0xb8:
@@ -474,14 +474,14 @@ public class CodeExecutor {
 
                 //org.jpc.emulator.execution.opcodes.rm.mov_rAXr8_Iw
 
-                instruction.executeMovri(this, input, pc, 0xb8);
+                instruction.executeMovri(0xb8);
                 break;
 
             case 0xc3:
                 //RET		void				[	c3]					8086,BND
                 //RETN		void				[	c3]					8086,BND
 
-                instruction.executeRetNear(this, input, pc);
+                instruction.executeRetNear();
                 jump = true;
                 break;
 
@@ -497,7 +497,7 @@ public class CodeExecutor {
 
                 //org.jpc.emulator.execution.opcodes.rm.jmp_Ap
 
-                instruction.executeJumpFar(this, input, pc);
+                instruction.executeJumpFar();
                 jump = true;
                 break;
 
@@ -516,7 +516,7 @@ public class CodeExecutor {
 
                 //org.jpc.emulator.execution.opcodes.rm.in_o16_eAX_DX
 
-                instruction.executeIn(this, input, pc);
+                instruction.executeIn();
                 break;
 
             case 0xe6:
@@ -535,7 +535,7 @@ public class CodeExecutor {
                 //OUT		reg_dx,reg_ax			[--:	o16 ef]					8086
                 //OUT		reg_dx,reg_eax			[--:	o32 ef]					386
 
-                instruction.executeOut(this, input, pc);
+                instruction.executeOut();
                 break;
 
             case 0xe8:
@@ -548,40 +548,40 @@ public class CodeExecutor {
                 //CALL		imm64				[i:	o64nw e8 rel]				X64,BND
                 //CALL		imm64|near			[i:	o64nw e8 rel]				X64,ND,BND
 
-                instruction.executeCallNear(this, input, pc);
+                instruction.executeCallNear();
                 jump = true;
                 break;
 
             case 0xf5:
                 //CMC		void				[	f5]					8086
-                instruction.executeCMC(this, input, pc);
+                instruction.executeCMC();
                 break;
 
             case 0xf8:
                 //CLC		void				[	f8]					8086
-                instruction.executeCF_(this, input, pc, false);
+                instruction.executeCF_(false);
                 break;
 
             case 0xf9:
                 //STC		void				[	f9]					8086
-                instruction.executeCF_(this, input, pc, true);
+                instruction.executeCF_(true);
                 break;
 
             case 0xfa:
                 //CLI		void				[	fa]					8086
-                instruction.executeIF_(this, input, pc, false);
+                instruction.executeIF_(false);
                 break;
 
             case 0xfc:
                 //CLD		void				[	fc]					8086
-                instruction.executeDF_(this, input, pc, false);
+                instruction.executeDF_(false);
                 break;
 
             case 0xfe:
                 //INC		rm8				[m:	hle fe /0]				8086,LOCK
 
                 mrs.reg8=true;
-                instruction.executeIncRm(this,input,pc);
+                instruction.executeIncRm();
                 break;
 
             case 0xff:
@@ -592,14 +592,14 @@ public class CodeExecutor {
                         //INC		rm32				[m:	hle o32 ff /0]				386,LOCK
                         //INC		rm64				[m:	hle o64 ff /0]				X64,LOCK
 
-                        instruction.executeIncRm(this,input,pc);
+                        instruction.executeIncRm();
                         break;
                     case 6:
                         //PUSH rm16				[m:	o16 ff /6]				8086
                         //PUSH		rm32				[m:	o32 ff /6]				386,NOLONG
                         //PUSH		rm64				[m:	o64nw ff /6]				X64
 
-                        instruction.executePushff(this, input, pc);
+                        instruction.executePushff();
                         break;
                     default:
                         throw new NotImplException();

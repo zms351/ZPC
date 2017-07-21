@@ -15,12 +15,12 @@ public class InstructionExecutor extends Instruction implements Constants {
     public CodeStream input;
     public PC pc;
 
-    public long readOp(CodeExecutor executor, CodeStream input) {
+    public long readOp() {
         int width = getOpWidth(executor.getBits());
-        return readOp(input, width);
+        return readOp(width);
     }
 
-    public long readOp(CodeStream input, int width) {
+    public long readOp(int width) {
         switch (width) {
             case 8:
                 return input.read();
@@ -71,8 +71,8 @@ public class InstructionExecutor extends Instruction implements Constants {
         return n & 0xffffffffL;
     }
 
-    public void executeJumpFar(CodeExecutor executor, CodeStream input, PC pc) {
-        long offset = readOp(executor, input);
+    public void executeJumpFar() {
+        long offset = readOp();
         int base = read16(input);
         if (executor.getBits() == 16) {
             pc.cpu.regs.cs.setValue(base);
@@ -98,7 +98,7 @@ public class InstructionExecutor extends Instruction implements Constants {
         }
     }
 
-    public boolean executeJcc(CodeExecutor executor, CodeStream input, PC pc) {
+    public boolean executeJcc() {
         int jump = (byte) input.read();
         if (!testCondition(getOpcode())) {
             jump = 0;
@@ -110,7 +110,7 @@ public class InstructionExecutor extends Instruction implements Constants {
         return false;
     }
 
-    public void executeXor30313233(CodeExecutor executor, CodeStream input, PC pc, boolean rm) {
+    public void executeXor30313233(boolean rm) {
         long v1 = mrs.getValMemory(pc);
         long v2 = mrs.getValReg(pc);
         long v = xor_(v1, v2);
@@ -131,22 +131,22 @@ public class InstructionExecutor extends Instruction implements Constants {
     private BaseReg __reg;
     private int __width, __v3;
 
-    private void read0(CodeExecutor executor, CodeStream input, PC pc) {
+    private void read0() {
         int width = getOpWidth(executor.getBits());
         if (width == 64) {
-            __v1 = signExtend32_2_64(readOp(input, 32));
+            __v1 = signExtend32_2_64(readOp(32));
         } else {
-            __v1 = readOp(input, width);
+            __v1 = readOp(width);
         }
         __width = width;
     }
 
-    private void read1(CodeExecutor executor, CodeStream input, PC pc) {
-        read0(executor, input, pc);
+    private void read1() {
+        read0();
         __reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
     }
 
-    private void read2(CodeExecutor executor, CodeStream input, PC pc, int a, int b, int c, int d) {
+    private void read2(int a, int b, int c, int d) {
         int op = getOpcode();
         int width = getOpWidth(executor.getBits());
         if (op == a || op == b) {
@@ -164,38 +164,38 @@ public class InstructionExecutor extends Instruction implements Constants {
         __reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
     }
 
-    public void executeXor3435(CodeExecutor executor, CodeStream input, PC pc) {
-        read1(executor, input, pc);
+    public void executeXor3435() {
+        read1();
         __reg.setValue(xor_(__v1, __reg.getValue()));
     }
 
-    public void executeCmp3c3d(CodeExecutor executor, CodeStream input, PC pc) {
-        read1(executor, input, pc);
+    public void executeCmp3c3d() {
+        read1();
         cmp_(__reg.getValue(), __v1);
     }
 
-    public void executeCmp83(CodeExecutor executor, CodeStream input, PC pc) {
-        long v2 = readOp(input, 8);
+    public void executeCmp83() {
+        long v2 = readOp(8);
         v2 = signExtend8(v2, mrs.opWidth);
         long v1 = mrs.getValMemory(pc);
         cmp_(v1, v2);
     }
 
-    public void executeAdd83(CodeExecutor executor, CodeStream input, PC pc) {
-        long v2 = readOp(input, 8);
+    public void executeAdd83() {
+        long v2 = readOp(8);
         v2 = signExtend8(v2, mrs.opWidth);
         long v1 = mrs.getValMemory(pc);
         long v=add_(v1, v2,0);
         mrs.setValMemory(pc,v);
     }
 
-    public void executeCmp82(CodeExecutor executor, CodeStream input, PC pc) {
-        read0(executor, input, pc);
+    public void executeCmp82() {
+        read0();
         long v = mrs.getValMemory(pc);
         cmp_(v, __v1);
     }
 
-    public void executeCmp_rm_mr(CodeExecutor executor, CodeStream input, PC pc, boolean rm) {
+    public void executeCmp_rm_mr(boolean rm) {
         long v1 = mrs.getValMemory(pc);
         long v2 = mrs.getValReg(pc);
         if (rm) {
@@ -225,67 +225,67 @@ public class InstructionExecutor extends Instruction implements Constants {
         return bits.getResult();
     }
 
-    public void executeOut(CodeExecutor executor, CodeStream input, PC pc) {
-        read2(executor, input, pc, 0xe6, 0xee, 0xe6, 0xe7);
+    public void executeOut() {
+        read2(0xe6, 0xee, 0xe6, 0xe7);
         pc.board.ios.write(__v3, __reg.getValue(), __width);
     }
 
-    public void executeIn(CodeExecutor executor, CodeStream input, PC pc) {
-        read2(executor, input, pc, 0xe4, 0xec, 0xe4, 0xe5);
+    public void executeIn() {
+        read2(0xe4, 0xec, 0xe4, 0xe5);
         __reg.setValue(__width, pc.board.ios.read(__v3, __width));
     }
 
-    public void executeMovri(CodeExecutor executor, CodeStream input, PC pc, int base) {
+    public void executeMovri(int base) {
         int r = getOpcode() - base;
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));
-        long v = readOp(executor, input);
+        long v = readOp();
         reg.setValue(v);
     }
 
-    public void executePush50(CodeExecutor executor, CodeStream input, PC pc) {
+    public void executePush50() {
         int r = getOpcode() - 0x50;
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));
-        executePush(pc,reg,mrs.opWidth);
+        executePush(reg,mrs.opWidth);
     }
 
-    public void executePushff(CodeExecutor executor, CodeStream input, PC pc) {
+    public void executePushff() {
         long val=mrs.getValMemory(pc);
-        push_(pc,val,mrs.opWidth);
+        push_(val,mrs.opWidth);
     }
 
-    public void executePop58(CodeExecutor executor, CodeStream input, PC pc) {
+    public void executePop58() {
         int r = getOpcode() - 0x58;
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));
-        executePop(pc,reg,mrs.opWidth);
+        executePop(reg,mrs.opWidth);
     }
 
-    public void executeIncReg(CodeExecutor executor, CodeStream input, PC pc) {
+    public void executeIncReg() {
         int r = getOpcode() - 0x40;
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));
         reg.setValue(add_(reg.getValue(),1,1));
     }
 
-    public void executeIncRm(CodeExecutor executor, CodeStream input, PC pc) {
+    public void executeIncRm() {
         long val=mrs.getValMemory(pc);
         mrs.setValMemory(pc,add_(val,1,1));
     }
 
-    public void executePop(PC pc, BaseReg reg,int width) {
-        long val=pop_(pc,width);
+    public void executePop(BaseReg reg,int width) {
+        long val=pop_(width);
         reg.setValue(val);
     }
 
-    public void executePush(PC pc, BaseReg reg,int width) {
+    public void executePush(BaseReg reg,int width) {
         long val=reg.getValue();
-        push_(pc,val,width);
+        push_(val,width);
     }
 
-    public void executePop8f(CodeExecutor executor, CodeStream input, PC pc) {
-        long val=pop_(pc,mrs.opWidth);
+    public void executePop8f() {
+        long val=pop_(mrs.opWidth);
         mrs.setValMemory(pc,val);
     }
 
-    public void push_(PC pc,long val,int width) {
+    public void push_(long val,int width) {
         Regs regs=pc.cpu.regs;
         BaseReg rsp = regs.rsp;
         int n=width/8;
@@ -296,7 +296,7 @@ public class InstructionExecutor extends Instruction implements Constants {
         mrs.memoryWrite(pc,address,val,width);
     }
 
-    public long pop_(PC pc,int width) {
+    public long pop_(int width) {
         Regs regs=pc.cpu.regs;
         BaseReg rsp = regs.rsp;
         int n=width/8;
@@ -308,35 +308,35 @@ public class InstructionExecutor extends Instruction implements Constants {
         return v;
     }
 
-    public void executeMovMR(CodeExecutor executor, CodeStream input, PC pc) {
+    public void executeMovMR() {
         long v = mrs.getValReg(pc);
         mrs.setValMemory(pc, v);
     }
 
-    public void executeMovRM(CodeExecutor executor, CodeStream input, PC pc) {
+    public void executeMovRM() {
         long v = mrs.getValMemory(pc);
         mrs.setValReg(pc, v);
     }
 
-    public void executeCMC(CodeExecutor executor, CodeStream input, PC pc) {
+    public void executeCMC() {
         bits.cf.not();
         bits.setStatus(bits.getStatus() & NCF);
     }
 
-    public void executeCF_(CodeExecutor executor, CodeStream input, PC pc, boolean set) {
+    public void executeCF_(boolean set) {
         bits.cf.set(set);
         bits.setStatus(bits.getStatus() & NCF);
     }
 
-    public void executeIF_(CodeExecutor executor, CodeStream input, PC pc, boolean set) {
+    public void executeIF_(boolean set) {
         bits.if_.set(set);
     }
 
-    public void executeDF_(CodeExecutor executor, CodeStream input, PC pc, boolean set) {
+    public void executeDF_(boolean set) {
         bits.df.set(set);
     }
 
-    public void executeSTOS(CodeExecutor executor, CodeStream input, PC pc) {
+    public void executeSTOS() {
         Regs regs=pc.cpu.regs;
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
         Segment base = regs.es;
@@ -354,25 +354,25 @@ public class InstructionExecutor extends Instruction implements Constants {
             long c = cr.getValue();
             while (c != 0) {
                 executor.checkIR();
-                executeSTOS_(pc, base, off, val, width);
+                executeSTOS_(base, off, val, width);
                 off = df ? off - n : off + n;
                 c--;
             }
             cr.setValue(0);
             offr.setValue(off);
         } else {
-            executeSTOS_(pc, base, off, val, width);
+            executeSTOS_(base, off, val, width);
             off = df ? off - n : off + n;
             offr.setValue(off);
         }
     }
 
-    public void executeSTOS_(PC pc, Segment base, long off, long val, int width) {
+    public void executeSTOS_(Segment base, long off, long val, int width) {
         long address = base.getAddress(off);
         mrs.memoryWrite(pc, address, val, width);
     }
 
-    public void executeLODS(CodeExecutor executor, CodeStream input, PC pc) {
+    public void executeLODS() {
         Regs regs=pc.cpu.regs;
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
         Segment base = regs.ds;
@@ -389,39 +389,39 @@ public class InstructionExecutor extends Instruction implements Constants {
             long c = cr.getValue();
             while (c != 0) {
                 executor.checkIR();
-                executeLODS_(pc, base, off, width,reg);
+                executeLODS_(base, off, width,reg);
                 off = df ? off - n : off + n;
                 c--;
             }
             cr.setValue(0);
             offr.setValue(off);
         } else {
-            executeLODS_(pc, base, off, width,reg);
+            executeLODS_(base, off, width,reg);
             off = df ? off - n : off + n;
             offr.setValue(off);
         }
     }
 
-    public void executeLODS_(PC pc, Segment base, long off, int width,BaseReg reg) {
+    public void executeLODS_(Segment base, long off, int width,BaseReg reg) {
         long val = mrs.memoryRead(pc, base.getAddress(off), width);
         reg.setValue(width,val);
     }
 
-    public void executeCallNear(CodeExecutor executor, CodeStream input, PC pc) {
+    public void executeCallNear() {
         int width=getOpWidth(executor.getBits());
-        long offset=readOp(input,width);
+        long offset=readOp(width);
         BaseReg rip = pc.cpu.regs.rip;
         executor.reLoc(input);
         long from=rip.getValue();
-        push_(pc,rip.getValue(),width);
+        push_(rip.getValue(),width);
         long to=rip.getValue()+offset;
         pc.getDebugger().onMessage(DEBUG,"Call Near from %H to %H\n",from,to);
         rip.setValue(to);
     }
 
-    public void executeRetNear(CodeExecutor executor, CodeStream input, PC pc) {
+    public void executeRetNear() {
         int width=getOpWidth(executor.getBits());
-        long v=pop_(pc,width);
+        long v=pop_(width);
         pc.getDebugger().onMessage(DEBUG,"Ret to %H\n",v);
         pc.cpu.regs.rip.setValue(v);
     }
