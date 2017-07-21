@@ -3,7 +3,7 @@ package com.zms.zpc.execute;
 import com.zms.zpc.emulator.PC;
 import com.zms.zpc.emulator.assembler.Assembler;
 import com.zms.zpc.emulator.reg.Segment;
-import com.zms.zpc.support.NotImplException;
+import com.zms.zpc.support.*;
 
 /**
  * Created by 张小美 on 17/六月/29.
@@ -14,7 +14,7 @@ public class ModRMSIB {
     Instruction instru;
 
     public ModRMSIB(Instruction instru) {
-        this.instru=instru;
+        this.instru = instru;
     }
 
     public boolean reg8;
@@ -25,6 +25,7 @@ public class ModRMSIB {
     public int regIndex;
     public String addressReg;
     public long disp;
+    public int dispWidth;
     public int opWidth;
     public int regType;
 
@@ -93,10 +94,13 @@ public class ModRMSIB {
                 if (mod == 0 && rm == 0b110) {
                     this.address = "0";
                     this.disp = instruction.read16(input);
+                    dispWidth = 16;
                 } else if (mod == 1) {
                     this.disp = instruction.read8(input);
+                    dispWidth = 8;
                 } else if (mod == 2) {
                     this.disp = instruction.read16(input);
+                    dispWidth = 16;
                 }
             } else if (width == 32) {
                 this.address = (String) Assembler.ModData[2][1][rm];
@@ -104,6 +108,7 @@ public class ModRMSIB {
                 if (mod == 0 && rm == 0b101) {
                     this.address = "0";
                     this.disp = instruction.read32(input);
+                    dispWidth = 32;
                 } else if (rm == 0b100) {
                     int sib = input.read();
                     int scale = sib >> 6;
@@ -138,10 +143,13 @@ public class ModRMSIB {
                 }
                 if (mod == 1) {
                     this.disp = instruction.read8(input);
+                    dispWidth = 8;
                 } else if (mod == 2) {
                     this.disp = instruction.read32(input);
+                    dispWidth = 32;
                 } else if (mod == 0 && rm == 0b100 && base == 0b101) {
                     this.disp = instruction.read32(input);
+                    dispWidth = 32;
                 }
             } else {
                 throw new NotImplException();
@@ -162,8 +170,8 @@ public class ModRMSIB {
         if (addressReg != null) {
             return getValReg(pc, this.addressReg);
         }
-        long address=getMemoryAddress(pc);
-        return memoryRead(pc,address,this.opWidth);
+        long address = getMemoryAddress(pc);
+        return memoryRead(pc, address, this.opWidth);
     }
 
     public int setValReg(PC pc, long val) {
@@ -178,40 +186,50 @@ public class ModRMSIB {
         if (addressReg != null) {
             return setValReg(pc, this.addressReg, val);
         }
-        long address=getMemoryAddress(pc);
-        memoryWrite(pc,address,val,this.opWidth);
+        long address = getMemoryAddress(pc);
+        memoryWrite(pc, address, val, this.opWidth);
         return this.opWidth;
     }
 
-    public void memoryWrite(PC pc,long address,long val,int width) {
-        pc.memory.write(0,address,val,width);
+    public void memoryWrite(PC pc, long address, long val, int width) {
+        pc.memory.write(0, address, val, width);
     }
 
-    public long memoryRead(PC pc,long address,int width) {
-        return pc.memory.read(0,address,width);
+    public long memoryRead(PC pc, long address, int width) {
+        return pc.memory.read(0, address, width);
     }
+
+    private boolean addressUseReg;
 
     private long getMemoryAddress(PC pc) {
-        long address=calAddress(pc,this.address)+this.disp;
-        Segment seg= (Segment) pc.cpu.regs.getReg(instru.segBase);
+        addressUseReg = false;
+        long address = calAddress(pc, this.address);
+        if (addressUseReg) {
+            //disp signed
+            address += NumberUtils.asSigned(this.disp, this.dispWidth);
+        } else {
+            address += this.disp;
+        }
+        Segment seg = (Segment) pc.cpu.regs.getReg(instru.segBase);
         return seg.getAddress(address);
     }
 
-    private long calAddress(PC pc,String expr) {
-        if(expr==null || (expr=expr.trim()).length()<1) {
+    private long calAddress(PC pc, String expr) {
+        if (expr == null || (expr = expr.trim()).length() < 1) {
             return 0;
         }
-        if(expr.length()==1) {
+        if (expr.length() == 1) {
             return Integer.parseInt(expr);
         }
-        int index=expr.indexOf('+');
-        if(index>0) {
-            return calAddress(pc,expr.substring(0,index).trim())+calAddress(pc,expr.substring(index+1).trim());
+        int index = expr.indexOf('+');
+        if (index > 0) {
+            return calAddress(pc, expr.substring(0, index).trim()) + calAddress(pc, expr.substring(index + 1).trim());
         }
-        index=expr.indexOf('*');
-        if(index>0) {
-            return calAddress(pc,expr.substring(0,index).trim())*calAddress(pc,expr.substring(index+1).trim());
+        index = expr.indexOf('*');
+        if (index > 0) {
+            return calAddress(pc, expr.substring(0, index).trim()) * calAddress(pc, expr.substring(index + 1).trim());
         }
+        addressUseReg = true;
         return pc.cpu.regs.getReg(expr).getValue(addressWidth);
     }
 

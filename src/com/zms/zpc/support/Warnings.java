@@ -20,18 +20,21 @@ public class Warnings {
         IDEFrame ide = new IDEFrame(new ZPC());
         ide.showNew("a", "b", false);
         System.out.println(ide.select(null));
-        InstructionExecutor is=new InstructionExecutor();
+        InstructionExecutor is = new InstructionExecutor();
         ModRMSIB mod = new ModRMSIB(is);
         System.out.println(mod.setValMemory(new PC(), 0L));
         System.out.println(mod.setValReg(new PC(), 2));
-        Processor cpu=new Processor(new ProcessorConfig());
-        System.out.println(new BaseReg_0("a",new Regs(cpu),1,1).setValue(123));
+        Processor cpu = new Processor(new ProcessorConfig());
+        System.out.println(new BaseReg_0("a", new Regs(cpu), 1, 1).setValue(123));
 
         PC pc = new PC();
         is.executeIF_(true);
         is.executeDF_(true);
-        Segment seg= (Segment) pc.cpu.regs.getReg("DS");
-        seg.setValue16(12,false);
+        Segment seg = (Segment) pc.cpu.regs.getReg("DS");
+        seg.setValue16(12, false);
+
+        System.out.println(NumberUtils.toHex(123, 456));
+        System.out.println(NumberUtils.toBin(123, 456));
     }
 
 }

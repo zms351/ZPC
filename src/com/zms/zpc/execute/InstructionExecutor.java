@@ -34,43 +34,6 @@ public class InstructionExecutor extends Instruction implements Constants {
         throw new NotImplException();
     }
 
-    public long signExtend32_2_64(long n) {
-        return (int) n;
-    }
-
-    public long signExtend8_2_64(long n) {
-        return (byte) n;
-    }
-
-    public long signExtend8_2_32(long n) {
-        int v = (byte) n;
-        return v & 0xffffffffL;
-    }
-
-    public long signExtend8_2_16(long n) {
-        int v = (byte) n;
-        return v & 0xffffL;
-    }
-
-    public long signExtend8(long n, int width) {
-        switch (width) {
-            case 8:
-                return n & 0xff;
-            case 16:
-                return signExtend8_2_16(n);
-            case 32:
-                return signExtend8_2_32(n);
-            case 64:
-                return signExtend8_2_64(n);
-            default:
-                throw new NotImplException();
-        }
-    }
-
-    public long zeroExtend32_2_64(long n) {
-        return n & 0xffffffffL;
-    }
-
     public void executeJumpFar() {
         long offset = readOp();
         int base = read16(input);
@@ -123,7 +86,7 @@ public class InstructionExecutor extends Instruction implements Constants {
 
     private long xor_(long v1, long v2) {
         bits.clearOCA();
-        bits.setData(v1,v2,v1 ^ v2,XOR,getOpWidth(),SZP);
+        bits.setData(v1, v2, v1 ^ v2, XOR, getOpWidth(), SZP);
         return bits.getResult();
     }
 
@@ -134,7 +97,7 @@ public class InstructionExecutor extends Instruction implements Constants {
     private void read0() {
         int width = getOpWidth(executor.getBits());
         if (width == 64) {
-            __v1 = signExtend32_2_64(readOp(32));
+            __v1 = NumberUtils.signExtend32_2_64(readOp(32));
         } else {
             __v1 = readOp(width);
         }
@@ -176,17 +139,17 @@ public class InstructionExecutor extends Instruction implements Constants {
 
     public void executeCmp83() {
         long v2 = readOp(8);
-        v2 = signExtend8(v2, mrs.opWidth);
+        v2 = NumberUtils.signExtend8(v2, mrs.opWidth);
         long v1 = mrs.getValMemory(pc);
         cmp_(v1, v2);
     }
 
     public void executeAdd83() {
         long v2 = readOp(8);
-        v2 = signExtend8(v2, mrs.opWidth);
+        v2 = NumberUtils.signExtend8(v2, mrs.opWidth);
         long v1 = mrs.getValMemory(pc);
-        long v=add_(v1, v2,0);
-        mrs.setValMemory(pc,v);
+        long v = add_(v1, v2, 0);
+        mrs.setValMemory(pc, v);
     }
 
     public void executeCmp82() {
@@ -206,22 +169,22 @@ public class InstructionExecutor extends Instruction implements Constants {
     }
 
     private void cmp_(long v1, long v2) {
-        bits.setData(v1,v2,v1-v2,SUB,getOpWidth(),OSZAPC);
+        bits.setData(v1, v2, v1 - v2, SUB, getOpWidth(), OSZAPC);
     }
 
-    private long add_(long v1, long v2,int type) {
-        if(type==1) {
+    private long add_(long v1, long v2, int type) {
+        if (type == 1) {
             //inc
             bits.cf.set(bits.cf());
         }
         int status;
-        if(type==1) {
+        if (type == 1) {
             //inc
-            status=NCF;
+            status = NCF;
         } else {
             status = OSZAPC;
         }
-        bits.setData(v1,v2,v1+v2,ADD,getOpWidth(),status);
+        bits.setData(v1, v2, v1 + v2, ADD, getOpWidth(), status);
         return bits.getResult();
     }
 
@@ -245,66 +208,66 @@ public class InstructionExecutor extends Instruction implements Constants {
     public void executePush50() {
         int r = getOpcode() - 0x50;
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));
-        executePush(reg,mrs.opWidth);
+        executePush(reg, mrs.opWidth);
     }
 
     public void executePushff() {
-        long val=mrs.getValMemory(pc);
-        push_(val,mrs.opWidth);
+        long val = mrs.getValMemory(pc);
+        push_(val, mrs.opWidth);
     }
 
     public void executePop58() {
         int r = getOpcode() - 0x58;
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));
-        executePop(reg,mrs.opWidth);
+        executePop(reg, mrs.opWidth);
     }
 
     public void executeIncReg() {
         int r = getOpcode() - 0x40;
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));
-        reg.setValue(add_(reg.getValue(),1,1));
+        reg.setValue(add_(reg.getValue(), 1, 1));
     }
 
     public void executeIncRm() {
-        long val=mrs.getValMemory(pc);
-        mrs.setValMemory(pc,add_(val,1,1));
+        long val = mrs.getValMemory(pc);
+        mrs.setValMemory(pc, add_(val, 1, 1));
     }
 
-    public void executePop(BaseReg reg,int width) {
-        long val=pop_(width);
+    public void executePop(BaseReg reg, int width) {
+        long val = pop_(width);
         reg.setValue(val);
     }
 
-    public void executePush(BaseReg reg,int width) {
-        long val=reg.getValue();
-        push_(val,width);
+    public void executePush(BaseReg reg, int width) {
+        long val = reg.getValue();
+        push_(val, width);
     }
 
     public void executePop8f() {
-        long val=pop_(mrs.opWidth);
-        mrs.setValMemory(pc,val);
+        long val = pop_(mrs.opWidth);
+        mrs.setValMemory(pc, val);
     }
 
-    public void push_(long val,int width) {
-        Regs regs=pc.cpu.regs;
+    public void push_(long val, int width) {
+        Regs regs = pc.cpu.regs;
         BaseReg rsp = regs.rsp;
-        int n=width/8;
-        assert n*8==width;
-        rsp.setValue(rsp.getValue()-n);
-        long address=regs.ss.getAddress(rsp);
-        pc.getDebugger().onMessage(Constants.DEBUG,"push on %H %H %H\n",regs.ss.getValue(),rsp.getValue(),val);
-        mrs.memoryWrite(pc,address,val,width);
+        int n = width / 8;
+        assert n * 8 == width;
+        rsp.setValue(rsp.getValue() - n);
+        long address = regs.ss.getAddress(rsp);
+        pc.getDebugger().onMessage(Constants.DEBUG, "push on %H %H %H\n", regs.ss.getValue(), rsp.getValue(), val);
+        mrs.memoryWrite(pc, address, val, width);
     }
 
     public long pop_(int width) {
-        Regs regs=pc.cpu.regs;
+        Regs regs = pc.cpu.regs;
         BaseReg rsp = regs.rsp;
-        int n=width/8;
-        assert n*8==width;
-        long address=regs.ss.getAddress(rsp);
-        long v=mrs.memoryRead(pc,address,width);
-        pc.getDebugger().onMessage(Constants.DEBUG,"pop on %H %H %H\n",regs.ss.getValue(),rsp.getValue(),v);
-        rsp.setValue(rsp.getValue()+n);
+        int n = width / 8;
+        assert n * 8 == width;
+        long address = regs.ss.getAddress(rsp);
+        long v = mrs.memoryRead(pc, address, width);
+        pc.getDebugger().onMessage(Constants.DEBUG, "pop on %H %H %H\n", regs.ss.getValue(), rsp.getValue(), v);
+        rsp.setValue(rsp.getValue() + n);
         return v;
     }
 
@@ -337,7 +300,7 @@ public class InstructionExecutor extends Instruction implements Constants {
     }
 
     public void executeSTOS() {
-        Regs regs=pc.cpu.regs;
+        Regs regs = pc.cpu.regs;
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
         Segment base = regs.es;
         BaseReg offr = regs.di.getRegWithWidth(getAddressWidth(executor.getBits()));
@@ -373,7 +336,7 @@ public class InstructionExecutor extends Instruction implements Constants {
     }
 
     public void executeLODS() {
-        Regs regs=pc.cpu.regs;
+        Regs regs = pc.cpu.regs;
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
         Segment base = regs.ds;
         BaseReg offr = regs.si.getRegWithWidth(getAddressWidth(executor.getBits()));
@@ -389,40 +352,40 @@ public class InstructionExecutor extends Instruction implements Constants {
             long c = cr.getValue();
             while (c != 0) {
                 executor.checkIR();
-                executeLODS_(base, off, width,reg);
+                executeLODS_(base, off, width, reg);
                 off = df ? off - n : off + n;
                 c--;
             }
             cr.setValue(0);
             offr.setValue(off);
         } else {
-            executeLODS_(base, off, width,reg);
+            executeLODS_(base, off, width, reg);
             off = df ? off - n : off + n;
             offr.setValue(off);
         }
     }
 
-    public void executeLODS_(Segment base, long off, int width,BaseReg reg) {
+    public void executeLODS_(Segment base, long off, int width, BaseReg reg) {
         long val = mrs.memoryRead(pc, base.getAddress(off), width);
-        reg.setValue(width,val);
+        reg.setValue(width, val);
     }
 
     public void executeCallNear() {
-        int width=getOpWidth(executor.getBits());
-        long offset=readOp(width);
+        int width = getOpWidth(executor.getBits());
+        long offset = readOp(width);
         BaseReg rip = pc.cpu.regs.rip;
         executor.reLoc(input);
-        long from=rip.getValue();
-        push_(rip.getValue(),width);
-        long to=rip.getValue()+offset;
-        pc.getDebugger().onMessage(DEBUG,"Call Near from %H to %H\n",from,to);
+        long from = rip.getValue();
+        push_(rip.getValue(), width);
+        long to = rip.getValue() + offset;
+        pc.getDebugger().onMessage(DEBUG, "Call Near from %H to %H\n", from, to);
         rip.setValue(to);
     }
 
     public void executeRetNear() {
-        int width=getOpWidth(executor.getBits());
-        long v=pop_(width);
-        pc.getDebugger().onMessage(DEBUG,"Ret to %H\n",v);
+        int width = getOpWidth(executor.getBits());
+        long v = pop_(width);
+        pc.getDebugger().onMessage(DEBUG, "Ret to %H\n", v);
         pc.cpu.regs.rip.setValue(v);
     }
 
