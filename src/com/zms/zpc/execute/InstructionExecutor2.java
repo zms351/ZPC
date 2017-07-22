@@ -139,7 +139,7 @@ public class InstructionExecutor2 extends InstructionExecutor {
         } else {
             v = cal(type, v1, v2);
         }
-        if (type != CMP && type!=TEST) {
+        if (type != CMP && type != TEST) {
             mrs.setValReg(pc, v);
         }
     }
@@ -147,7 +147,7 @@ public class InstructionExecutor2 extends InstructionExecutor {
     public void executeCal2(int type) {
         read1();
         long v = cal(type, __reg.getValue(), __v1);
-        if (type != CMP && type!=TEST) {
+        if (type != CMP && type != TEST) {
             __reg.setValue(v);
         }
     }
@@ -161,19 +161,33 @@ public class InstructionExecutor2 extends InstructionExecutor {
         }
     }
 
-    public long bitsOp(long v,long c) {
-        assert c>=0;
+    public long bitsOp(long v, long c) {
+        assert c >= 0;
+        int oper = BITS_BASE + mrs.regIndex;
+        int opWidth = getOpWidth();
+        switch (oper) {
+            case SHL:
+            case SAL:
+                bits.setData(v, c, v << c, oper, getOpWidth(), OSZAPC);
+                break;
+            case SHR:
+                bits.setData(v, c, v >> c, oper, getOpWidth(), OSZAPC);
+                break;
+            default:
+                throw new NotImplException();
+        }
+        return bits.getResult();
     }
 
     public void bitsOps(long c) {
-        if(c==-1) {
-            c=input.read();
-        } else if(c==-2) {
-            c=pc.cpu.regs.cl.getValue();
+        if (c == -1) {
+            c = input.read();
+        } else if (c == -2) {
+            c = pc.cpu.regs.cl.getValue();
         }
-        long v=mrs.getValMemory(pc);
-        v=bitsOp(v,c);
-        mrs.setValMemory(pc,v);
+        long v = mrs.getValMemory(pc);
+        v = bitsOp(v, c);
+        mrs.setValMemory(pc, v);
     }
 
 }

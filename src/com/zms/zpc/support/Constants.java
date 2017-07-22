@@ -35,6 +35,16 @@ public interface Constants {
     int CMP = 307;
     int TEST = 308;
 
+    int BITS_BASE = 200;
+    int ROL = BITS_BASE;
+    int ROR = BITS_BASE + 1;
+    int RCL = BITS_BASE + 2;
+    int RCR = BITS_BASE + 3;
+    int SHL = BITS_BASE + 4;
+    int SHR = BITS_BASE + 5;
+    int SAL = BITS_BASE + 6;
+    int SAR = BITS_BASE + 7;
+
     int DEBUG = 31;
 
 }

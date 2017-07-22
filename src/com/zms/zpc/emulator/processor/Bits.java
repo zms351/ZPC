@@ -37,13 +37,13 @@ public class Bits implements Constants {
     private long result, op1, op2;
     private int status, ins, opWidth;
 
-    public void setData(long op1,long op2,long result,int ins,int opWidth,int status) {
-        this.op1=op1;
-        this.op2=op2;
-        this.result=result;
-        this.ins=ins;
-        this.opWidth=opWidth;
-        this.status=status;
+    public void setData(long op1, long op2, long result, int ins, int opWidth, int status) {
+        this.op1 = op1;
+        this.op2 = op2;
+        this.result = result;
+        this.ins = ins;
+        this.opWidth = opWidth;
+        this.status = status;
     }
 
     public long getResult() {
@@ -109,17 +109,21 @@ public class Bits implements Constants {
     }
 
     private boolean testCF() {
-        switch (opWidth) {
-            case 8:
-                return (result & 0xff)!=result;
-            case 16:
-                return (result & 0xffff)!=result;
-            case 32:
-                return (result & 0xffffffffL)!=result;
-            case 64:
-            default:
-                throw new NotImplException();
+        switch (ins) {
+            case ADD:
+            case CMP:
+            case SUB:
+                switch (opWidth) {
+                    case 8:
+                        return (result & 0xff) != result;
+                    case 16:
+                        return (result & 0xffff) != result;
+                    case 32:
+                        return (result & 0xffffffffL) != result;
+                    case 64:
+                }
         }
+        throw new NotImplException();
     }
 
     public CPUMode getMode() {
