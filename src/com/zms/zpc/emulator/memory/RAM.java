@@ -19,9 +19,9 @@ public abstract class RAM {
     public long read(long context, long pos, int width) {
         switch (width) {
             case 8:
-                return read(context, pos);
+                return read(context, pos) & 0xff;
             case 16:
-                return read(context, pos) | (read(context, pos + 1) << 8);
+                return (read(context, pos) & 0xff) | ((read(context, pos + 1) & 0xff) << 8);
             case 32:
                 return read(context, pos, 16) | (read(context, pos + 2, 16) << 16);
             case 64:
