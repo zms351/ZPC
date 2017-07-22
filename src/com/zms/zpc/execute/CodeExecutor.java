@@ -50,7 +50,7 @@ public class CodeExecutor {
             case 0x00:
                 //ADD		mem,reg8			[mr:	hle 00 /r]				8086,SM,LOCK
                 //ADD		reg8,reg8			[mr:	00 /r]					8086
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0x01:
                 //ADD		mem,reg16			[mr:	hle o16 01 /r]				8086,SM,LOCK
                 //ADD		reg16,reg16			[mr:	o16 01 /r]				8086
@@ -59,13 +59,13 @@ public class CodeExecutor {
                 //ADD		mem,reg64			[mr:	hle o64 01 /r]				X64,SM,LOCK
                 //ADD		reg64,reg64			[mr:	o64 01 /r]				X64
                 instruction.parse2(bits);
-                instruction.executeCal1(ADD,false);
+                instruction.executeCal1(ADD, false);
                 break;
 
             case 0x02:
                 //ADD		reg8,mem			[rm:	02 /r]					8086,SM
                 //ADD		reg8,reg8			[rm:	02 /r]					8086
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0x03:
                 //ADD		reg16,mem			[rm:	o16 03 /r]				8086,SM
                 //ADD		reg16,reg16			[rm:	o16 03 /r]				8086
@@ -74,12 +74,12 @@ public class CodeExecutor {
                 //ADD		reg64,mem			[rm:	o64 03 /r]				X64,SM
                 //ADD		reg64,reg64			[rm:	o64 03 /r]				X64
                 instruction.parse2(bits);
-                instruction.executeCal1(ADD,true);
+                instruction.executeCal1(ADD, true);
                 break;
 
             case 0x04:
                 //ADD		reg_al,imm			[-i:	04 ib]					8086,SM
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0x05:
                 //ADD		reg_ax,imm			[-i:	o16 05 iw]				8086,SM
                 //ADD		reg_eax,imm			[-i:	o32 05 id]				386,SM
@@ -100,7 +100,7 @@ public class CodeExecutor {
             case 0x08:
                 //OR		mem,reg8			[mr:	hle 08 /r]				8086,SM,LOCK
                 //OR		reg8,reg8			[mr:	08 /r]					8086
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0x09:
                 //OR		mem,reg16			[mr:	hle o16 09 /r]				8086,SM,LOCK
                 //OR		reg16,reg16			[mr:	o16 09 /r]				8086
@@ -110,13 +110,13 @@ public class CodeExecutor {
                 //OR		reg64,reg64			[mr:	o64 09 /r]				X64
 
                 instruction.parse2(bits);
-                instruction.executeCal1(OR,false);
+                instruction.executeCal1(OR, false);
                 break;
 
             case 0x0a:
                 //OR		reg8,mem			[rm:	0a /r]					8086,SM
                 //OR		reg8,reg8			[rm:	0a /r]					8086
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0x0b:
                 //OR		reg16,mem			[rm:	o16 0b /r]				8086,SM
                 //OR		reg16,reg16			[rm:	o16 0b /r]				8086
@@ -126,12 +126,12 @@ public class CodeExecutor {
                 //OR		reg64,reg64			[rm:	o64 0b /r]				X64
 
                 instruction.parse2(bits);
-                instruction.executeCal1(OR,true);
+                instruction.executeCal1(OR, true);
                 break;
 
             case 0x0c:
                 //OR		reg_al,imm			[-i:	0c ib]					8086,SM
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0x0d:
                 //OR		reg_ax,imm			[-i:	o16 0d iw]				8086,SM
                 //OR		reg_eax,imm			[-i:	o32 0d id]				386,SM
@@ -178,7 +178,7 @@ public class CodeExecutor {
             case 0x10:
                 //ADC		mem,reg8			[mr:	hle 10 /r]				8086,SM,LOCK
                 //ADC		reg8,reg8			[mr:	10 /r]					8086
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0x11:
                 //ADC		mem,reg16			[mr:	hle o16 11 /r]				8086,SM,LOCK
                 //ADC		reg16,reg16			[mr:	o16 11 /r]				8086
@@ -188,13 +188,13 @@ public class CodeExecutor {
                 //ADC		reg64,reg64			[mr:	o64 11 /r]				X64
 
                 instruction.parse2(bits);
-                instruction.executeCal1(ADC,false);
+                instruction.executeCal1(ADC, false);
                 break;
 
             case 0x12:
                 //ADC		reg8,mem			[rm:	12 /r]					8086,SM
                 //ADC		reg8,reg8			[rm:	12 /r]					8086
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0x13:
                 //ADC		reg16,mem			[rm:	o16 13 /r]				8086,SM
                 //ADC		reg16,reg16			[rm:	o16 13 /r]				8086
@@ -204,12 +204,12 @@ public class CodeExecutor {
                 //ADC		reg64,reg64			[rm:	o64 13 /r]				X64
 
                 instruction.parse2(bits);
-                instruction.executeCal1(ADC,true);
+                instruction.executeCal1(ADC, true);
                 break;
 
             case 0x14:
                 //ADC		reg_al,imm			[-i:	14 ib]					8086,SM
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0x15:
                 //ADC		reg_ax,imm			[-i:	o16 15 iw]				8086,SM
                 //ADC		reg_eax,imm			[-i:	o32 15 id]				386,SM
@@ -230,7 +230,7 @@ public class CodeExecutor {
             case 0x18:
                 //SBB		mem,reg8			[mr:	hle 18 /r]				8086,SM,LOCK
                 //SBB		reg8,reg8			[mr:	18 /r]					8086
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0x19:
                 //SBB		mem,reg16			[mr:	hle o16 19 /r]				8086,SM,LOCK
                 //SBB		reg16,reg16			[mr:	o16 19 /r]				8086
@@ -240,13 +240,13 @@ public class CodeExecutor {
                 //SBB		reg64,reg64			[mr:	o64 19 /r]				X64
 
                 instruction.parse2(bits);
-                instruction.executeCal1(SBB,false);
+                instruction.executeCal1(SBB, false);
                 break;
 
             case 0x1a:
                 //SBB		reg8,mem			[rm:	1a /r]					8086,SM
                 //SBB		reg8,reg8			[rm:	1a /r]					8086
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0x1b:
                 //SBB		reg16,mem			[rm:	o16 1b /r]				8086,SM
                 //SBB		reg16,reg16			[rm:	o16 1b /r]				8086
@@ -256,12 +256,12 @@ public class CodeExecutor {
                 //SBB		reg64,reg64			[rm:	o64 1b /r]				X64
 
                 instruction.parse2(bits);
-                instruction.executeCal1(SBB,true);
+                instruction.executeCal1(SBB, true);
                 break;
 
             case 0x1c:
                 //SBB		reg_al,imm			[-i:	1c ib]					8086,SM
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0x1d:
                 //SBB		reg_ax,imm			[-i:	o16 1d iw]				8086,SM
                 //SBB		reg_eax,imm			[-i:	o32 1d id]				386,SM
@@ -294,7 +294,7 @@ public class CodeExecutor {
                 //AND		reg64,reg64			[mr:	o64 21 /r]				X64
 
                 instruction.parse2(bits);
-                instruction.executeCal1(AND,false);
+                instruction.executeCal1(AND, false);
                 break;
             case 0x22:
                 //AND		reg8,mem			[rm:	22 /r]					8086,SM
@@ -309,12 +309,12 @@ public class CodeExecutor {
                 //AND		reg64,reg64			[rm:	o64 23 /r]				X64
 
                 instruction.parse2(bits);
-                instruction.executeCal1(AND,true);
+                instruction.executeCal1(AND, true);
                 break;
 
             case 0x24:
                 //AND		reg_al,imm			[-i:	24 ib]					8086,SM
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0x25:
                 //AND		reg_ax,imm			[-i:	o16 25 iw]				8086,SM
                 //AND		reg_eax,imm			[-i:	o32 25 id]				386,SM
@@ -326,7 +326,7 @@ public class CodeExecutor {
             case 0x28:
                 //SUB		mem,reg8			[mr:	hle 28 /r]				8086,SM,LOCK
                 //SUB		reg8,reg8			[mr:	28 /r]					8086
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0x29:
                 //SUB		mem,reg16			[mr:	hle o16 29 /r]				8086,SM,LOCK
                 //SUB		reg16,reg16			[mr:	o16 29 /r]				8086
@@ -336,13 +336,13 @@ public class CodeExecutor {
                 //SUB		reg64,reg64			[mr:	o64 29 /r]				X64
 
                 instruction.parse2(bits);
-                instruction.executeCal1(SUB,false);
+                instruction.executeCal1(SUB, false);
                 break;
 
             case 0x2a:
                 //SUB		reg8,mem			[rm:	2a /r]					8086,SM
                 //SUB		reg8,reg8			[rm:	2a /r]					8086
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0x2b:
                 //SUB		reg16,mem			[rm:	o16 2b /r]				8086,SM
                 //SUB		reg16,reg16			[rm:	o16 2b /r]				8086
@@ -352,12 +352,12 @@ public class CodeExecutor {
                 //SUB		reg64,reg64			[rm:	o64 2b /r]				X64
 
                 instruction.parse2(bits);
-                instruction.executeCal1(SUB,true);
+                instruction.executeCal1(SUB, true);
                 break;
 
             case 0x2c:
                 //SUB		reg_al,imm			[-i:	2c ib]					8086,SM
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0x2d:
                 //SUB		reg_ax,imm			[-i:	o16 2d iw]				8086,SM
                 //SUB		reg_eax,imm			[-i:	o32 2d id]				386,SM
@@ -386,7 +386,7 @@ public class CodeExecutor {
                 //org.jpc.emulator.execution.opcodes.rm.xor_Ew_Gw
 
                 instruction.parse2(bits);
-                instruction.executeCal1(XOR,false);
+                instruction.executeCal1(XOR, false);
                 break;
 
             case 0x32:
@@ -403,7 +403,7 @@ public class CodeExecutor {
                 //XOR		reg64,reg64			[rm:	o64 33 /r]				X64
 
                 instruction.parse2(bits);
-                instruction.executeCal1(XOR,true);
+                instruction.executeCal1(XOR, true);
                 break;
 
             case 0x34:
@@ -434,7 +434,7 @@ public class CodeExecutor {
                 //CMP		reg64,reg64			[mr:	o64 39 /r]				X64
 
                 instruction.parse2(bits);
-                instruction.executeCal1(CMP,false);
+                instruction.executeCal1(CMP, false);
                 break;
 
             case 0x3a:
@@ -451,7 +451,7 @@ public class CodeExecutor {
                 //CMP		reg64,reg64			[rm:	o64 3b /r]				X64
 
                 instruction.parse2(bits);
-                instruction.executeCal1(CMP,true);
+                instruction.executeCal1(CMP, true);
                 break;
 
             case 0x3c:

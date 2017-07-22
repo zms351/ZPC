@@ -300,13 +300,13 @@ public abstract class InstructionExecutor extends Instruction {
     }
 
     public void executeLEA() {
-        int opWidth=getOpWidth();
-        int addressWidth=getAddressWidth(executor.getBits());
-        long address=mrs.getMemoryAddress(pc);
-        if(addressWidth<opWidth) {
-            address=NumberUtils.zeroExtend(address,addressWidth);
+        int opWidth = getOpWidth();
+        int addressWidth = getAddressWidth(executor.getBits());
+        long address = mrs.getMemoryAddress(pc);
+        if (addressWidth < opWidth) {
+            address = NumberUtils.zeroExtend(address, addressWidth);
         }
-        mrs.setValReg(pc,address);
+        mrs.setValReg(pc, address);
     }
 
 }

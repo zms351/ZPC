@@ -93,13 +93,13 @@ public class ModRMSIB {
                 this.address = (String) Assembler.ModData[2][0][rm];
                 if (mod == 0 && rm == 0b110) {
                     this.address = "0";
-                    this.disp = instruction.read16(input);
+                    this.disp = instruction.read16();
                     dispWidth = 16;
                 } else if (mod == 1) {
-                    this.disp = instruction.read8(input);
+                    this.disp = instruction.read8();
                     dispWidth = 8;
                 } else if (mod == 2) {
-                    this.disp = instruction.read16(input);
+                    this.disp = instruction.read16();
                     dispWidth = 16;
                 }
             } else if (width == 32) {
@@ -107,7 +107,7 @@ public class ModRMSIB {
                 int base = 100;
                 if (mod == 0 && rm == 0b101) {
                     this.address = "0";
-                    this.disp = instruction.read32(input);
+                    this.disp = instruction.read32();
                     dispWidth = 32;
                 } else if (rm == 0b100) {
                     int sib = input.read();
@@ -142,13 +142,13 @@ public class ModRMSIB {
                     }
                 }
                 if (mod == 1) {
-                    this.disp = instruction.read8(input);
+                    this.disp = instruction.read8();
                     dispWidth = 8;
                 } else if (mod == 2) {
-                    this.disp = instruction.read32(input);
+                    this.disp = instruction.read32();
                     dispWidth = 32;
                 } else if (mod == 0 && rm == 0b100 && base == 0b101) {
-                    this.disp = instruction.read32(input);
+                    this.disp = instruction.read32();
                     dispWidth = 32;
                 }
             } else {
@@ -202,7 +202,7 @@ public class ModRMSIB {
     private boolean addressUseReg;
 
     public long getMemoryAddress(PC pc) {
-        assert addressReg==null;
+        assert addressReg == null;
         addressUseReg = false;
         long address = calAddress(pc, this.address);
         if (addressUseReg) {
