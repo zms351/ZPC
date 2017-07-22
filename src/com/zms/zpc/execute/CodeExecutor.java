@@ -532,25 +532,91 @@ public class CodeExecutor {
                 break;
 
             case 0x80:
+                //ADD		rm8,imm				[mi:	hle 80 /0 ib]				8086,SM,LOCK
+                //ADD		mem,imm8			[mi:	hle 80 /0 ib]				8086,SM,LOCK
+                //OR		rm8,imm				[mi:	hle 80 /1 ib]				8086,SM,LOCK
+                //OR		mem,imm8			[mi:	hle 80 /1 ib]				8086,SM,LOCK
+                //ADC		rm8,imm				[mi:	hle 80 /2 ib]				8086,SM,LOCK
+                //ADC		mem,imm8			[mi:	hle 80 /2 ib]				8086,SM,LOCK,ND
+                //SBB		rm8,imm				[mi:	hle 80 /3 ib]				8086,SM,LOCK
+                //SBB		mem,imm8			[mi:	hle 80 /3 ib]				8086,SM,LOCK
+                //AND		rm8,imm				[mi:	hle 80 /4 ib]				8086,SM,LOCK
+                //AND		mem,imm8			[mi:	hle 80 /4 ib]				8086,SM,LOCK
+                //SUB		rm8,imm				[mi:	hle 80 /5 ib]				8086,SM,LOCK
+                //SUB		mem,imm8			[mi:	hle 80 /5 ib]				8086,SM,LOCK
+                //XOR		rm8,imm				[mi:	hle 80 /6 ib]				8086,SM,LOCK
+                //XOR		mem,imm8			[mi:	hle 80 /6 ib]				8086,SM,LOCK
                 //CMP		rm8,imm				[mi:	80 /7 ib]				8086,SM
                 //CMP		mem,imm8			[mi:	80 /7 ib]				8086,SM
             case 0x82:
+                //ADD		rm8,imm				[mi:	hle 82 /0 ib]				8086,SM,LOCK,ND,NOLONG
+                //OR		rm8,imm				[mi:	hle 82 /1 ib]				8086,SM,LOCK,ND,NOLONG
+                //ADC		rm8,imm				[mi:	hle 82 /2 ib]				8086,SM,LOCK,ND,NOLONG
+                //SBB		rm8,imm				[mi:	hle 82 /3 ib]				8086,SM,LOCK,ND,NOLONG
+                //AND		rm8,imm				[mi:	hle 82 /4 ib]				8086,SM,LOCK,ND,NOLONG
+                //SUB		rm8,imm				[mi:	hle 82 /5 ib]				8086,SM,LOCK,ND,NOLONG
+                //XOR		rm8,imm				[mi:	hle 82 /6 ib]				8086,SM,LOCK,ND,NOLONG
                 //CMP		rm8,imm				[mi:	82 /7 ib]				8086,SM,ND,NOLONG
                 mrs.reg8 = true;
             case 0x81:
-                //CMP		rm16,imm			[mi:	o16 81 /7 iw]				8086,SM
-                //CMP		rm32,imm			[mi:	o32 81 /7 id]				386,SM
-                //CMP		rm64,imm			[mi:	o64 81 /7 id,s]				X64,SM
-                //CMP		mem,imm16			[mi:	o16 81 /7 iw]				8086,SM
-                //CMP		mem,imm32			[mi:	o32 81 /7 id]				386,SM
                 instruction.parse2(bits);
+                /*
                 switch (mrs.regIndex) {
+                    case 0:
+                        //ADD		rm16,imm			[mi:	hle o16 81 /0 iw]			8086,SM,LOCK
+                        //ADD		rm32,imm			[mi:	hle o32 81 /0 id]			386,SM,LOCK
+                        //ADD		rm64,imm			[mi:	hle o64 81 /0 id,s]			X64,SM,LOCK
+                        //ADD		mem,imm16			[mi:	hle o16 81 /0 iw]			8086,SM,LOCK
+                        //ADD		mem,imm32			[mi:	hle o32 81 /0 id]			386,SM,LOCK
+                    case 1:
+                        //OR		rm16,imm			[mi:	hle o16 81 /1 iw]			8086,SM,LOCK
+                        //OR		rm32,imm			[mi:	hle o32 81 /1 id]			386,SM,LOCK
+                        //OR		rm64,imm			[mi:	hle o64 81 /1 id,s]			X64,SM,LOCK
+                        //OR		mem,imm16			[mi:	hle o16 81 /1 iw]			8086,SM,LOCK
+                        //OR		mem,imm32			[mi:	hle o32 81 /1 id]			386,SM,LOCK
+                    case 2:
+                        //ADC		rm16,imm			[mi:	hle o16 81 /2 iw]			8086,SM,LOCK
+                        //ADC		rm32,imm			[mi:	hle o32 81 /2 id]			386,SM,LOCK
+                        //ADC		rm64,imm			[mi:	hle o64 81 /2 id,s]			X64,SM,LOCK
+                        //ADC		mem,imm16			[mi:	hle o16 81 /2 iw]			8086,SM,LOCK
+                        //ADC		mem,imm32			[mi:	hle o32 81 /2 id]			386,SM,LOCK
+                    case 3:
+                        //SBB		rm16,imm			[mi:	hle o16 81 /3 iw]			8086,SM,LOCK
+                        //SBB		rm32,imm			[mi:	hle o32 81 /3 id]			386,SM,LOCK
+                        //SBB		rm64,imm			[mi:	hle o64 81 /3 id,s]			X64,SM,LOCK
+                        //SBB		mem,imm16			[mi:	hle o16 81 /3 iw]			8086,SM,LOCK
+                        //SBB		mem,imm32			[mi:	hle o32 81 /3 id]			386,SM,LOCK
+                    case 4:
+                        //AND		rm16,imm			[mi:	hle o16 81 /4 iw]			8086,SM,LOCK
+                        //AND		rm32,imm			[mi:	hle o32 81 /4 id]			386,SM,LOCK
+                        //AND		rm64,imm			[mi:	hle o64 81 /4 id,s]			X64,SM,LOCK
+                        //AND		mem,imm16			[mi:	hle o16 81 /4 iw]			8086,SM,LOCK
+                        //AND		mem,imm32			[mi:	hle o32 81 /4 id]			386,SM,LOCK
+                    case 5:
+                        //SUB		rm16,imm			[mi:	hle o16 81 /5 iw]			8086,SM,LOCK
+                        //SUB		rm32,imm			[mi:	hle o32 81 /5 id]			386,SM,LOCK
+                        //SUB		rm64,imm			[mi:	hle o64 81 /5 id,s]			X64,SM,LOCK
+                        //SUB		mem,imm16			[mi:	hle o16 81 /5 iw]			8086,SM,LOCK
+                        //SUB		mem,imm32			[mi:	hle o32 81 /5 id]			386,SM,LOCK
+                    case 6:
+                        //XOR		rm16,imm			[mi:	hle o16 81 /6 iw]			8086,SM,LOCK
+                        //XOR		rm32,imm			[mi:	hle o32 81 /6 id]			386,SM,LOCK
+                        //XOR		rm64,imm			[mi:	hle o64 81 /6 id,s]			X64,SM,LOCK
+                        //XOR		mem,imm16			[mi:	hle o16 81 /6 iw]			8086,SM,LOCK
+                        //XOR		mem,imm32			[mi:	hle o32 81 /6 id]			386,SM,LOCK
                     case 7:
+                        //CMP		rm16,imm			[mi:	o16 81 /7 iw]				8086,SM
+                        //CMP		rm32,imm			[mi:	o32 81 /7 id]				386,SM
+                        //CMP		rm64,imm			[mi:	o64 81 /7 id,s]				X64,SM
+                        //CMP		mem,imm16			[mi:	o16 81 /7 iw]				8086,SM
+                        //CMP		mem,imm32			[mi:	o32 81 /7 id]				386,SM
                         instruction.executeCmp82();
                         break;
                     default:
                         throw new NotImplException();
                 }
+                */
+                instruction.executeCal3();
                 break;
 
             case 0x83:

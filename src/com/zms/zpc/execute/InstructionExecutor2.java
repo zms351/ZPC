@@ -151,10 +151,13 @@ public class InstructionExecutor2 extends InstructionExecutor {
         }
     }
 
-    public void executeCmp82() {
+    public void executeCal3() {
         read0();
         long v = mrs.getValMemory(pc);
-        cmp_(v, __v1);
+        v = cal(mrs.regIndex, v, __v1);
+        if (mrs.regIndex != 7) {
+            mrs.setValMemory(pc, v);
+        }
     }
 
 }
