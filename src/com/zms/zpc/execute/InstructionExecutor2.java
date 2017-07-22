@@ -161,14 +161,19 @@ public class InstructionExecutor2 extends InstructionExecutor {
         }
     }
 
+    public long bitsOp(long v,long c) {
+        assert c>=0;
+    }
+
     public void bitsOps(long c) {
         if(c==-1) {
             c=input.read();
         } else if(c==-2) {
             c=pc.cpu.regs.cl.getValue();
         }
-        assert c>=0;
-        //todo
+        long v=mrs.getValMemory(pc);
+        v=bitsOp(v,c);
+        mrs.setValMemory(pc,v);
     }
 
 }
