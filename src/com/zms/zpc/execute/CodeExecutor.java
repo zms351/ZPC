@@ -915,6 +915,22 @@ public class CodeExecutor {
                 jump = true;
                 break;
 
+            case 0xeb:
+                //JMP		imm|short			[i:	eb rel8]				8086
+                //JMP		imm				[i:	jmp8 eb rel8]				8086,ND
+                mrs.reg8=true;
+            case 0xe9:
+                //JMP		imm				[i:	odf e9 rel]				8086,BND
+                //JMP		imm|near			[i:	odf e9 rel]				8086,ND,BND
+                //JMP		imm16				[i:	o16 e9 rel]				8086,NOLONG,BND
+                //JMP		imm16|near			[i:	o16 e9 rel]				8086,ND,NOLONG,BND
+                //JMP		imm32				[i:	o32 e9 rel]				386,NOLONG,BND
+                //JMP		imm32|near			[i:	o32 e9 rel]				386,ND,NOLONG,BND
+                //JMP		imm64				[i:	o64nw e9 rel]				X64,BND
+                //JMP		imm64|near			[i:	o64nw e9 rel]				X64,ND,BND
+                instruction.executeJumpNear();
+                break;
+
             case 0xea:
                 //JMP		imm|far				[i:	odf ea iwd seg]				8086,ND,NOLONG
                 //JMP		imm16|far			[i:	o16 ea iwd seg]				8086,ND,NOLONG

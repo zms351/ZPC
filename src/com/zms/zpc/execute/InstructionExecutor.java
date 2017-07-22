@@ -15,7 +15,7 @@ public abstract class InstructionExecutor extends Instruction {
     public PC pc;
 
     public long readOp() {
-        int width = getOpWidth(executor.getBits());
+        int width = getOpWidth();
         return readOp(width);
     }
 
@@ -42,6 +42,13 @@ public abstract class InstructionExecutor extends Instruction {
         } else {
             throw new NotImplException();
         }
+    }
+
+    public void executeJumpNear() {
+        long offset=readOp();
+        offset=NumberUtils.asSigned(offset,getOpWidth());
+        BaseReg rip = pc.cpu.regs.rip;
+        rip.setValue(rip.getValue()+offset);
     }
 
     public boolean testCondition(int code) {
@@ -282,7 +289,7 @@ public abstract class InstructionExecutor extends Instruction {
 
     public void executeCallNear() {
         int width = getOpWidth(executor.getBits());
-        long offset = readOp(width);
+        long offset = NumberUtils.asSigned(readOp(width),width);
         BaseReg rip = pc.cpu.regs.rip;
         executor.reLoc(input);
         long from = rip.getValue();
