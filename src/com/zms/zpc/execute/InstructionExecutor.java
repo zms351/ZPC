@@ -9,7 +9,7 @@ import com.zms.zpc.support.*;
  * Created by 张小美 on 17/六月/27.
  * Copyright 2002-2016
  */
-public abstract class InstructionExecutor extends Instruction implements Constants {
+public abstract class InstructionExecutor extends Instruction {
 
     public Bits bits;
     public PC pc;

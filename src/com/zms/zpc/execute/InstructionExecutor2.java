@@ -63,44 +63,59 @@ public class InstructionExecutor2 extends InstructionExecutor {
     }
 
     //7
-    private void cmp_(long v1, long v2) {
-        sub_(v1, v2);
+    private long cmp_(long v1, long v2) {
+        return sub_(v1, v2);
+    }
+
+    protected long cal(int type, long v1, long v2) {
+        long v;
+        switch (type) {
+            case 0:
+            case ADD:
+                v = add_(v1, v2);
+                break;
+            case 1:
+            case OR:
+                v = or_(v1, v2);
+                break;
+            case 2:
+            case ADC:
+                v = adc_(v1, v2);
+                break;
+            case 3:
+            case SBB:
+                v = sbb_(v1, v2);
+                break;
+            case 4:
+            case AND:
+                v = and_(v1, v2);
+                break;
+            case 5:
+            case SUB:
+                v = sub_(v1, v2);
+                break;
+            case 6:
+            case XOR:
+                v = xor_(v1, v2);
+                break;
+            case 7:
+            case CMP:
+                v = cmp_(v1, v2);
+                break;
+            default:
+                throw new NotImplException();
+        }
+        return v;
     }
 
     public void execute83() {
         long v2 = readOp(8);
         v2 = NumberUtils.signExtend8(v2, mrs.opWidth);
         long v1 = mrs.getValMemory(pc);
-        long v;
-        switch (mrs.regIndex) {
-            case 0:
-                v = add_(v1, v2);
-                break;
-            case 1:
-                v = or_(v1, v2);
-                break;
-            case 2:
-                v = adc_(v1, v2);
-                break;
-            case 3:
-                v = sbb_(v1, v2);
-                break;
-            case 4:
-                v = and_(v1, v2);
-                break;
-            case 5:
-                v = sub_(v1, v2);
-                break;
-            case 6:
-                v = xor_(v1, v2);
-                break;
-            case 7:
-                cmp_(v1, v2);
-                return;
-            default:
-                throw new NotImplException();
+        long v = cal(mrs.regIndex, v1, v2);
+        if (mrs.regIndex != 7) {
+            mrs.setValMemory(pc, v);
         }
-        mrs.setValMemory(pc, v);
     }
 
     public void executeIncReg() {
@@ -114,43 +129,27 @@ public class InstructionExecutor2 extends InstructionExecutor {
         mrs.setValMemory(pc, inc_(val));
     }
 
-    public void executeXor3435() {
-        read1();
-        __reg.setValue(xor_(__v1, __reg.getValue()));
-    }
-
-    public void executeAnd2425() {
-        read1();
-        __reg.setValue(and_(__v1, __reg.getValue()));
-    }
-
-    public void executeXor30313233(boolean rm) {
+    public void executeCal1(int type, boolean rm) {
         long v1 = mrs.getValMemory(pc);
         long v2 = mrs.getValReg(pc);
-        long v = xor_(v1, v2);
+        long v;
         if (rm) {
+            v = cal(type, v2, v1);
+        } else {
+            v = cal(type, v1, v2);
+        }
+        if(type!=CMP) {
             mrs.setValReg(pc, v);
-        } else {
-            mrs.setValMemory(pc, v);
         }
     }
 
-    public void executeAnd20212223(boolean rm) {
-        long v1 = mrs.getValMemory(pc);
-        long v2 = mrs.getValReg(pc);
-        long v=and_(v1,v2);
-        if(rm) {
-            mrs.setValReg(pc,v);
-        } else {
-            mrs.setValMemory(pc,v);
-        }
-    }
-
-    public void executeCmp3c3d() {
+    public void executeCal2(int type) {
         read1();
-        cmp_(__reg.getValue(), __v1);
+        long v = cal(type, __reg.getValue(), __v1);
+        if(type!=CMP) {
+            __reg.setValue(v);
+        }
     }
-
 
     public void executeCmp82() {
         read0();
@@ -158,13 +157,4 @@ public class InstructionExecutor2 extends InstructionExecutor {
         cmp_(v, __v1);
     }
 
-    public void executeCmp_rm_mr(boolean rm) {
-        long v1 = mrs.getValMemory(pc);
-        long v2 = mrs.getValReg(pc);
-        if (rm) {
-            cmp_(v2, v1);
-        } else {
-            cmp_(v1, v2);
-        }
-    }
 }

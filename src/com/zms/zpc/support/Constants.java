@@ -32,7 +32,7 @@ public interface Constants {
     int AND = 304;
     int SUB = 305;
     int XOR = 306;
-    //int CMP = 307;
+    int CMP = 307;
 
     int DEBUG = 31;
 

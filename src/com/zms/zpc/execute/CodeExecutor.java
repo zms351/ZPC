@@ -4,6 +4,8 @@ import com.zms.zpc.emulator.PC;
 import com.zms.zpc.emulator.processor.Regs;
 import com.zms.zpc.support.NotImplException;
 
+import static com.zms.zpc.support.Constants.*;
+
 /**
  * Created by 张小美 on 17/六月/25.
  * Copyright 2002-2016
@@ -12,12 +14,12 @@ public class CodeExecutor {
 
     private int bits = 16;
     private byte[] previewBuffer;
-    private InstructionExecutor instruction;
+    private InstructionExecutor2 instruction;
     private Regs regs;
 
     public CodeExecutor() {
         previewBuffer = new byte[128];
-        instruction = new InstructionExecutor();
+        instruction = new InstructionExecutor2();
         instruction.executor = this;
     }
 
@@ -45,6 +47,45 @@ public class CodeExecutor {
         ModRMSIB mrs = instruction.mrs;
         int op = instruction.getOpcode();
         switch (op) {
+            case 0x00:
+                //ADD		mem,reg8			[mr:	hle 00 /r]				8086,SM,LOCK
+                //ADD		reg8,reg8			[mr:	00 /r]					8086
+                mrs.reg8=true;
+            case 0x01:
+                //ADD		mem,reg16			[mr:	hle o16 01 /r]				8086,SM,LOCK
+                //ADD		reg16,reg16			[mr:	o16 01 /r]				8086
+                //ADD		mem,reg32			[mr:	hle o32 01 /r]				386,SM,LOCK
+                //ADD		reg32,reg32			[mr:	o32 01 /r]				386
+                //ADD		mem,reg64			[mr:	hle o64 01 /r]				X64,SM,LOCK
+                //ADD		reg64,reg64			[mr:	o64 01 /r]				X64
+                instruction.parse2(bits);
+                instruction.executeCal1(ADD,false);
+                break;
+
+            case 0x02:
+                //ADD		reg8,mem			[rm:	02 /r]					8086,SM
+                //ADD		reg8,reg8			[rm:	02 /r]					8086
+                mrs.reg8=true;
+            case 0x03:
+                //ADD		reg16,mem			[rm:	o16 03 /r]				8086,SM
+                //ADD		reg16,reg16			[rm:	o16 03 /r]				8086
+                //ADD		reg32,mem			[rm:	o32 03 /r]				386,SM
+                //ADD		reg32,reg32			[rm:	o32 03 /r]				386
+                //ADD		reg64,mem			[rm:	o64 03 /r]				X64,SM
+                //ADD		reg64,reg64			[rm:	o64 03 /r]				X64
+                instruction.parse2(bits);
+                instruction.executeCal1(ADD,true);
+                break;
+
+            case 0x04:
+                //ADD		reg_al,imm			[-i:	04 ib]					8086,SM
+                mrs.reg8=true;
+            case 0x05:
+                //ADD		reg_ax,imm			[-i:	o16 05 iw]				8086,SM
+                //ADD		reg_eax,imm			[-i:	o32 05 id]				386,SM
+                //ADD		reg_rax,imm			[-i:	o64 05 id,s]				X64,SM
+                instruction.executeCal2(ADD);
+                break;
 
             case 0x06:
                 //PUSH		reg_es				[-:	06]					8086,NOLONG
@@ -54,6 +95,49 @@ public class CodeExecutor {
             case 0x07:
                 //POP		reg_es				[-:	07]					8086,NOLONG
                 instruction.executePop(regs.es, instruction.getOpWidth(getBits()));
+                break;
+
+            case 0x08:
+                //OR		mem,reg8			[mr:	hle 08 /r]				8086,SM,LOCK
+                //OR		reg8,reg8			[mr:	08 /r]					8086
+                mrs.reg8=true;
+            case 0x09:
+                //OR		mem,reg16			[mr:	hle o16 09 /r]				8086,SM,LOCK
+                //OR		reg16,reg16			[mr:	o16 09 /r]				8086
+                //OR		mem,reg32			[mr:	hle o32 09 /r]				386,SM,LOCK
+                //OR		reg32,reg32			[mr:	o32 09 /r]				386
+                //OR		mem,reg64			[mr:	hle o64 09 /r]				X64,SM,LOCK
+                //OR		reg64,reg64			[mr:	o64 09 /r]				X64
+
+                instruction.parse2(bits);
+                instruction.executeCal1(OR,false);
+                break;
+
+            case 0x0a:
+                //OR		reg8,mem			[rm:	0a /r]					8086,SM
+                //OR		reg8,reg8			[rm:	0a /r]					8086
+                mrs.reg8=true;
+            case 0x0b:
+                //OR		reg16,mem			[rm:	o16 0b /r]				8086,SM
+                //OR		reg16,reg16			[rm:	o16 0b /r]				8086
+                //OR		reg32,mem			[rm:	o32 0b /r]				386,SM
+                //OR		reg32,reg32			[rm:	o32 0b /r]				386
+                //OR		reg64,mem			[rm:	o64 0b /r]				X64,SM
+                //OR		reg64,reg64			[rm:	o64 0b /r]				X64
+
+                instruction.parse2(bits);
+                instruction.executeCal1(OR,true);
+                break;
+
+            case 0x0c:
+                //OR		reg_al,imm			[-i:	0c ib]					8086,SM
+                mrs.reg8=true;
+            case 0x0d:
+                //OR		reg_ax,imm			[-i:	o16 0d iw]				8086,SM
+                //OR		reg_eax,imm			[-i:	o32 0d id]				386,SM
+                //OR		reg_rax,imm			[-i:	o64 0d id,s]				X64,SM
+
+                instruction.executeCal2(OR);
                 break;
 
             case 0x0e:
@@ -91,6 +175,48 @@ public class CodeExecutor {
                 }
                 break;
 
+            case 0x10:
+                //ADC		mem,reg8			[mr:	hle 10 /r]				8086,SM,LOCK
+                //ADC		reg8,reg8			[mr:	10 /r]					8086
+                mrs.reg8=true;
+            case 0x11:
+                //ADC		mem,reg16			[mr:	hle o16 11 /r]				8086,SM,LOCK
+                //ADC		reg16,reg16			[mr:	o16 11 /r]				8086
+                //ADC		mem,reg32			[mr:	hle o32 11 /r]				386,SM,LOCK
+                //ADC		reg32,reg32			[mr:	o32 11 /r]				386
+                //ADC		mem,reg64			[mr:	hle o64 11 /r]				X64,SM,LOCK
+                //ADC		reg64,reg64			[mr:	o64 11 /r]				X64
+
+                instruction.parse2(bits);
+                instruction.executeCal1(ADC,false);
+                break;
+
+            case 0x12:
+                //ADC		reg8,mem			[rm:	12 /r]					8086,SM
+                //ADC		reg8,reg8			[rm:	12 /r]					8086
+                mrs.reg8=true;
+            case 0x13:
+                //ADC		reg16,mem			[rm:	o16 13 /r]				8086,SM
+                //ADC		reg16,reg16			[rm:	o16 13 /r]				8086
+                //ADC		reg32,mem			[rm:	o32 13 /r]				386,SM
+                //ADC		reg32,reg32			[rm:	o32 13 /r]				386
+                //ADC		reg64,mem			[rm:	o64 13 /r]				X64,SM
+                //ADC		reg64,reg64			[rm:	o64 13 /r]				X64
+
+                instruction.parse2(bits);
+                instruction.executeCal1(ADC,true);
+                break;
+
+            case 0x14:
+                //ADC		reg_al,imm			[-i:	14 ib]					8086,SM
+                mrs.reg8=true;
+            case 0x15:
+                //ADC		reg_ax,imm			[-i:	o16 15 iw]				8086,SM
+                //ADC		reg_eax,imm			[-i:	o32 15 id]				386,SM
+                //ADC		reg_rax,imm			[-i:	o64 15 id,s]				X64,SM
+                instruction.executeCal2(ADC);
+                break;
+
             case 0x16:
                 //PUSH		reg_ss				[-:	16]					8086,NOLONG
                 instruction.executePush(regs.ss, instruction.getOpWidth(getBits()));
@@ -99,6 +225,49 @@ public class CodeExecutor {
             case 0x17:
                 //POP		reg_ss				[-:	17]					8086,NOLONG
                 instruction.executePop(regs.ss, instruction.getOpWidth(getBits()));
+                break;
+
+            case 0x18:
+                //SBB		mem,reg8			[mr:	hle 18 /r]				8086,SM,LOCK
+                //SBB		reg8,reg8			[mr:	18 /r]					8086
+                mrs.reg8=true;
+            case 0x19:
+                //SBB		mem,reg16			[mr:	hle o16 19 /r]				8086,SM,LOCK
+                //SBB		reg16,reg16			[mr:	o16 19 /r]				8086
+                //SBB		mem,reg32			[mr:	hle o32 19 /r]				386,SM,LOCK
+                //SBB		reg32,reg32			[mr:	o32 19 /r]				386
+                //SBB		mem,reg64			[mr:	hle o64 19 /r]				X64,SM,LOCK
+                //SBB		reg64,reg64			[mr:	o64 19 /r]				X64
+
+                instruction.parse2(bits);
+                instruction.executeCal1(SBB,false);
+                break;
+
+            case 0x1a:
+                //SBB		reg8,mem			[rm:	1a /r]					8086,SM
+                //SBB		reg8,reg8			[rm:	1a /r]					8086
+                mrs.reg8=true;
+            case 0x1b:
+                //SBB		reg16,mem			[rm:	o16 1b /r]				8086,SM
+                //SBB		reg16,reg16			[rm:	o16 1b /r]				8086
+                //SBB		reg32,mem			[rm:	o32 1b /r]				386,SM
+                //SBB		reg32,reg32			[rm:	o32 1b /r]				386
+                //SBB		reg64,mem			[rm:	o64 1b /r]				X64,SM
+                //SBB		reg64,reg64			[rm:	o64 1b /r]				X64
+
+                instruction.parse2(bits);
+                instruction.executeCal1(SBB,true);
+                break;
+
+            case 0x1c:
+                //SBB		reg_al,imm			[-i:	1c ib]					8086,SM
+                mrs.reg8=true;
+            case 0x1d:
+                //SBB		reg_ax,imm			[-i:	o16 1d iw]				8086,SM
+                //SBB		reg_eax,imm			[-i:	o32 1d id]				386,SM
+                //SBB		reg_rax,imm			[-i:	o64 1d id,s]				X64,SM
+
+                instruction.executeCal2(SBB);
                 break;
 
             case 0x1e:
@@ -125,7 +294,7 @@ public class CodeExecutor {
                 //AND		reg64,reg64			[mr:	o64 21 /r]				X64
 
                 instruction.parse2(bits);
-                instruction.executeAnd20212223(false);
+                instruction.executeCal1(AND,false);
                 break;
             case 0x22:
                 //AND		reg8,mem			[rm:	22 /r]					8086,SM
@@ -140,7 +309,61 @@ public class CodeExecutor {
                 //AND		reg64,reg64			[rm:	o64 23 /r]				X64
 
                 instruction.parse2(bits);
-                instruction.executeAnd20212223(true);
+                instruction.executeCal1(AND,true);
+                break;
+
+            case 0x24:
+                //AND		reg_al,imm			[-i:	24 ib]					8086,SM
+                mrs.reg8=true;
+            case 0x25:
+                //AND		reg_ax,imm			[-i:	o16 25 iw]				8086,SM
+                //AND		reg_eax,imm			[-i:	o32 25 id]				386,SM
+                //AND		reg_rax,imm			[-i:	o64 25 id,s]				X64,SM
+
+                instruction.executeCal2(AND);
+                break;
+
+            case 0x28:
+                //SUB		mem,reg8			[mr:	hle 28 /r]				8086,SM,LOCK
+                //SUB		reg8,reg8			[mr:	28 /r]					8086
+                mrs.reg8=true;
+            case 0x29:
+                //SUB		mem,reg16			[mr:	hle o16 29 /r]				8086,SM,LOCK
+                //SUB		reg16,reg16			[mr:	o16 29 /r]				8086
+                //SUB		mem,reg32			[mr:	hle o32 29 /r]				386,SM,LOCK
+                //SUB		reg32,reg32			[mr:	o32 29 /r]				386
+                //SUB		mem,reg64			[mr:	hle o64 29 /r]				X64,SM,LOCK
+                //SUB		reg64,reg64			[mr:	o64 29 /r]				X64
+
+                instruction.parse2(bits);
+                instruction.executeCal1(SUB,false);
+                break;
+
+            case 0x2a:
+                //SUB		reg8,mem			[rm:	2a /r]					8086,SM
+                //SUB		reg8,reg8			[rm:	2a /r]					8086
+                mrs.reg8=true;
+            case 0x2b:
+                //SUB		reg16,mem			[rm:	o16 2b /r]				8086,SM
+                //SUB		reg16,reg16			[rm:	o16 2b /r]				8086
+                //SUB		reg32,mem			[rm:	o32 2b /r]				386,SM
+                //SUB		reg32,reg32			[rm:	o32 2b /r]				386
+                //SUB		reg64,mem			[rm:	o64 2b /r]				X64,SM
+                //SUB		reg64,reg64			[rm:	o64 2b /r]				X64
+
+                instruction.parse2(bits);
+                instruction.executeCal1(SUB,true);
+                break;
+
+            case 0x2c:
+                //SUB		reg_al,imm			[-i:	2c ib]					8086,SM
+                mrs.reg8=true;
+            case 0x2d:
+                //SUB		reg_ax,imm			[-i:	o16 2d iw]				8086,SM
+                //SUB		reg_eax,imm			[-i:	o32 2d id]				386,SM
+                //SUB		reg_rax,imm			[-i:	o64 2d id,s]				X64,SM
+
+                instruction.executeCal2(SUB);
                 break;
 
             case 0x30:
@@ -163,7 +386,7 @@ public class CodeExecutor {
                 //org.jpc.emulator.execution.opcodes.rm.xor_Ew_Gw
 
                 instruction.parse2(bits);
-                instruction.executeXor30313233(false);
+                instruction.executeCal1(XOR,false);
                 break;
 
             case 0x32:
@@ -180,7 +403,7 @@ public class CodeExecutor {
                 //XOR		reg64,reg64			[rm:	o64 33 /r]				X64
 
                 instruction.parse2(bits);
-                instruction.executeXor30313233(true);
+                instruction.executeCal1(XOR,true);
                 break;
 
             case 0x34:
@@ -192,7 +415,7 @@ public class CodeExecutor {
                 //XOR		reg_eax,imm			[-i:	o32 35 id]				386,SM
                 //XOR		reg_rax,imm			[-i:	o64 35 id,s]				X64,SM
 
-                instruction.executeXor3435();
+                instruction.executeCal2(XOR);
                 break;
 
             case 0x38:
@@ -211,7 +434,7 @@ public class CodeExecutor {
                 //CMP		reg64,reg64			[mr:	o64 39 /r]				X64
 
                 instruction.parse2(bits);
-                instruction.executeCmp_rm_mr(false);
+                instruction.executeCal1(CMP,false);
                 break;
 
             case 0x3a:
@@ -228,7 +451,7 @@ public class CodeExecutor {
                 //CMP		reg64,reg64			[rm:	o64 3b /r]				X64
 
                 instruction.parse2(bits);
-                instruction.executeCmp_rm_mr(true);
+                instruction.executeCal1(CMP,true);
                 break;
 
             case 0x3c:
@@ -239,7 +462,7 @@ public class CodeExecutor {
                 //CMP		reg_eax,imm			[-i:	o32 3d id]				386,SM
                 //CMP		reg_rax,imm			[-i:	o64 3d id,s]				X64,SM
 
-                instruction.executeCmp3c3d();
+                instruction.executeCal2(CMP);
                 break;
 
             case 0x40:
@@ -308,64 +531,6 @@ public class CodeExecutor {
                 jump = instruction.executeJcc();
                 break;
 
-            case 0x83:
-                instruction.parse2(bits);
-                switch (mrs.regIndex) {
-
-                    case 0:
-                        //ADD		rm16,imm8			[mi:	hle o16 83 /0 ib,s]			8086,LOCK
-                        //ADD		rm32,imm8			[mi:	hle o32 83 /0 ib,s]			386,LOCK
-                        //ADD		rm64,imm8			[mi:	hle o64 83 /0 ib,s]			X64,LOCK
-                        //ADD		reg_ax,sbyteword		[mi:	o16 83 /0 ib,s]				8086,SM,ND
-                        //ADD		reg_eax,sbytedword		[mi:	o32 83 /0 ib,s]				386,SM,ND
-                        //ADD		reg_rax,sbytedword		[mi:	o64 83 /0 ib,s]				X64,SM,ND
-                        //ADD		rm16,sbyteword			[mi:	hle o16 83 /0 ib,s]			8086,SM,LOCK,ND
-                        //ADD		rm32,sbytedword			[mi:	hle o32 83 /0 ib,s]			386,SM,LOCK,ND
-                        //ADD		rm64,sbytedword			[mi:	hle o64 83 /0 ib,s]			X64,SM,LOCK,ND
-                        //ADD		mem,sbyteword16			[mi:	hle o16 83 /0 ib,s]			8086,SM,LOCK,ND
-                        //ADD		mem,sbytedword32		[mi:	hle o32 83 /0 ib,s]			386,SM,LOCK,ND
-
-                        instruction.executeAdd83();
-                        break;
-
-                    case 4:
-                        //AND		rm16,imm8			[mi:	hle o16 83 /4 ib,s]			8086,LOCK
-                        //AND		rm32,imm8			[mi:	hle o32 83 /4 ib,s]			386,LOCK
-                        //AND		rm64,imm8			[mi:	hle o64 83 /4 ib,s]			X64,LOCK
-                        //AND		reg_ax,sbyteword		[mi:	o16 83 /4 ib,s]				8086,SM,ND
-                        //AND		reg_eax,sbytedword		[mi:	o32 83 /4 ib,s]				386,SM,ND
-                        //AND		reg_rax,sbytedword		[mi:	o64 83 /4 ib,s]				X64,SM,ND
-                        //AND		rm16,sbyteword			[mi:	hle o16 83 /4 ib,s]			8086,SM,LOCK,ND
-                        //AND		rm32,sbytedword			[mi:	hle o32 83 /4 ib,s]			386,SM,LOCK,ND
-                        //AND		rm64,sbytedword			[mi:	hle o64 83 /4 ib,s]			X64,SM,LOCK,ND
-                        //AND		mem,sbyteword16			[mi:	hle o16 83 /4 ib,s]			8086,SM,LOCK,ND
-                        //AND		mem,sbytedword32		[mi:	hle o32 83 /4 ib,s]			386,SM,LOCK,ND
-
-                        instruction.executeAnd83();
-                        break;
-
-                    case 7:
-                        //CMP		rm16,imm8			[mi:	o16 83 /7 ib,s]				8086
-                        //CMP		rm32,imm8			[mi:	o32 83 /7 ib,s]				386
-                        //CMP		rm64,imm8			[mi:	o64 83 /7 ib,s]				X64
-                        //CMP		reg_ax,sbyteword		[mi:	o16 83 /7 ib,s]				8086,SM,ND
-                        //CMP		reg_eax,sbytedword		[mi:	o32 83 /7 ib,s]				386,SM,ND
-                        //CMP		reg_rax,sbytedword		[mi:	o64 83 /7 ib,s]				X64,SM,ND
-                        //CMP		rm16,sbyteword			[mi:	o16 83 /7 ib,s]				8086,SM,ND
-                        //CMP		rm32,sbytedword			[mi:	o32 83 /7 ib,s]				386,SM,ND
-                        //CMP		rm64,sbytedword			[mi:	o64 83 /7 ib,s]				X64,SM,ND
-
-                        //CMP		mem,sbyteword16			[mi:	o16 83 /7 ib,s]				8086,SM,ND
-                        //CMP		mem,sbytedword32		[mi:	o32 83 /7 ib,s]				386,SM,ND
-
-                        instruction.executeCmp83();
-                        break;
-
-                    default:
-                        throw new NotImplException();
-                }
-                break;
-
             case 0x80:
                 //CMP		rm8,imm				[mi:	80 /7 ib]				8086,SM
                 //CMP		mem,imm8			[mi:	80 /7 ib]				8086,SM
@@ -386,6 +551,147 @@ public class CodeExecutor {
                     default:
                         throw new NotImplException();
                 }
+                break;
+
+            case 0x83:
+                instruction.parse2(bits);
+                /*
+                switch (mrs.regIndex) {
+
+                    case 0:
+                        //ADD		rm16,imm8			[mi:	hle o16 83 /0 ib,s]			8086,LOCK
+                        //ADD		rm32,imm8			[mi:	hle o32 83 /0 ib,s]			386,LOCK
+                        //ADD		rm64,imm8			[mi:	hle o64 83 /0 ib,s]			X64,LOCK
+                        //ADD		reg_ax,sbyteword		[mi:	o16 83 /0 ib,s]				8086,SM,ND
+                        //ADD		reg_eax,sbytedword		[mi:	o32 83 /0 ib,s]				386,SM,ND
+                        //ADD		reg_rax,sbytedword		[mi:	o64 83 /0 ib,s]				X64,SM,ND
+                        //ADD		rm16,sbyteword			[mi:	hle o16 83 /0 ib,s]			8086,SM,LOCK,ND
+                        //ADD		rm32,sbytedword			[mi:	hle o32 83 /0 ib,s]			386,SM,LOCK,ND
+                        //ADD		rm64,sbytedword			[mi:	hle o64 83 /0 ib,s]			X64,SM,LOCK,ND
+                        //ADD		mem,sbyteword16			[mi:	hle o16 83 /0 ib,s]			8086,SM,LOCK,ND
+                        //ADD		mem,sbytedword32		[mi:	hle o32 83 /0 ib,s]			386,SM,LOCK,ND
+
+                        instruction.executeAdd2();
+                        break;
+
+                    case 1:
+                        //OR		rm16,imm8			[mi:	hle o16 83 /1 ib,s]			8086,LOCK
+                        //OR		rm32,imm8			[mi:	hle o32 83 /1 ib,s]			386,LOCK
+                        //OR		rm64,imm8			[mi:	hle o64 83 /1 ib,s]			X64,LOCK
+                        //OR		reg_ax,sbyteword		[mi:	o16 83 /1 ib,s]				8086,SM,ND
+                        //OR		reg_eax,sbytedword		[mi:	o32 83 /1 ib,s]				386,SM,ND
+                        //OR		reg_rax,sbytedword		[mi:	o64 83 /1 ib,s]				X64,SM,ND
+                        //OR		rm16,sbyteword			[mi:	hle o16 83 /1 ib,s]			8086,SM,LOCK,ND
+                        //OR		rm32,sbytedword			[mi:	hle o32 83 /1 ib,s]			386,SM,LOCK,ND
+                        //OR		rm64,sbytedword			[mi:	hle o64 83 /1 ib,s]			X64,SM,LOCK,ND
+                        //OR		mem,sbyteword16			[mi:	hle o16 83 /1 ib,s]			8086,SM,LOCK,ND
+                        //OR		mem,sbytedword32		[mi:	hle o32 83 /1 ib,s]			386,SM,LOCK,ND
+
+                        instruction.executeOr2();
+                        break;
+
+                    case 2:
+                        //ADC		rm16,imm8			[mi:	hle o16 83 /2 ib,s]			8086,LOCK
+                        //ADC		rm32,imm8			[mi:	hle o32 83 /2 ib,s]			386,LOCK
+                        //ADC		rm64,imm8			[mi:	hle o64 83 /2 ib,s]			X64,LOCK
+                        //ADC		reg_ax,sbyteword		[mi:	o16 83 /2 ib,s]				8086,SM,ND
+                        //ADC		reg_eax,sbytedword		[mi:	o32 83 /2 ib,s]				386,SM,ND
+                        //ADC		reg_rax,sbytedword		[mi:	o64 83 /2 ib,s]				X64,SM,ND
+                        //ADC		rm16,sbyteword			[mi:	hle o16 83 /2 ib,s]			8086,SM,LOCK,ND
+                        //ADC		rm32,sbytedword			[mi:	hle o32 83 /2 ib,s]			386,SM,LOCK,ND
+                        //ADC		rm64,sbytedword			[mi:	hle o64 83 /2 ib,s]			X64,SM,LOCK,ND
+                        //ADC		mem,sbyteword16			[mi:	hle o16 83 /2 ib,s]			8086,SM,LOCK,ND
+                        //ADC		mem,sbytedword32		[mi:	hle o32 83 /2 ib,s]			386,SM,LOCK,ND
+
+                        instruction.executeAdc2();
+                        break;
+
+                    case 3:
+                        //SBB		rm16,imm8			[mi:	hle o16 83 /3 ib,s]			8086,LOCK
+                        //SBB		rm32,imm8			[mi:	hle o32 83 /3 ib,s]			386,LOCK
+                        //SBB		rm64,imm8			[mi:	hle o64 83 /3 ib,s]			X64,LOCK
+                        //SBB		reg_ax,sbyteword		[mi:	o16 83 /3 ib,s]				8086,SM,ND
+                        //SBB		reg_eax,sbytedword		[mi:	o32 83 /3 ib,s]				386,SM,ND
+                        //SBB		reg_rax,sbytedword		[mi:	o64 83 /3 ib,s]				X64,SM,ND
+                        //SBB		rm16,sbyteword			[mi:	hle o16 83 /3 ib,s]			8086,SM,LOCK,ND
+                        //SBB		rm32,sbytedword			[mi:	hle o32 83 /3 ib,s]			386,SM,LOCK,ND
+                        //SBB		rm64,sbytedword			[mi:	hle o64 83 /3 ib,s]			X64,SM,LOCK,ND
+                        //SBB		mem,sbyteword16			[mi:	hle o16 83 /3 ib,s]			8086,SM,LOCK,ND
+                        //SBB		mem,sbytedword32		[mi:	hle o32 83 /3 ib,s]			386,SM,LOCK,ND
+
+                        instruction.executeSbb2();
+                        break;
+
+                    case 4:
+                        //AND		rm16,imm8			[mi:	hle o16 83 /4 ib,s]			8086,LOCK
+                        //AND		rm32,imm8			[mi:	hle o32 83 /4 ib,s]			386,LOCK
+                        //AND		rm64,imm8			[mi:	hle o64 83 /4 ib,s]			X64,LOCK
+                        //AND		reg_ax,sbyteword		[mi:	o16 83 /4 ib,s]				8086,SM,ND
+                        //AND		reg_eax,sbytedword		[mi:	o32 83 /4 ib,s]				386,SM,ND
+                        //AND		reg_rax,sbytedword		[mi:	o64 83 /4 ib,s]				X64,SM,ND
+                        //AND		rm16,sbyteword			[mi:	hle o16 83 /4 ib,s]			8086,SM,LOCK,ND
+                        //AND		rm32,sbytedword			[mi:	hle o32 83 /4 ib,s]			386,SM,LOCK,ND
+                        //AND		rm64,sbytedword			[mi:	hle o64 83 /4 ib,s]			X64,SM,LOCK,ND
+                        //AND		mem,sbyteword16			[mi:	hle o16 83 /4 ib,s]			8086,SM,LOCK,ND
+                        //AND		mem,sbytedword32		[mi:	hle o32 83 /4 ib,s]			386,SM,LOCK,ND
+
+                        instruction.executeAnd2();
+                        break;
+
+                    case 5:
+                        //SUB		rm16,imm8			[mi:	hle o16 83 /5 ib,s]			8086,LOCK
+                        //SUB		rm32,imm8			[mi:	hle o32 83 /5 ib,s]			386,LOCK
+                        //SUB		rm64,imm8			[mi:	hle o64 83 /5 ib,s]			X64,LOCK
+                        //SUB		reg_ax,sbyteword		[mi:	o16 83 /5 ib,s]				8086,SM,ND
+                        //SUB		reg_eax,sbytedword		[mi:	o32 83 /5 ib,s]				386,SM,ND
+                        //SUB		reg_rax,sbytedword		[mi:	o64 83 /5 ib,s]				X64,SM,ND
+                        //SUB		rm16,sbyteword			[mi:	hle o16 83 /5 ib,s]			8086,SM,LOCK,ND
+                        //SUB		rm32,sbytedword			[mi:	hle o32 83 /5 ib,s]			386,SM,LOCK,ND
+                        //SUB		rm64,sbytedword			[mi:	hle o64 83 /5 ib,s]			X64,SM,LOCK,ND
+                        //SUB		mem,sbyteword16			[mi:	hle o16 83 /5 ib,s]			8086,SM,LOCK,ND
+                        //SUB		mem,sbytedword32		[mi:	hle o32 83 /5 ib,s]			386,SM,LOCK,ND
+
+                        instruction.executeSub2();
+                        break;
+
+                    case 6:
+                        //XOR		rm16,imm8			[mi:	hle o16 83 /6 ib,s]			8086,LOCK
+                        //XOR		rm32,imm8			[mi:	hle o32 83 /6 ib,s]			386,LOCK
+                        //XOR		rm64,imm8			[mi:	hle o64 83 /6 ib,s]			X64,LOCK
+                        //XOR		reg_ax,sbyteword		[mi:	o16 83 /6 ib,s]				8086,SM,ND
+                        //XOR		reg_eax,sbytedword		[mi:	o32 83 /6 ib,s]				386,SM,ND
+                        //XOR		reg_rax,sbytedword		[mi:	o64 83 /6 ib,s]				X64,SM,ND
+                        //XOR		rm16,sbyteword			[mi:	hle o16 83 /6 ib,s]			8086,SM,LOCK,ND
+                        //XOR		rm32,sbytedword			[mi:	hle o32 83 /6 ib,s]			386,SM,LOCK,ND
+                        //XOR		rm64,sbytedword			[mi:	hle o64 83 /6 ib,s]			X64,SM,LOCK,ND
+                        //XOR		mem,sbyteword16			[mi:	hle o16 83 /6 ib,s]			8086,SM,LOCK,ND
+                        //XOR		mem,sbytedword32		[mi:	hle o32 83 /6 ib,s]			386,SM,LOCK,ND
+
+                        instruction.executeXor2();
+                        break;
+
+                    case 7:
+                        //CMP		rm16,imm8			[mi:	o16 83 /7 ib,s]				8086
+                        //CMP		rm32,imm8			[mi:	o32 83 /7 ib,s]				386
+                        //CMP		rm64,imm8			[mi:	o64 83 /7 ib,s]				X64
+                        //CMP		reg_ax,sbyteword		[mi:	o16 83 /7 ib,s]				8086,SM,ND
+                        //CMP		reg_eax,sbytedword		[mi:	o32 83 /7 ib,s]				386,SM,ND
+                        //CMP		reg_rax,sbytedword		[mi:	o64 83 /7 ib,s]				X64,SM,ND
+                        //CMP		rm16,sbyteword			[mi:	o16 83 /7 ib,s]				8086,SM,ND
+                        //CMP		rm32,sbytedword			[mi:	o32 83 /7 ib,s]				386,SM,ND
+                        //CMP		rm64,sbytedword			[mi:	o64 83 /7 ib,s]				X64,SM,ND
+
+                        //CMP		mem,sbyteword16			[mi:	o16 83 /7 ib,s]				8086,SM,ND
+                        //CMP		mem,sbytedword32		[mi:	o32 83 /7 ib,s]				386,SM,ND
+
+                        instruction.executeCmp2();
+                        break;
+
+                    default:
+                        throw new NotImplException();
+                }
+                */
+                instruction.execute83();
                 break;
 
             case 0x88:
