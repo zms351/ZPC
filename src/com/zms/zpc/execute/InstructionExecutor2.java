@@ -161,4 +161,14 @@ public class InstructionExecutor2 extends InstructionExecutor {
         }
     }
 
+    public void bitsOps(long c) {
+        if(c==-1) {
+            c=input.read();
+        } else if(c==-2) {
+            c=pc.cpu.regs.cl.getValue();
+        }
+        assert c>=0;
+        //todo
+    }
+
 }

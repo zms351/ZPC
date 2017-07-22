@@ -956,12 +956,118 @@ public class CodeExecutor {
                 instruction.executeMovri(0xb8);
                 break;
 
+            case 0xc0:
+                //ROL		rm8,imm8			[mi:	c0 /0 ib,u]				186
+                //ROR		rm8,imm8			[mi:	c0 /1 ib,u]				186
+                //RCL		rm8,imm8			[mi:	c0 /2 ib,u]				186
+                //RCR		rm8,imm8			[mi:	c0 /3 ib,u]				186
+                //SAL		rm8,imm8			[mi:	c0 /4 ib,u]				186,ND
+                //SHR		rm8,imm8			[mi:	c0 /5 ib,u]				186
+                //SAR		rm8,imm8			[mi:	c0 /7 ib,u]				186
+                mrs.reg8=true;
+            case 0xc1:
+                //ROL		rm64,imm8			[mi:	o64 c1 /0 ib,u]				X64
+                //ROL		rm32,imm8			[mi:	o32 c1 /0 ib,u]				386
+                //ROL		rm16,imm8			[mi:	o16 c1 /0 ib,u]				186
+                //ROR		rm16,imm8			[mi:	o16 c1 /1 ib,u]				186
+                //ROR		rm64,imm8			[mi:	o64 c1 /1 ib,u]				X64
+                //ROR		rm32,imm8			[mi:	o32 c1 /1 ib,u]				386
+                //RCL		rm16,imm8			[mi:	o16 c1 /2 ib,u]				186
+                //RCL		rm32,imm8			[mi:	o32 c1 /2 ib,u]				386
+                //RCL		rm64,imm8			[mi:	o64 c1 /2 ib,u]				X64
+                //RCR		rm16,imm8			[mi:	o16 c1 /3 ib,u]				186
+                //RCR		rm32,imm8			[mi:	o32 c1 /3 ib,u]				386
+                //RCR		rm64,imm8			[mi:	o64 c1 /3 ib,u]				X64
+                //SAL		rm16,imm8			[mi:	o16 c1 /4 ib,u]				186,ND
+                //SAL		rm32,imm8			[mi:	o32 c1 /4 ib,u]				386,ND
+                //SAL		rm64,imm8			[mi:	o64 c1 /4 ib,u]				X64,ND
+                //SHR		rm16,imm8			[mi:	o16 c1 /5 ib,u]				186
+                //SHR		rm32,imm8			[mi:	o32 c1 /5 ib,u]				386
+                //SHR		rm64,imm8			[mi:	o64 c1 /5 ib,u]				X64
+                //SAR		rm16,imm8			[mi:	o16 c1 /7 ib,u]				186
+                //SAR		rm32,imm8			[mi:	o32 c1 /7 ib,u]				386
+                //SAR		rm64,imm8			[mi:	o64 c1 /7 ib,u]				X64
+                instruction.parse2(bits);
+                instruction.bitsOps(-1);
+                break;
+
             case 0xc3:
                 //RET		void				[	c3]					8086,BND
                 //RETN		void				[	c3]					8086,BND
 
                 instruction.executeRetNear();
                 jump = true;
+                break;
+
+            case 0xd0:
+                //ROL		rm8,unity			[m-:	d0 /0]					8086
+                //ROR		rm8,unity			[m-:	d0 /1]					8086
+                //RCL		rm8,unity			[m-:	d0 /2]					8086
+                //RCR		rm8,unity			[m-:	d0 /3]					8086
+                //SHL		rm8,unity			[m-:	d0 /4]					8086
+                //SHR		rm8,unity			[m-:	d0 /5]					8086
+                //SAL
+                //SAR		rm8,unity			[m-:	d0 /7]					8086
+                mrs.reg8=true;
+            case 0xd1:
+                //ROL		rm16,unity			[m-:	o16 d1 /0]				8086
+                //ROL		rm32,unity			[m-:	o32 d1 /0]				386
+                //ROL		rm64,unity			[m-:	o64 d1 /0]				X64
+                //ROR		rm16,unity			[m-:	o16 d1 /1]				8086
+                //ROR		rm32,unity			[m-:	o32 d1 /1]				386
+                //ROR		rm64,unity			[m-:	o64 d1 /1]				X64
+                //RCL		rm16,unity			[m-:	o16 d1 /2]				8086
+                //RCL		rm32,unity			[m-:	o32 d1 /2]				386
+                //RCL		rm64,unity			[m-:	o64 d1 /2]				X64
+                //RCR		rm16,unity			[m-:	o16 d1 /3]				8086
+                //RCR		rm32,unity			[m-:	o32 d1 /3]				386
+                //RCR		rm64,unity			[m-:	o64 d1 /3]				X64
+                //SAL		rm16,unity			[m-:	o16 d1 /4]				8086,ND
+                //SAL		rm32,unity			[m-:	o32 d1 /4]				386,ND
+                //SAL		rm64,unity			[m-:	o64 d1 /4]				X64,ND
+                //SHR		rm16,unity			[m-:	o16 d1 /5]				8086
+                //SHR		rm32,unity			[m-:	o32 d1 /5]				386
+                //SHR		rm64,unity			[m-:	o64 d1 /5]				X64
+                //SAR		rm16,unity			[m-:	o16 d1 /7]				8086
+                //SAR		rm32,unity			[m-:	o32 d1 /7]				386
+                //SAR		rm64,unity			[m-:	o64 d1 /7]				X64
+                instruction.parse2(bits);
+                instruction.bitsOps(1);
+                break;
+
+            case 0xd2:
+                //ROL		rm8,reg_cl			[m-:	d2 /0]					8086
+                //ROR		rm8,reg_cl			[m-:	d2 /1]					8086
+                //RCL		rm8,reg_cl			[m-:	d2 /2]					8086
+                //RCR		rm8,reg_cl			[m-:	d2 /3]					8086
+                //SHL		rm8,reg_cl			[m-:	d2 /4]					8086
+                //SHR		rm8,reg_cl			[m-:	d2 /5]					8086
+                //SAR		rm8,reg_cl			[m-:	d2 /7]					8086
+                mrs.reg8=true;
+            case 0xd3:
+                //ROL		rm16,reg_cl			[m-:	o16 d3 /0]				8086
+                //ROL		rm32,reg_cl			[m-:	o32 d3 /0]				386
+                //ROL		rm64,reg_cl			[m-:	o64 d3 /0]				X64
+                //ROR		rm16,reg_cl			[m-:	o16 d3 /1]				8086
+                //ROR		rm32,reg_cl			[m-:	o32 d3 /1]				386
+                //ROR		rm64,reg_cl			[m-:	o64 d3 /1]				X64
+                //RCL		rm16,reg_cl			[m-:	o16 d3 /2]				8086
+                //RCL		rm32,reg_cl			[m-:	o32 d3 /2]				386
+                //RCL		rm64,reg_cl			[m-:	o64 d3 /2]				X64
+                //RCR		rm16,reg_cl			[m-:	o16 d3 /3]				8086
+                //RCR		rm32,reg_cl			[m-:	o32 d3 /3]				386
+                //RCR		rm64,reg_cl			[m-:	o64 d3 /3]				X64
+                //SAL		rm16,reg_cl			[m-:	o16 d3 /4]				8086,ND
+                //SAL		rm32,reg_cl			[m-:	o32 d3 /4]				386,ND
+                //SAL		rm64,reg_cl			[m-:	o64 d3 /4]				X64,ND
+                //SHR		rm16,reg_cl			[m-:	o16 d3 /5]				8086
+                //SHR		rm32,reg_cl			[m-:	o32 d3 /5]				386
+                //SHR		rm64,reg_cl			[m-:	o64 d3 /5]				X64
+                //SAR		rm16,reg_cl			[m-:	o16 d3 /7]				8086
+                //SAR		rm32,reg_cl			[m-:	o32 d3 /7]				386
+                //SAR		rm64,reg_cl			[m-:	o64 d3 /7]				X64
+                instruction.parse2(bits);
+                instruction.bitsOps(-2);
                 break;
 
             case 0xeb:
