@@ -18,7 +18,7 @@ public class CodeExecutor {
     public CodeExecutor() {
         previewBuffer = new byte[128];
         instruction = new InstructionExecutor();
-        instruction.executor=this;
+        instruction.executor = this;
     }
 
     protected void pre(PC pc) {
@@ -33,12 +33,12 @@ public class CodeExecutor {
         instruction.mrs.regType = 0;
         instruction.segBase = "DS";
         instruction.mrs.opWidth = -1;
-        instruction.pc=pc;
+        instruction.pc = pc;
     }
 
     public int execute(PC pc, CodeStream input) {
         pre(pc);
-        instruction.input=input;
+        instruction.input = input;
         instruction.setStartPos(input.getPos());
         instruction.parse1(bits);
         boolean jump = false;
@@ -115,7 +115,7 @@ public class CodeExecutor {
                 //AND		mem,reg8			[mr:	hle 20 /r]				8086,SM,LOCK
                 //AND		reg8,reg8			[mr:	20 /r]					8086
 
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0x21:
                 //AND		mem,reg16			[mr:	hle o16 21 /r]				8086,SM,LOCK
                 //AND		reg16,reg16			[mr:	o16 21 /r]				8086
@@ -130,7 +130,7 @@ public class CodeExecutor {
             case 0x22:
                 //AND		reg8,mem			[rm:	22 /r]					8086,SM
                 //AND		reg8,reg8			[rm:	22 /r]					8086
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0x23:
                 //AND		reg16,mem			[rm:	o16 23 /r]				8086,SM
                 //AND		reg16,reg16			[rm:	o16 23 /r]				8086
@@ -311,22 +311,6 @@ public class CodeExecutor {
             case 0x83:
                 instruction.parse2(bits);
                 switch (mrs.regIndex) {
-                    case 7:
-                        //CMP		rm16,imm8			[mi:	o16 83 /7 ib,s]				8086
-                        //CMP		rm32,imm8			[mi:	o32 83 /7 ib,s]				386
-                        //CMP		rm64,imm8			[mi:	o64 83 /7 ib,s]				X64
-                        //CMP		reg_ax,sbyteword		[mi:	o16 83 /7 ib,s]				8086,SM,ND
-                        //CMP		reg_eax,sbytedword		[mi:	o32 83 /7 ib,s]				386,SM,ND
-                        //CMP		reg_rax,sbytedword		[mi:	o64 83 /7 ib,s]				X64,SM,ND
-                        //CMP		rm16,sbyteword			[mi:	o16 83 /7 ib,s]				8086,SM,ND
-                        //CMP		rm32,sbytedword			[mi:	o32 83 /7 ib,s]				386,SM,ND
-                        //CMP		rm64,sbytedword			[mi:	o64 83 /7 ib,s]				X64,SM,ND
-
-                        //CMP		mem,sbyteword16			[mi:	o16 83 /7 ib,s]				8086,SM,ND
-                        //CMP		mem,sbytedword32		[mi:	o32 83 /7 ib,s]				386,SM,ND
-
-                        instruction.executeCmp83();
-                        break;
 
                     case 0:
                         //ADD		rm16,imm8			[mi:	hle o16 83 /0 ib,s]			8086,LOCK
@@ -342,6 +326,23 @@ public class CodeExecutor {
                         //ADD		mem,sbytedword32		[mi:	hle o32 83 /0 ib,s]			386,SM,LOCK,ND
 
                         instruction.executeAdd83();
+                        break;
+
+                    case 7:
+                        //CMP		rm16,imm8			[mi:	o16 83 /7 ib,s]				8086
+                        //CMP		rm32,imm8			[mi:	o32 83 /7 ib,s]				386
+                        //CMP		rm64,imm8			[mi:	o64 83 /7 ib,s]				X64
+                        //CMP		reg_ax,sbyteword		[mi:	o16 83 /7 ib,s]				8086,SM,ND
+                        //CMP		reg_eax,sbytedword		[mi:	o32 83 /7 ib,s]				386,SM,ND
+                        //CMP		reg_rax,sbytedword		[mi:	o64 83 /7 ib,s]				X64,SM,ND
+                        //CMP		rm16,sbyteword			[mi:	o16 83 /7 ib,s]				8086,SM,ND
+                        //CMP		rm32,sbytedword			[mi:	o32 83 /7 ib,s]				386,SM,ND
+                        //CMP		rm64,sbytedword			[mi:	o64 83 /7 ib,s]				X64,SM,ND
+
+                        //CMP		mem,sbyteword16			[mi:	o16 83 /7 ib,s]				8086,SM,ND
+                        //CMP		mem,sbytedword32		[mi:	o32 83 /7 ib,s]				386,SM,ND
+
+                        instruction.executeCmp83();
                         break;
 
                     default:
@@ -621,7 +622,7 @@ public class CodeExecutor {
             case 0xfe:
                 //INC		rm8				[m:	hle fe /0]				8086,LOCK
 
-                mrs.reg8=true;
+                mrs.reg8 = true;
                 instruction.executeIncRm();
                 break;
 
