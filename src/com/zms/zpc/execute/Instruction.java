@@ -29,11 +29,11 @@ public class Instruction implements Constants {
     public Instruction() {
     }
 
-    public void readNextOp(CodeStream input) {
+    public void readNextOp() {
         opcode[opcodeCount++] = input.read();
     }
 
-    public void parse1(CodeStream input, int bits) {
+    public void parse1(int bits) {
         legacyPrefixCount = 0;
         rexPrefixCount = 0;
         int n;
@@ -106,7 +106,7 @@ public class Instruction implements Constants {
 
     public ModRMSIB mrs = new ModRMSIB(this);
 
-    public void parse2(CodeStream input, int bits) {
+    public void parse2(int bits) {
         mrs.parse(this, input, bits);
         if(mrs.opWidth<0) {
             mrs.opWidth=getOpWidth(bits);
@@ -205,6 +205,7 @@ public class Instruction implements Constants {
     }
 
     public CodeExecutor executor;
+    public CodeStream input;
 
     public int getOpWidth() {
         int width=mrs.opWidth;
@@ -277,21 +278,21 @@ public class Instruction implements Constants {
         return bits;
     }
 
-    public long read64(CodeStream input) {
-        return read32(input) | read32(input) << 32;
+    public long read64() {
+        return read32() | read32() << 32;
     }
 
-    public long read32(CodeStream input) {
-        int a = read16(input);
-        long b = read16(input);
+    public long read32() {
+        int a = read16();
+        long b = read16();
         return b << 16 | a;
     }
 
-    public int read16(CodeStream input) {
+    public int read16() {
         return input.read() | (input.read() << 8);
     }
 
-    public int read8(CodeStream input) {
+    public int read8() {
         return input.read();
     }
 

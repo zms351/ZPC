@@ -40,7 +40,7 @@ public class CodeExecutor {
         pre(pc);
         instruction.input=input;
         instruction.setStartPos(input.getPos());
-        instruction.parse1(input, bits);
+        instruction.parse1(bits);
         boolean jump = false;
         ModRMSIB mrs = instruction.mrs;
         int op = instruction.getOpcode();
@@ -64,7 +64,7 @@ public class CodeExecutor {
             case 0x0f:
                 //POP		reg_cs				[-:	0f]					8086,UNDOC,ND,OBSOLETE  ： use RET
 
-                instruction.readNextOp(input);
+                instruction.readNextOp();
                 op = instruction.getOpcode(1);
                 switch (op) {
                     case 0xa0:
@@ -111,6 +111,18 @@ public class CodeExecutor {
                 instruction.executePop(regs.ds, instruction.getOpWidth(getBits()));
                 break;
 
+            case 0x20:
+                //AND		mem,reg8			[mr:	hle 20 /r]				8086,SM,LOCK
+                //AND		reg8,reg8			[mr:	20 /r]					8086
+                mrs.reg8=true;
+            case 0x21:
+                //AND		mem,reg16			[mr:	hle o16 21 /r]				8086,SM,LOCK
+                //AND		reg16,reg16			[mr:	o16 21 /r]				8086
+                //AND		mem,reg32			[mr:	hle o32 21 /r]				386,SM,LOCK
+                //AND		reg32,reg32			[mr:	o32 21 /r]				386
+                //AND		mem,reg64			[mr:	hle o64 21 /r]				X64,SM,LOCK
+                //AND		reg64,reg64			[mr:	o64 21 /r]				X64
+                instruction.parse2(bits);
             case 0x30:
                 //XOR		mem,reg8			[mr:	hle 30 /r]				8086,SM,LOCK
                 //XOR		reg8,reg8			[mr:	30 /r]					8086
@@ -130,7 +142,7 @@ public class CodeExecutor {
                 //org.jpc.emulator.execution.opcodes.rm.xor_Ew_Gw_mem
                 //org.jpc.emulator.execution.opcodes.rm.xor_Ew_Gw
 
-                instruction.parse2(input, bits);
+                instruction.parse2(bits);
                 instruction.executeXor30313233(false);
                 break;
 
@@ -147,7 +159,7 @@ public class CodeExecutor {
                 //XOR		reg64,mem			[rm:	o64 33 /r]				X64,SM
                 //XOR		reg64,reg64			[rm:	o64 33 /r]				X64
 
-                instruction.parse2(input, bits);
+                instruction.parse2(bits);
                 instruction.executeXor30313233(true);
                 break;
 
@@ -178,7 +190,7 @@ public class CodeExecutor {
                 //CMP		mem,reg64			[mr:	o64 39 /r]				X64,SM
                 //CMP		reg64,reg64			[mr:	o64 39 /r]				X64
 
-                instruction.parse2(input, bits);
+                instruction.parse2(bits);
                 instruction.executeCmp_rm_mr(false);
                 break;
 
@@ -195,7 +207,7 @@ public class CodeExecutor {
                 //CMP		reg64,mem			[rm:	o64 3b /r]				X64,SM
                 //CMP		reg64,reg64			[rm:	o64 3b /r]				X64
 
-                instruction.parse2(input, bits);
+                instruction.parse2(bits);
                 instruction.executeCmp_rm_mr(true);
                 break;
 
@@ -277,7 +289,7 @@ public class CodeExecutor {
                 break;
 
             case 0x83:
-                instruction.parse2(input, bits);
+                instruction.parse2(bits);
                 switch (mrs.regIndex) {
                     case 7:
                         //CMP		rm16,imm8			[mi:	o16 83 /7 ib,s]				8086
@@ -329,7 +341,7 @@ public class CodeExecutor {
                 //CMP		rm64,imm			[mi:	o64 81 /7 id,s]				X64,SM
                 //CMP		mem,imm16			[mi:	o16 81 /7 iw]				8086,SM
                 //CMP		mem,imm32			[mi:	o32 81 /7 id]				386,SM
-                instruction.parse2(input, bits);
+                instruction.parse2(bits);
                 switch (mrs.regIndex) {
                     case 7:
                         instruction.executeCmp82();
@@ -355,7 +367,7 @@ public class CodeExecutor {
                 //MOV		mem,reg64			[mr:	hlexr o64 89 /r]			X64,SM
                 //MOV		reg64,reg64			[mr:	o64 89 /r]				X64
 
-                instruction.parse2(input, bits);
+                instruction.parse2(bits);
                 instruction.executeMovMR();
                 break;
 
@@ -373,7 +385,7 @@ public class CodeExecutor {
                 //MOV		reg64,mem			[rm:	o64 8b /r]				X64,SM
                 //MOV		reg64,reg64			[rm:	o64 8b /r]				X64
 
-                instruction.parse2(input, bits);
+                instruction.parse2(bits);
                 instruction.executeMovRM();
                 break;
 
@@ -385,7 +397,7 @@ public class CodeExecutor {
                 //MOV		rm64,reg_sreg			[mr:	o64 8c /r]				X64
 
                 instruction.mrs.regType = 1;
-                instruction.parse2(input, bits);
+                instruction.parse2(bits);
                 instruction.executeMovMR();
                 break;
 
@@ -394,7 +406,7 @@ public class CodeExecutor {
                 //LEA		reg32,mem			[rm:	o32 8d /r]				386
                 //LEA		reg64,mem			[rm:	o64 8d /r]				X64
 
-                instruction.parse2(input, bits);
+                instruction.parse2(bits);
                 instruction.executeLEA();
                 break;
 
@@ -408,12 +420,12 @@ public class CodeExecutor {
                 //MOV		reg_sreg,rm64			[rm:	o64 8e /r]				X64
 
                 instruction.mrs.regType = 1;
-                instruction.parse2(input, bits);
+                instruction.parse2(bits);
                 instruction.executeMovRM();
                 break;
 
             case 0x8f:
-                instruction.parse2(input, bits);
+                instruction.parse2(bits);
                 switch (mrs.regIndex) {
                     case 0:
                         //POP rm16				[m:	o16 8f /0]				8086
@@ -594,7 +606,7 @@ public class CodeExecutor {
                 break;
 
             case 0xff:
-                instruction.parse2(input, bits);
+                instruction.parse2(bits);
                 switch (mrs.regIndex) {
                     case 0:
                         //INC		rm16				[m:	hle o16 ff /0]				8086,LOCK

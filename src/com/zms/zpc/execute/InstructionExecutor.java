@@ -12,7 +12,6 @@ import com.zms.zpc.support.*;
 public class InstructionExecutor extends Instruction implements Constants {
 
     public Bits bits;
-    public CodeStream input;
     public PC pc;
 
     public long readOp() {
@@ -25,18 +24,18 @@ public class InstructionExecutor extends Instruction implements Constants {
             case 8:
                 return input.read();
             case 16:
-                return read16(input);
+                return read16();
             case 32:
-                return read32(input);
+                return read32();
             case 64:
-                return read64(input);
+                return read64();
         }
         throw new NotImplException();
     }
 
     public void executeJumpFar() {
         long offset = readOp();
-        int base = read16(input);
+        int base = read16();
         if (executor.getBits() == 16) {
             pc.cpu.regs.cs.setValue(base);
             pc.cpu.regs.rip.setValue64(offset);
