@@ -25,11 +25,15 @@ public interface Constants {
     int NZ = CF | PF | AF | SF | OF;
     int NP = CF | ZF | AF | SF | OF;
 
-    int AND=136137136;
-    int XOR=136137137;
-    int SUB = 136137138;
-    int ADD = 136137139;
+    int ADD = 300;
+    int OR = 301;
+    int ADC = 302;
+    int SBB = 303;
+    int AND = 304;
+    int SUB = 305;
+    int XOR = 306;
+    //int CMP = 307;
 
-    int DEBUG=31;
+    int DEBUG = 31;
 
 }

@@ -9,7 +9,7 @@ import com.zms.zpc.support.*;
  * Created by 张小美 on 17/六月/27.
  * Copyright 2002-2016
  */
-public class InstructionExecutor extends Instruction implements Constants {
+public abstract class InstructionExecutor extends Instruction implements Constants {
 
     public Bits bits;
     public PC pc;
@@ -72,45 +72,11 @@ public class InstructionExecutor extends Instruction implements Constants {
         return false;
     }
 
-    public void executeXor30313233(boolean rm) {
-        long v1 = mrs.getValMemory(pc);
-        long v2 = mrs.getValReg(pc);
-        long v = xor_(v1, v2);
-        if (rm) {
-            mrs.setValReg(pc, v);
-        } else {
-            mrs.setValMemory(pc, v);
-        }
-    }
+    protected long __v1, __v2;
+    protected BaseReg __reg;
+    protected int __width, __v3;
 
-    public void executeAnd20212223(boolean rm) {
-        long v1 = mrs.getValMemory(pc);
-        long v2 = mrs.getValReg(pc);
-        long v=and_(v1,v2);
-        if(rm) {
-            mrs.setValReg(pc,v);
-        } else {
-            mrs.setValMemory(pc,v);
-        }
-    }
-
-    private long xor_(long v1, long v2) {
-        bits.clearOCA();
-        bits.setData(v1, v2, v1 ^ v2, XOR, getOpWidth(), SZP);
-        return bits.getResult();
-    }
-
-    private long and_(long v1,long v2) {
-        bits.clearOCA();
-        bits.setData(v1,v2,v1 & v2,AND,getOpWidth(),SZP);
-        return bits.getResult();
-    }
-
-    private long __v1, __v2;
-    private BaseReg __reg;
-    private int __width, __v3;
-
-    private void read0() {
+    protected void read0() {
         int width = getOpWidth(executor.getBits());
         if (width == 64) {
             __v1 = NumberUtils.signExtend32_2_64(readOp(32));
@@ -120,12 +86,12 @@ public class InstructionExecutor extends Instruction implements Constants {
         __width = width;
     }
 
-    private void read1() {
+    protected void read1() {
         read0();
         __reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
     }
 
-    private void read2(int a, int b, int c, int d) {
+    protected void read2(int a, int b, int c, int d) {
         int op = getOpcode();
         int width = getOpWidth(executor.getBits());
         if (op == a || op == b) {
@@ -141,75 +107,6 @@ public class InstructionExecutor extends Instruction implements Constants {
             __v3 = pc.cpu.regs.dx.getValue16();
         }
         __reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
-    }
-
-    public void executeXor3435() {
-        read1();
-        __reg.setValue(xor_(__v1, __reg.getValue()));
-    }
-
-    public void executeCmp3c3d() {
-        read1();
-        cmp_(__reg.getValue(), __v1);
-    }
-
-    public void executeCmp83() {
-        long v2 = readOp(8);
-        v2 = NumberUtils.signExtend8(v2, mrs.opWidth);
-        long v1 = mrs.getValMemory(pc);
-        cmp_(v1, v2);
-    }
-
-    public void executeAnd83() {
-        long v2 = readOp(8);
-        v2 = NumberUtils.signExtend8(v2, mrs.opWidth);
-        long v1 = mrs.getValMemory(pc);
-        long v = and_(v1, v2);
-        mrs.setValMemory(pc, v);
-    }
-
-    public void executeAdd83() {
-        long v2 = readOp(8);
-        v2 = NumberUtils.signExtend8(v2, mrs.opWidth);
-        long v1 = mrs.getValMemory(pc);
-        long v = add_(v1, v2, 0);
-        mrs.setValMemory(pc, v);
-    }
-
-    public void executeCmp82() {
-        read0();
-        long v = mrs.getValMemory(pc);
-        cmp_(v, __v1);
-    }
-
-    public void executeCmp_rm_mr(boolean rm) {
-        long v1 = mrs.getValMemory(pc);
-        long v2 = mrs.getValReg(pc);
-        if (rm) {
-            cmp_(v2, v1);
-        } else {
-            cmp_(v1, v2);
-        }
-    }
-
-    private void cmp_(long v1, long v2) {
-        bits.setData(v1, v2, v1 - v2, SUB, getOpWidth(), OSZAPC);
-    }
-
-    private long add_(long v1, long v2, int type) {
-        if (type == 1) {
-            //inc
-            bits.cf.set(bits.cf());
-        }
-        int status;
-        if (type == 1) {
-            //inc
-            status = NCF;
-        } else {
-            status = OSZAPC;
-        }
-        bits.setData(v1, v2, v1 + v2, ADD, getOpWidth(), status);
-        return bits.getResult();
     }
 
     public void executeOut() {
@@ -244,17 +141,6 @@ public class InstructionExecutor extends Instruction implements Constants {
         int r = getOpcode() - 0x58;
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));
         executePop(reg, mrs.opWidth);
-    }
-
-    public void executeIncReg() {
-        int r = getOpcode() - 0x40;
-        BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));
-        reg.setValue(add_(reg.getValue(), 1, 1));
-    }
-
-    public void executeIncRm() {
-        long val = mrs.getValMemory(pc);
-        mrs.setValMemory(pc, add_(val, 1, 1));
     }
 
     public void executePop(BaseReg reg, int width) {

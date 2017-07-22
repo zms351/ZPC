@@ -20,7 +20,7 @@ public class Warnings {
         IDEFrame ide = new IDEFrame(new ZPC());
         ide.showNew("a", "b", false);
         System.out.println(ide.select(null));
-        InstructionExecutor is = new InstructionExecutor();
+        InstructionExecutor2 is = new InstructionExecutor2();
         ModRMSIB mod = new ModRMSIB(is);
         System.out.println(mod.setValMemory(new PC(), 0L));
         System.out.println(mod.setValReg(new PC(), 2));
