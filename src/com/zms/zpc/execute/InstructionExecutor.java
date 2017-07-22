@@ -160,6 +160,14 @@ public class InstructionExecutor extends Instruction implements Constants {
         cmp_(v1, v2);
     }
 
+    public void executeAnd83() {
+        long v2 = readOp(8);
+        v2 = NumberUtils.signExtend8(v2, mrs.opWidth);
+        long v1 = mrs.getValMemory(pc);
+        long v = and_(v1, v2);
+        mrs.setValMemory(pc, v);
+    }
+
     public void executeAdd83() {
         long v2 = readOp(8);
         v2 = NumberUtils.signExtend8(v2, mrs.opWidth);

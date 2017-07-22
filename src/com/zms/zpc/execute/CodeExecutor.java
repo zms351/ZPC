@@ -328,6 +328,22 @@ public class CodeExecutor {
                         instruction.executeAdd83();
                         break;
 
+                    case 4:
+                        //AND		rm16,imm8			[mi:	hle o16 83 /4 ib,s]			8086,LOCK
+                        //AND		rm32,imm8			[mi:	hle o32 83 /4 ib,s]			386,LOCK
+                        //AND		rm64,imm8			[mi:	hle o64 83 /4 ib,s]			X64,LOCK
+                        //AND		reg_ax,sbyteword		[mi:	o16 83 /4 ib,s]				8086,SM,ND
+                        //AND		reg_eax,sbytedword		[mi:	o32 83 /4 ib,s]				386,SM,ND
+                        //AND		reg_rax,sbytedword		[mi:	o64 83 /4 ib,s]				X64,SM,ND
+                        //AND		rm16,sbyteword			[mi:	hle o16 83 /4 ib,s]			8086,SM,LOCK,ND
+                        //AND		rm32,sbytedword			[mi:	hle o32 83 /4 ib,s]			386,SM,LOCK,ND
+                        //AND		rm64,sbytedword			[mi:	hle o64 83 /4 ib,s]			X64,SM,LOCK,ND
+                        //AND		mem,sbyteword16			[mi:	hle o16 83 /4 ib,s]			8086,SM,LOCK,ND
+                        //AND		mem,sbytedword32		[mi:	hle o32 83 /4 ib,s]			386,SM,LOCK,ND
+
+                        instruction.executeAnd83();
+                        break;
+
                     case 7:
                         //CMP		rm16,imm8			[mi:	o16 83 /7 ib,s]				8086
                         //CMP		rm32,imm8			[mi:	o32 83 /7 ib,s]				386
