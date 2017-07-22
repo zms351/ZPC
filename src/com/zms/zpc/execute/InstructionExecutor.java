@@ -83,9 +83,26 @@ public class InstructionExecutor extends Instruction implements Constants {
         }
     }
 
+    public void executeAnd20212223(boolean rm) {
+        long v1 = mrs.getValMemory(pc);
+        long v2 = mrs.getValReg(pc);
+        long v=and_(v1,v2);
+        if(rm) {
+            mrs.setValReg(pc,v);
+        } else {
+            mrs.setValMemory(pc,v);
+        }
+    }
+
     private long xor_(long v1, long v2) {
         bits.clearOCA();
         bits.setData(v1, v2, v1 ^ v2, XOR, getOpWidth(), SZP);
+        return bits.getResult();
+    }
+
+    private long and_(long v1,long v2) {
+        bits.clearOCA();
+        bits.setData(v1,v2,v1 & v2,AND,getOpWidth(),SZP);
         return bits.getResult();
     }
 

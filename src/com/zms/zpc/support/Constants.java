@@ -25,6 +25,7 @@ public interface Constants {
     int NZ = CF | PF | AF | SF | OF;
     int NP = CF | ZF | AF | SF | OF;
 
+    int AND=136137136;
     int XOR=136137137;
     int SUB = 136137138;
     int ADD = 136137139;

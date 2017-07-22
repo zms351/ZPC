@@ -114,6 +114,7 @@ public class CodeExecutor {
             case 0x20:
                 //AND		mem,reg8			[mr:	hle 20 /r]				8086,SM,LOCK
                 //AND		reg8,reg8			[mr:	20 /r]					8086
+
                 mrs.reg8=true;
             case 0x21:
                 //AND		mem,reg16			[mr:	hle o16 21 /r]				8086,SM,LOCK
@@ -122,7 +123,26 @@ public class CodeExecutor {
                 //AND		reg32,reg32			[mr:	o32 21 /r]				386
                 //AND		mem,reg64			[mr:	hle o64 21 /r]				X64,SM,LOCK
                 //AND		reg64,reg64			[mr:	o64 21 /r]				X64
+
                 instruction.parse2(bits);
+                instruction.executeAnd20212223(false);
+                break;
+            case 0x22:
+                //AND		reg8,mem			[rm:	22 /r]					8086,SM
+                //AND		reg8,reg8			[rm:	22 /r]					8086
+                mrs.reg8=true;
+            case 0x23:
+                //AND		reg16,mem			[rm:	o16 23 /r]				8086,SM
+                //AND		reg16,reg16			[rm:	o16 23 /r]				8086
+                //AND		reg32,mem			[rm:	o32 23 /r]				386,SM
+                //AND		reg32,reg32			[rm:	o32 23 /r]				386
+                //AND		reg64,mem			[rm:	o64 23 /r]				X64,SM
+                //AND		reg64,reg64			[rm:	o64 23 /r]				X64
+
+                instruction.parse2(bits);
+                instruction.executeAnd20212223(true);
+                break;
+
             case 0x30:
                 //XOR		mem,reg8			[mr:	hle 30 /r]				8086,SM,LOCK
                 //XOR		reg8,reg8			[mr:	30 /r]					8086
