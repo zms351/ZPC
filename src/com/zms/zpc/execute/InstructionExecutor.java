@@ -79,6 +79,19 @@ public abstract class InstructionExecutor extends Instruction {
         return false;
     }
 
+    public boolean executeJcc2() {
+        long jump = readOp();
+        jump=NumberUtils.asSigned(jump,getOpWidth());
+        if (!testCondition(getOpcode(1))) {
+            jump = 0;
+        }
+        if (jump != 0) {
+            BaseReg rip = pc.cpu.regs.rip;
+            rip.setValue(rip.getValue() + jump);
+        }
+        return false;
+    }
+
     protected long __v1, __v2;
     protected BaseReg __reg;
     protected int __width, __v3;
