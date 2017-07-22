@@ -33,6 +33,7 @@ public interface Constants {
     int SUB = 305;
     int XOR = 306;
     int CMP = 307;
+    int TEST = 308;
 
     int DEBUG = 31;
 

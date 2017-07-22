@@ -760,6 +760,26 @@ public class CodeExecutor {
                 instruction.execute83();
                 break;
 
+            case 0x84:
+                //TEST		mem,reg8			[mr:	84 /r]					8086,SM
+                //TEST		reg8,reg8			[mr:	84 /r]					8086
+                //TEST		reg8,mem			[rm:	84 /r]					8086,SM
+                mrs.reg8=true;
+            case 0x85:
+                //TEST		mem,reg16			[mr:	o16 85 /r]				8086,SM
+                //TEST		reg16,reg16			[mr:	o16 85 /r]				8086
+                //TEST		mem,reg32			[mr:	o32 85 /r]				386,SM
+                //TEST		reg32,reg32			[mr:	o32 85 /r]				386
+                //TEST		mem,reg64			[mr:	o64 85 /r]				X64,SM
+                //TEST		reg64,reg64			[mr:	o64 85 /r]				X64
+                //TEST		reg16,mem			[rm:	o16 85 /r]				8086,SM
+                //TEST		reg32,mem			[rm:	o32 85 /r]				386,SM
+                //TEST		reg64,mem			[rm:	o64 85 /r]				X64,SM
+
+                instruction.parse2(bits);
+                instruction.executeCal1(TEST,false);
+                break;
+
             case 0x88:
                 //MOV		mem,reg8			[mr:	hlexr 88 /r]				8086,SM
                 //MOV		reg8,reg8			[mr:	88 /r]					8086
@@ -846,6 +866,16 @@ public class CodeExecutor {
                     default:
                         throw new NotImplException();
                 }
+                break;
+
+            case 0xa8:
+                //TEST		reg_al,imm			[-i:	a8 ib]					8086,SM
+                mrs.reg8=true;
+            case 0xa9:
+                //TEST		reg_ax,imm			[-i:	o16 a9 iw]				8086,SM
+                //TEST		reg_eax,imm			[-i:	o32 a9 id]				386,SM
+                //TEST		reg_rax,imm			[-i:	o64 a9 id,s]				X64,SM
+                instruction.executeCal2(TEST);
                 break;
 
             case 0xaa:

@@ -88,6 +88,7 @@ public class InstructionExecutor2 extends InstructionExecutor {
                 break;
             case 4:
             case AND:
+            case TEST:
                 v = and_(v1, v2);
                 break;
             case 5:
@@ -138,7 +139,7 @@ public class InstructionExecutor2 extends InstructionExecutor {
         } else {
             v = cal(type, v1, v2);
         }
-        if (type != CMP) {
+        if (type != CMP && type!=TEST) {
             mrs.setValReg(pc, v);
         }
     }
@@ -146,7 +147,7 @@ public class InstructionExecutor2 extends InstructionExecutor {
     public void executeCal2(int type) {
         read1();
         long v = cal(type, __reg.getValue(), __v1);
-        if (type != CMP) {
+        if (type != CMP && type!=TEST) {
             __reg.setValue(v);
         }
     }
