@@ -1,5 +1,6 @@
 package com.zms.zpc.execute;
 
+import com.zms.zpc.emulator.processor.Regs;
 import com.zms.zpc.emulator.reg.BaseReg;
 import com.zms.zpc.support.*;
 
@@ -19,6 +20,48 @@ public class InstructionExecutor2 extends InstructionExecutor {
         bits.cf.set(bits.cf());
         bits.setData(v, 1, v - 1, SUB, getOpWidth(), NCF);
         return bits.getResult();
+    }
+
+    public long mul_() {
+        Regs regs = pc.cpu.regs;
+        long v1, v2, result;
+        v2 = mrs.getValMemory(pc);
+        int width = getOpWidth();
+        switch (width) {
+            case 8:
+                v1 = regs.al.getValue();
+                break;
+            case 16:
+            case 32:
+            case 64:
+                v1 = regs.al.getRegWithWidth(width).getValue();
+                break;
+            default:
+                throw new NotImplException();
+        }
+        result = v1 * v2;
+        long half;
+        switch (width) {
+            case 8:
+                regs.ax.setValue(result);
+                half = result >> 8;
+                break;
+            case 16:
+                regs.ax.setValue(result);
+                regs.dx.setValue(half = (result >> 16));
+                break;
+            case 32:
+                regs.eax.setValue(result);
+                regs.edx.setValue(half = (result >> 32));
+                break;
+            default:
+                throw new NotImplException();
+        }
+        bits.clearOCA();
+        bits.setData(v1, v2, result, MUL, width, SZP);
+        bits.of.set(half != 0);
+        bits.cf.set(half != 0);
+        return result;
     }
 
     //0
@@ -205,6 +248,20 @@ public class InstructionExecutor2 extends InstructionExecutor {
         long v = mrs.getValMemory(pc);
         v = bitsOp(v, c);
         mrs.setValMemory(pc, v);
+    }
+
+    public void executeCal4() {
+        if (mrs.regIndex == 0) {
+            read0(); //test
+        }
+        int oper = CAL2_BASE + mrs.regIndex;
+        switch (oper) {
+            case MUL:
+                mul_();
+                break;
+            default:
+                throw new NotImplException();
+        }
     }
 
 }

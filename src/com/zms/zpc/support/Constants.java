@@ -25,6 +25,16 @@ public interface Constants {
     int NZ = CF | PF | AF | SF | OF;
     int NP = CF | ZF | AF | SF | OF;
 
+    int BITS_BASE = 200;
+    int ROL = BITS_BASE;
+    int ROR = BITS_BASE + 1;
+    int RCL = BITS_BASE + 2;
+    int RCR = BITS_BASE + 3;
+    int SHL = BITS_BASE + 4;
+    int SHR = BITS_BASE + 5;
+    int SAL = BITS_BASE + 6;
+    int SAR = BITS_BASE + 7;
+
     int ADD = 300;
     int OR = 301;
     int ADC = 302;
@@ -35,15 +45,13 @@ public interface Constants {
     int CMP = 307;
     int TEST = 308;
 
-    int BITS_BASE = 200;
-    int ROL = BITS_BASE;
-    int ROR = BITS_BASE + 1;
-    int RCL = BITS_BASE + 2;
-    int RCR = BITS_BASE + 3;
-    int SHL = BITS_BASE + 4;
-    int SHR = BITS_BASE + 5;
-    int SAL = BITS_BASE + 6;
-    int SAR = BITS_BASE + 7;
+    int CAL2_BASE = 400;
+    int NOT = CAL2_BASE + 2;
+    int NEG = CAL2_BASE + 3;
+    int MUL = CAL2_BASE + 4;
+    int IMUL = CAL2_BASE + 5;
+    int DIV = CAL2_BASE + 6;
+    int IDIV = CAL2_BASE + 7;
 
     int DEBUG = 31;
 

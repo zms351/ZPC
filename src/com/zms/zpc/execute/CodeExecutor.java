@@ -1231,6 +1231,45 @@ public class CodeExecutor extends BaseObj {
                 instruction.executeCMC();
                 break;
 
+            case 0xf6:
+                //TEST		rm8,imm				[mi:	f6 /0 ib]				8086,SM
+                //TEST		mem,imm8			[mi:	f6 /0 ib]				8086,SM
+                //NOT		rm8				[m:	hle f6 /2]				8086,LOCK
+                //NEG		rm8				[m:	hle f6 /3]				8086,LOCK
+                //MUL		rm8				[m:	f6 /4]					8086
+                //IMUL rm8				[m:	f6 /5]					8086
+                //DIV		rm8				[m:	f6 /6]					8086
+                //IDIV rm8				[m:	f6 /7]					8086
+                mrs.reg8=true;
+            case 0xf7:
+                //TEST		rm16,imm			[mi:	o16 f7 /0 iw]				8086,SM
+                //TEST		rm32,imm			[mi:	o32 f7 /0 id]				386,SM
+                //TEST		rm64,imm			[mi:	o64 f7 /0 id,s]				X64,SM
+                //TEST		mem,imm16			[mi:	o16 f7 /0 iw]				8086,SM
+                //TEST		mem,imm32			[mi:	o32 f7 /0 id]				386,SM
+                //NOT		rm16				[m:	hle o16 f7 /2]				8086,LOCK
+                //NOT		rm32				[m:	hle o32 f7 /2]				386,LOCK
+                //NOT		rm64				[m:	hle o64 f7 /2]				X64,LOCK
+                //NEG		rm16				[m:	hle o16 f7 /3]				8086,LOCK
+                //NEG		rm32				[m:	hle o32 f7 /3]				386,LOCK
+                //NEG		rm64				[m:	hle o64 f7 /3]				X64,LOCK
+                //MUL		rm16				[m:	o16 f7 /4]				8086
+                //MUL		rm32				[m:	o32 f7 /4]				386
+                //MUL		rm64				[m:	o64 f7 /4]				X64
+                //IMUL		rm16				[m:	o16 f7 /5]				8086
+                //IMUL		rm32				[m:	o32 f7 /5]				386
+                //IMUL		rm64				[m:	o64 f7 /5]				X64
+                //DIV		rm16				[m:	o16 f7 /6]				8086
+                //DIV		rm32				[m:	o32 f7 /6]				386
+                //DIV		rm64				[m:	o64 f7 /6]				X64
+                //IDIV		rm16				[m:	o16 f7 /7]				8086
+                //IDIV		rm32				[m:	o32 f7 /7]				386
+                //IDIV		rm64				[m:	o64 f7 /7]				X64
+
+                instruction.parse2(bits);
+                instruction.executeCal4();
+                break;
+
             case 0xf8:
                 //CLC		void				[	f8]					8086
                 instruction.executeCF_(false);
