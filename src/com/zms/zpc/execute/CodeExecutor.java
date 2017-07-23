@@ -783,7 +783,7 @@ public class CodeExecutor {
                 //TEST		mem,reg8			[mr:	84 /r]					8086,SM
                 //TEST		reg8,reg8			[mr:	84 /r]					8086
                 //TEST		reg8,mem			[rm:	84 /r]					8086,SM
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0x85:
                 //TEST		mem,reg16			[mr:	o16 85 /r]				8086,SM
                 //TEST		reg16,reg16			[mr:	o16 85 /r]				8086
@@ -796,7 +796,7 @@ public class CodeExecutor {
                 //TEST		reg64,mem			[rm:	o64 85 /r]				X64,SM
 
                 instruction.parse2(bits);
-                instruction.executeCal1(TEST,false);
+                instruction.executeCal1(TEST, false);
                 break;
 
             case 0x88:
@@ -889,27 +889,27 @@ public class CodeExecutor {
 
             case 0xa0:
                 //MOV		reg_al,mem_offs			[-i:	a0 iwdq]				8086,SM
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0xa1:
                 //MOV		reg_ax,mem_offs			[-i:	o16 a1 iwdq]				8086,SM
                 //MOV		reg_eax,mem_offs		[-i:	o32 a1 iwdq]				386,SM
                 //MOV		reg_rax,mem_offs		[-i:	o64 a1 iwdq]				X64,SM
-                instruction.executeMov(pc.cpu.regs.al,false);
+                instruction.executeMov6(pc.cpu.regs.al, false);
                 break;
 
             case 0xa2:
                 //MOV		mem_offs,reg_al			[i-:	a2 iwdq]				8086,SM,NOHLE
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0xa3:
                 //MOV		mem_offs,reg_ax			[i-:	o16 a3 iwdq]				8086,SM,NOHLE
                 //MOV		mem_offs,reg_eax		[i-:	o32 a3 iwdq]				386,SM,NOHLE
                 //MOV		mem_offs,reg_rax		[i-:	o64 a3 iwdq]				X64,SM,NOHLE
-                instruction.executeMov(pc.cpu.regs.al,true);
+                instruction.executeMov6(pc.cpu.regs.al, true);
                 break;
 
             case 0xa8:
                 //TEST		reg_al,imm			[-i:	a8 ib]					8086,SM
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0xa9:
                 //TEST		reg_ax,imm			[-i:	o16 a9 iw]				8086,SM
                 //TEST		reg_eax,imm			[-i:	o32 a9 id]				386,SM
@@ -985,7 +985,7 @@ public class CodeExecutor {
                 //SHL		rm8,imm8			[mi:	c0 /4 ib,u]				186
                 //SHR		rm8,imm8			[mi:	c0 /5 ib,u]				186
                 //SAR		rm8,imm8			[mi:	c0 /7 ib,u]				186
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0xc1:
                 //ROL		rm64,imm8			[mi:	o64 c1 /0 ib,u]				X64
                 //ROL		rm32,imm8			[mi:	o32 c1 /0 ib,u]				386
@@ -1023,6 +1023,28 @@ public class CodeExecutor {
                 jump = true;
                 break;
 
+            case 0xc6:
+                //MOV		rm8,imm				[mi:	hlexr c6 /0 ib]				8086,SM
+                //MOV		mem,imm8			[mi:	hlexr c6 /0 ib]				8086,SM
+                mrs.reg8 = true;
+            case 0xc7:
+                instruction.parse2(bits);
+                switch (mrs.regIndex) {
+                    case 0:
+                        //MOV		reg64,sdword			[mi:	o64 c7 /0 id,s]				X64,SM,OPT,ND
+                        //MOV		rm16,imm			[mi:	hlexr o16 c7 /0 iw]			8086,SM
+                        //MOV		rm32,imm			[mi:	hlexr o32 c7 /0 id]			386,SM
+                        //MOV		rm64,imm			[mi:	hlexr o64 c7 /0 id,s]			X64,SM
+                        //MOV		rm64,imm32			[mi:	hlexr o64 c7 /0 id,s]			X64
+                        //MOV		mem,imm16			[mi:	hlexr o16 c7 /0 iw]			8086,SM
+                        //MOV		mem,imm32			[mi:	hlexr o32 c7 /0 id]			386,SM
+                        instruction.executeMov7();
+                        break;
+                    default:
+                        throw new NotImplException();
+                }
+                break;
+
             case 0xd0:
                 //ROL		rm8,unity			[m-:	d0 /0]					8086
                 //ROR		rm8,unity			[m-:	d0 /1]					8086
@@ -1032,7 +1054,7 @@ public class CodeExecutor {
                 //SAL		rm8,unity			[m-:	d0 /4]					8086,ND
                 //SHR		rm8,unity			[m-:	d0 /5]					8086
                 //SAR		rm8,unity			[m-:	d0 /7]					8086
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0xd1:
                 //ROL		rm16,unity			[m-:	o16 d1 /0]				8086
                 //ROL		rm32,unity			[m-:	o32 d1 /0]				386
@@ -1071,7 +1093,7 @@ public class CodeExecutor {
                 //SAL		rm8,reg_cl			[m-:	d2 /4]					8086,ND
                 //SHR		rm8,reg_cl			[m-:	d2 /5]					8086
                 //SAR		rm8,reg_cl			[m-:	d2 /7]					8086
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0xd3:
                 //ROL		rm16,reg_cl			[m-:	o16 d3 /0]				8086
                 //ROL		rm32,reg_cl			[m-:	o32 d3 /0]				386
@@ -1104,7 +1126,7 @@ public class CodeExecutor {
             case 0xeb:
                 //JMP		imm|short			[i:	eb rel8]				8086
                 //JMP		imm				[i:	jmp8 eb rel8]				8086,ND
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0xe9:
                 //JMP		imm				[i:	odf e9 rel]				8086,BND
                 //JMP		imm|near			[i:	odf e9 rel]				8086,ND,BND
@@ -1139,7 +1161,7 @@ public class CodeExecutor {
                 //LOOP		imm,reg_ecx			[i-:	a32 e2 rel8]				386
                 //LOOP		imm,reg_rcx			[i-:	a64 e2 rel8]				X64
 
-                jump=instruction.executeLoop(1);
+                jump = instruction.executeLoop(1);
                 break;
 
             case 0xe4:
