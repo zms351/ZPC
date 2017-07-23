@@ -77,11 +77,11 @@ public abstract class Instruction extends BaseObj {
                     break;
                 case 0xf3:
                     legacyPrefix[legacyPrefixCount++] = n;
-                    hasf3=true;
+                    hasf3 = true;
                     break;
                 case 0xf2:
                     legacyPrefix[legacyPrefixCount++] = n;
-                    hasf2=true;
+                    hasf2 = true;
                     break;
                 case 0xf0:
                     legacyPrefix[legacyPrefixCount++] = n;
@@ -108,8 +108,16 @@ public abstract class Instruction extends BaseObj {
 
     public void parse2(int bits) {
         mrs.parse(this, input, bits);
-        if(mrs.opWidth<0) {
-            mrs.opWidth=getOpWidth(bits);
+        if (mrs.opWidth < 0) {
+            mrs.opWidth = getOpWidth(bits);
+        }
+        if (mrs.address != null && mrs.address.contains("BP")) {
+            if (segBase == null) {
+                segBase = "SS";
+            }
+        }
+        if (segBase == null) {
+            segBase = "DS";
         }
     }
 
@@ -138,7 +146,7 @@ public abstract class Instruction extends BaseObj {
     }
 
     public int getOpcode(int index) {
-        assert index<opcodeCount;
+        assert index < opcodeCount;
         return getOpcodes()[index];
     }
 
@@ -208,12 +216,12 @@ public abstract class Instruction extends BaseObj {
     public CodeStream input;
 
     public int getOpWidth() {
-        int width=mrs.opWidth;
-        if(width>0) {
+        int width = mrs.opWidth;
+        if (width > 0) {
             return width;
         }
-        width=getOpWidth(executor.getBits());
-        mrs.opWidth=width;
+        width = getOpWidth(executor.getBits());
+        mrs.opWidth = width;
         return width;
     }
 

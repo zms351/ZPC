@@ -31,7 +31,7 @@ public class CodeExecutor extends BaseObj {
         instruction.mrs.reg8 = false;
         instruction.bits = regs.bits;
         instruction.mrs.regType = 0;
-        instruction.segBase = "DS";
+        instruction.segBase = null;
         instruction.mrs.opWidth = -1;
         instruction.pc = pc;
     }
@@ -1032,6 +1032,13 @@ public class CodeExecutor extends BaseObj {
 
                 instruction.executeRetNear();
                 jump = true;
+                break;
+
+            case 0xc5:
+                //LDS		reg16,mem			[rm:	o16 c5 /r]				8086,NOLONG
+                //LDS		reg32,mem			[rm:	o32 c5 /r]				386,NOLONG
+                instruction.parse2(bits);
+                instruction.executeLds();
                 break;
 
             case 0xc6:

@@ -62,6 +62,8 @@ public abstract class InstructionExecutor extends Instruction {
                 return bits.zf();
             case 0x5:
                 return !bits.zf();
+            case 0x7:
+                return (!bits.cf()) && (!bits.zf());
             default:
                 throw new NotImplException();
         }
@@ -366,6 +368,12 @@ public abstract class InstructionExecutor extends Instruction {
     public void executeMov7() {
         read0();
         mrs.setValMemory(pc,__v1);
+    }
+
+    public void executeLds() {
+        mrs.getMemoryAddress(pc);
+        pc.cpu.regs.ds.setValue(mrs.addressCalSegment.getValue());
+        mrs.setValReg(pc,mrs.addressCal);
     }
 
 }
