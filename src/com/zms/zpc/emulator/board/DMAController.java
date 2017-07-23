@@ -14,12 +14,15 @@ public class DMAController implements IODevice {
 
     @Override
     public void write(int address, long v, int width) {
-
     }
 
     @Override
     public long read(int address, int width) {
         return 0;
+    }
+
+    @Override
+    public void reset() {
     }
 
 }

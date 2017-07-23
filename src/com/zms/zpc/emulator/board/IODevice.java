@@ -10,4 +10,6 @@ public interface IODevice {
 
     long read(int address,int width);
 
+    void reset();
+
 }
