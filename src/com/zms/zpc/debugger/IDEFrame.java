@@ -4,7 +4,7 @@ import com.zms.zpc.debugger.util.*;
 import com.zms.zpc.emulator.PC;
 import com.zms.zpc.emulator.assembler.Assembler;
 import com.zms.zpc.emulator.debug.IDebugger;
-import com.zms.zpc.support.GarUtils;
+import com.zms.zpc.support.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -361,7 +361,9 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
     @Override
     public void onMessage(int type, String message, Object... params) {
         if(type==DEBUG) {
-            System.err.printf(message,params);
+            if(BaseObj.Debug==1) {
+                System.err.printf(message, params);
+            }
             return;
         }
         final Object[] os = new Object[2];

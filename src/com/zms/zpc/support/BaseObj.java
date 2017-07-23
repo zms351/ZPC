@@ -5,4 +5,7 @@ package com.zms.zpc.support;
  * Copyright 2002-2016
  */
 public class BaseObj implements Constants {
+
+    public static int Debug=1;
+
 }

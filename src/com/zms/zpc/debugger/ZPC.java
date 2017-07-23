@@ -219,11 +219,16 @@ public class ZPC extends JFrame implements ActionListener, Runnable {
                 toolButtons.add(button);
                 button.setIconCommand("sync");
             }
-            toolButtons.add(null);
             {
                 button = new JIconButton("Test3");
                 toolButtons.add(button);
                 button.setIconCommand("magic");
+            }
+            toolButtons.add(null);
+            {
+                button = new JIconButton("Show Debug Msg");
+                toolButtons.add(button);
+                button.setIconCommand("console_log");
             }
             designToolbar(toolBar, toolButtons);
         }
