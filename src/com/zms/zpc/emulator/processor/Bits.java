@@ -7,7 +7,7 @@ import com.zms.zpc.support.*;
  * Created by 张小美 on 17/六月/25.
  * Copyright 2002-2016
  */
-public class Bits implements Constants {
+public class Bits extends BaseObj {
 
     public Regs regs;
 

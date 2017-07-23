@@ -8,7 +8,7 @@ import com.zms.zpc.support.*;
  * Created by 张小美 on 17/六月/27.
  * Copyright 2002-2016
  */
-public abstract class Instruction implements Constants {
+public abstract class Instruction extends BaseObj {
 
     private long startPos;
     private int legacyPrefixCount;

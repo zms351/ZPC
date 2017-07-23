@@ -8,6 +8,6 @@ import com.zms.zpc.support.Constants;
  */
 public interface IDebugger extends Constants {
 
-    void onMessage(int type,String message,Object... params);
+    void onMessage(int type, String message, Object... params);
 
 }

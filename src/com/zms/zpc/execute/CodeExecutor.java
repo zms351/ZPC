@@ -2,15 +2,13 @@ package com.zms.zpc.execute;
 
 import com.zms.zpc.emulator.PC;
 import com.zms.zpc.emulator.processor.Regs;
-import com.zms.zpc.support.NotImplException;
-
-import static com.zms.zpc.support.Constants.*;
+import com.zms.zpc.support.*;
 
 /**
  * Created by 张小美 on 17/六月/25.
  * Copyright 2002-2016
  */
-public class CodeExecutor {
+public class CodeExecutor extends BaseObj {
 
     private int bits = 16;
     private byte[] previewBuffer;

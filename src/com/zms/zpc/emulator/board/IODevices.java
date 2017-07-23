@@ -1,13 +1,13 @@
 package com.zms.zpc.emulator.board;
 
 import com.zms.zpc.emulator.PC;
-import com.zms.zpc.support.Constants;
+import com.zms.zpc.support.*;
 
 /**
  * Created by 张小美 on 17/六月/28.
  * Copyright 2002-2016
  */
-public class IODevices implements Constants {
+public class IODevices extends BaseObj {
 
     public MotherBoard mb;
     public PC pc;
