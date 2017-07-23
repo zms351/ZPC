@@ -45,10 +45,10 @@ public abstract class InstructionExecutor extends Instruction {
     }
 
     public void executeJumpNear() {
-        long offset=readOp();
-        offset=NumberUtils.asSigned(offset,getOpWidth());
+        long offset = readOp();
+        offset = NumberUtils.asSigned(offset, getOpWidth());
         BaseReg rip = pc.cpu.regs.rip;
-        rip.setValue(rip.getValue()+offset);
+        rip.setValue(rip.getValue() + offset);
     }
 
     public boolean testCondition(int code) {
@@ -79,9 +79,29 @@ public abstract class InstructionExecutor extends Instruction {
         return false;
     }
 
+    public boolean executeLoop(int type) {
+        boolean out;
+        switch (type) {
+            case 1:
+                BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 1));
+                long v = reg.getValue() - 1;
+                reg.setValue(v);
+                out = v == 0;
+                break;
+            default:
+                throw new NotImplException();
+        }
+        BaseReg rip = pc.cpu.regs.rip;
+        long jump=NumberUtils.asSigned(input.read(), 8);
+        if(!out) {
+            rip.setValue(rip.getValue() + jump);
+        }
+        return false;
+    }
+
     public boolean executeJcc2() {
         long jump = readOp();
-        jump=NumberUtils.asSigned(jump,getOpWidth());
+        jump = NumberUtils.asSigned(jump, getOpWidth());
         if (!testCondition(getOpcode(1))) {
             jump = 0;
         }
@@ -302,7 +322,7 @@ public abstract class InstructionExecutor extends Instruction {
 
     public void executeCallNear() {
         int width = getOpWidth(executor.getBits());
-        long offset = NumberUtils.asSigned(readOp(width),width);
+        long offset = NumberUtils.asSigned(readOp(width), width);
         BaseReg rip = pc.cpu.regs.rip;
         executor.reLoc(input);
         long from = rip.getValue();

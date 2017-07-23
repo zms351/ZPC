@@ -1113,6 +1113,15 @@ public class CodeExecutor {
                 jump = true;
                 break;
 
+            case 0xe2:
+                //LOOP		imm				[i:	adf e2 rel8]				8086
+                //LOOP		imm,reg_cx			[i-:	a16 e2 rel8]				8086,NOLONG
+                //LOOP		imm,reg_ecx			[i-:	a32 e2 rel8]				386
+                //LOOP		imm,reg_rcx			[i-:	a64 e2 rel8]				X64
+
+                jump=instruction.executeLoop(1);
+                break;
+
             case 0xe4:
                 //IN		reg_al,imm			[-i:	e4 ib,u]				8086,SB
             case 0xec:
