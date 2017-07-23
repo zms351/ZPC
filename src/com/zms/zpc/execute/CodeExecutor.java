@@ -887,6 +887,26 @@ public class CodeExecutor {
                 }
                 break;
 
+            case 0xa0:
+                //MOV		reg_al,mem_offs			[-i:	a0 iwdq]				8086,SM
+                mrs.reg8=true;
+            case 0xa1:
+                //MOV		reg_ax,mem_offs			[-i:	o16 a1 iwdq]				8086,SM
+                //MOV		reg_eax,mem_offs		[-i:	o32 a1 iwdq]				386,SM
+                //MOV		reg_rax,mem_offs		[-i:	o64 a1 iwdq]				X64,SM
+                instruction.executeMov(pc.cpu.regs.al,false);
+                break;
+
+            case 0xa2:
+                //MOV		mem_offs,reg_al			[i-:	a2 iwdq]				8086,SM,NOHLE
+                mrs.reg8=true;
+            case 0xa3:
+                //MOV		mem_offs,reg_ax			[i-:	o16 a3 iwdq]				8086,SM,NOHLE
+                //MOV		mem_offs,reg_eax		[i-:	o32 a3 iwdq]				386,SM,NOHLE
+                //MOV		mem_offs,reg_rax		[i-:	o64 a3 iwdq]				X64,SM,NOHLE
+                instruction.executeMov(pc.cpu.regs.al,true);
+                break;
+
             case 0xa8:
                 //TEST		reg_al,imm			[-i:	a8 ib]					8086,SM
                 mrs.reg8=true;

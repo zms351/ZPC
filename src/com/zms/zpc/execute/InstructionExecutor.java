@@ -349,4 +349,17 @@ public abstract class InstructionExecutor extends Instruction {
         mrs.setValReg(pc, address);
     }
 
+    public void executeMov(BaseReg reg,boolean rm) {
+        int width=getOpWidth();
+        long address=readOp();
+        reg=reg.getRegWithWidth(width);
+        if(rm) {
+            long v = mrs.memoryRead(pc, address, width);
+            reg.setValue(width,v);
+        } else {
+            long v=reg.getValue(width);
+            mrs.memoryWrite(pc,address,v,width);
+        }
+    }
+
 }

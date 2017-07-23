@@ -30,6 +30,7 @@ public class Warnings {
         PC pc = new PC();
         is.executeIF_(true);
         is.executeDF_(true);
+        is.executeLoop(2);
         Segment seg = (Segment) pc.cpu.regs.getReg("DS");
         seg.setValue16(12, false);
 
