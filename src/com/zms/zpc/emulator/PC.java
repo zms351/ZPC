@@ -102,6 +102,8 @@ public class PC implements Runnable {
                 Thread thread = new Thread(this,getName()+"执行线程");
                 thread.setDaemon(true);
                 thread.start();
+            } else if(state==PCState.Pause) {
+                state=PCState.Running;
             }
         }
     }

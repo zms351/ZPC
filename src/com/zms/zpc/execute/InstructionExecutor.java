@@ -351,8 +351,9 @@ public abstract class InstructionExecutor extends Instruction {
 
     public void executeMov6(BaseReg reg,boolean rm) {
         int width=getOpWidth();
-        long address=readOp();
         reg=reg.getRegWithWidth(width);
+        int addressWidth=getAddressWidth(executor.getBits());
+        long address=readOp(addressWidth);
         if(rm) {
             long v = mrs.memoryRead(pc, address, width);
             reg.setValue(width,v);
