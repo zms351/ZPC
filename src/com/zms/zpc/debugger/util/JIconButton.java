@@ -12,6 +12,7 @@ import java.awt.event.*;
 public class JIconButton extends JButton {
 
     private String iconCommand;
+    private String iconCommand2;
     private ZPC frame;
 
     public JIconButton(String text) {
@@ -25,6 +26,14 @@ public class JIconButton extends JButton {
 
     public void setIconCommand(String iconCommand) {
         this.iconCommand = iconCommand;
+    }
+
+    public String getIconCommand2() {
+        return iconCommand2;
+    }
+
+    public void setIconCommand2(String iconCommand2) {
+        this.iconCommand2 = iconCommand2;
     }
 
     protected void init() {
@@ -46,6 +55,23 @@ public class JIconButton extends JButton {
         return isRequestFocusEnabled();
     }
 
+    public Icon icon1;
+    public Icon icon2;
+
+    public boolean refresh() {
+        if(icon2!=null) {
+            if(this.isSelected()) {
+                setIcon(icon2);
+                return true;
+            }
+        }
+        if(icon1!=null) {
+            setIcon(icon1);
+            return true;
+        }
+        return false;
+    }
+
     public static MouseListener ToolbarMouseListener = new MouseAdapter() {
         @Override
         public void mouseEntered(MouseEvent e) {
@@ -64,6 +90,18 @@ public class JIconButton extends JButton {
                 button.frame.hideMainStatus(button.getToolTipText());
             }
         }
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            JIconButton button = (JIconButton) e.getComponent();
+            if(e.getButton()==MouseEvent.BUTTON1 && e.getClickCount()==1) {
+                if(button.icon2!=null) {
+                    button.setSelected(!button.isSelected());
+                    button.refresh();
+                }
+            }
+        }
+
     };
 
 }

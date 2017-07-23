@@ -2,7 +2,7 @@ package com.zms.zpc.debugger;
 
 import com.zms.zpc.debugger.util.*;
 import com.zms.zpc.emulator.*;
-import com.zms.zpc.support.GarUtils;
+import com.zms.zpc.support.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -82,7 +82,13 @@ public class ZPC extends JFrame implements ActionListener, Runnable {
             button.setToolTipText(button.getText());
             String iconCommand = button.getIconCommand();
             if (iconCommand != null && iconCommand.length() > 0) {
-                button.setIcon(loadIcon(iconCommand));
+                button.icon1 = loadIcon(iconCommand);
+            }
+            iconCommand = button.getIconCommand2();
+            if (iconCommand != null && iconCommand.length() > 0) {
+                button.icon2 = loadIcon(iconCommand);
+            }
+            if (button.refresh()) {
                 button.setText(null);
             }
             button.setFrame(this);
@@ -228,7 +234,9 @@ public class ZPC extends JFrame implements ActionListener, Runnable {
             {
                 button = new JIconButton("Show Debug Msg");
                 toolButtons.add(button);
-                button.setIconCommand("console_log");
+                button.setIconCommand("console");
+                button.setIconCommand2("console_log");
+                button.setSelected(true);
             }
             designToolbar(toolBar, toolButtons);
         }
@@ -377,6 +385,12 @@ public class ZPC extends JFrame implements ActionListener, Runnable {
                 break;
             case "CPUPause":
                 pc.pause();
+                break;
+            case "Show Debug Msg":
+                if (e.getSource() instanceof AbstractButton) {
+                    final AbstractButton button = (AbstractButton) e.getSource();
+                    GarUtils.runInUI(() -> BaseObj.Debug = button.isSelected() ? 1 : 0);
+                }
                 break;
         }
     }
