@@ -498,6 +498,19 @@ public class CodeExecutor {
                 instruction.executeIncReg();
                 break;
 
+            case 0x48:
+            case 0x49:
+            case 0x4a:
+            case 0x4b:
+            case 0x4c:
+            case 0x4d:
+            case 0x4e:
+            case 0x4f:
+                //DEC		reg16				[r:	o16 48+r]				8086,NOLONG
+                //DEC		reg32				[r:	o32 48+r]				386,NOLONG
+                instruction.executeDecReg();
+                break;
+
             case 0x50:
             case 0x51:
             case 0x52:
@@ -1242,11 +1255,8 @@ public class CodeExecutor {
 
             case 0xfe:
                 //INC		rm8				[m:	hle fe /0]				8086,LOCK
-
+                //DEC		rm8				[m:	hle fe /1]				8086,LOCK
                 mrs.reg8 = true;
-                instruction.executeIncRm();
-                break;
-
             case 0xff:
                 instruction.parse2(bits);
                 switch (mrs.regIndex) {
@@ -1257,6 +1267,15 @@ public class CodeExecutor {
 
                         instruction.executeIncRm();
                         break;
+
+                    case 1:
+                        //DEC		rm16				[m:	hle o16 ff /1]				8086,LOCK
+                        //DEC		rm32				[m:	hle o32 ff /1]				386,LOCK
+                        //DEC		rm64				[m:	hle o64 ff /1]				X64,LOCK
+
+                        instruction.executeDecRm();
+                        break;
+
                     case 6:
                         //PUSH rm16				[m:	o16 ff /6]				8086
                         //PUSH		rm32				[m:	o32 ff /6]				386,NOLONG

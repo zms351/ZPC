@@ -15,6 +15,12 @@ public class InstructionExecutor2 extends InstructionExecutor {
         return bits.getResult();
     }
 
+    public long dec_(long v) {
+        bits.cf.set(bits.cf());
+        bits.setData(v, 1, v - 1, SUB, getOpWidth(), NCF);
+        return bits.getResult();
+    }
+
     //0
     public long add_(long v1, long v2) {
         bits.setData(v1, v2, v1 + v2, ADD, getOpWidth(), OSZAPC);
@@ -125,9 +131,20 @@ public class InstructionExecutor2 extends InstructionExecutor {
         reg.setValue(inc_(reg.getValue()));
     }
 
+    public void executeDecReg() {
+        int r = getOpcode() - 0x48;
+        BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));
+        reg.setValue(dec_(reg.getValue()));
+    }
+
     public void executeIncRm() {
         long val = mrs.getValMemory(pc);
         mrs.setValMemory(pc, inc_(val));
+    }
+
+    public void executeDecRm() {
+        long val = mrs.getValMemory(pc);
+        mrs.setValMemory(pc, dec_(val));
     }
 
     public void executeCal1(int type, boolean rm) {
