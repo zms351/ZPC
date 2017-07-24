@@ -33,7 +33,7 @@ public class IODevices extends BaseObj {
         if (device != null) {
             return device.read(address,width);
         } else {
-            pc.getDebugger().onMessage(DEBUG,"io read,address: %d\twidth: %d\n", address, width);
+            pc.getDebugger().onMessage(DEBUG,"io read,address: %h\twidth: %d\n", address, width);
             return 0;
         }
     }

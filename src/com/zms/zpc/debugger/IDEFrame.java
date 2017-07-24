@@ -1,5 +1,6 @@
 package com.zms.zpc.debugger;
 
+import com.zms.zpc.debugger.ide.*;
 import com.zms.zpc.debugger.util.*;
 import com.zms.zpc.emulator.PC;
 import com.zms.zpc.emulator.assembler.Assembler;
@@ -7,8 +8,6 @@ import com.zms.zpc.emulator.debug.IDebugger;
 import com.zms.zpc.support.*;
 
 import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.text.DefaultStyledDocument;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -245,7 +244,7 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
         }
         for (int i = 0; i < tabs.getTabCount(); i++) {
             FileEditorPane tab = (FileEditorPane) tabs.getComponentAt(i);
-            if (name.equals(tab.getName())) {
+            if (name.equals(tab.getDocName())) {
                 return tab;
             }
         }
@@ -360,8 +359,8 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
 
     @Override
     public void onMessage(int type, String message, Object... params) {
-        if(type==DEBUG) {
-            if(BaseObj.Debug==1) {
+        if (type == DEBUG) {
+            if (BaseObj.Debug == 1) {
                 System.err.printf(message, params);
             }
             return;
@@ -378,7 +377,7 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
                 if (tab == null) {
                     tab = addNew();
                 }
-                tab.setName(name);
+                tab.setDocName(name);
                 tab.setDocTitle((String) os[1]);
                 tab.setText(message, true);
                 select(tab);
@@ -387,7 +386,7 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
         }
     }
 
-    protected void refreshTitle(FileEditorPane tab) {
+    public void refreshTitle(FileEditorPane tab) {
         int index = tabs.indexOfComponent(tab);
         if (index >= 0) {
             tabs.setTitleAt(index, tab.getDisplayTitle());
@@ -398,236 +397,6 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
     public FileEditorPane select(FileEditorPane tab) {
         tabs.setSelectedComponent(tab);
         return tab;
-    }
-
-}
-
-class FileEditorPane extends JTextPane implements DocumentListener {
-
-    private DefaultStyledDocument doc;
-    private IDEFrame parent;
-    private String name;
-
-    public FileEditorPane(IDEFrame parent) {
-        super(new DefaultStyledDocument());
-        doc = (DefaultStyledDocument) getDocument();
-        doc.addDocumentListener(this);
-        this.parent = parent;
-    }
-
-    private String docTitle;
-    private boolean modifed;
-    private File file;
-
-    public String getDocTitle() {
-        return docTitle;
-    }
-
-    public void setDocTitle(String docTitle) {
-        this.docTitle = docTitle;
-    }
-
-    public boolean isModifed() {
-        return modifed;
-    }
-
-    public void setModifed(boolean modifed) {
-        this.modifed = modifed;
-    }
-
-    public String getDisplayTitle() {
-        if (isModifed()) {
-            return getDocTitle() + "*";
-        } else {
-            return getDocTitle();
-        }
-    }
-
-    public static FileEditorPane newDefault(IDEFrame parent) {
-        FileEditorPane one = new FileEditorPane(parent);
-        one.setDocTitle("新建文档");
-        one.setModifed(false);
-        return one;
-    }
-
-    public DefaultStyledDocument getDoc() {
-        return doc;
-    }
-
-    public Object save() {
-        if (file == null) {
-            return saveAs();
-        } else {
-            Object r = GarUtils.saveFile(file, getText());
-            setModifed(false);
-            setDocTitle(file.getName());
-            return r;
-        }
-    }
-
-    public Object saveAs() {
-        File file = parent.saveDialog();
-        if (file != null) {
-            this.file = file;
-            return save();
-        }
-        return null;
-    }
-
-    @Override
-    public void insertUpdate(DocumentEvent e) {
-        showModified();
-        setModifed(true);
-    }
-
-    @Override
-    public void removeUpdate(DocumentEvent e) {
-        showModified();
-        setModifed(true);
-    }
-
-    @Override
-    public void changedUpdate(DocumentEvent e) {
-        showModified();
-        setModifed(true);
-    }
-
-    protected void showModified() {
-        if (!modifed) {
-            modifed = true;
-            parent.refreshTitle(this);
-        }
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void init(File file) {
-        this.file = file;
-        this.docTitle = file.getName();
-        String s = GarUtils.loadFile(file);
-        setText(s, true);
-    }
-
-    public void setText(String text, boolean silent) {
-        if (silent) {
-            modifed = true;
-            super.setText(text);
-            setModifed(false);
-        } else {
-            super.setText(text);
-        }
-    }
-
-    private TabComponent tabComponent;
-
-    public TabComponent getTabComponent() {
-        if (tabComponent == null) {
-            tabComponent = new TabComponent(this);
-        }
-        tabComponent.getLabel().setText(getDisplayTitle());
-        return tabComponent;
-    }
-
-    public IDEFrame getParentComponent() {
-        return parent;
-    }
-
-}
-
-class TabComponent extends JPanel implements MouseListener, ActionListener {
-
-    private JLabel label;
-    private JButton closeButton;
-    private FileEditorPane parent;
-
-    public static Icon close, closeHovered, text;
-
-    public TabComponent(FileEditorPane parent) {
-        super(new BorderLayout());
-        ZPC zpc = parent.getParentComponent().getFrame();
-        if (close == null) {
-            close = zpc.loadIcon("closeNew");
-            closeHovered = zpc.loadIcon("closeNewHovered");
-            text = zpc.loadIcon("text");
-        }
-        closeButton = new JButton(close);
-        this.add(closeButton, BorderLayout.EAST);
-        closeButton.setBorderPainted(false);
-        closeButton.addMouseListener(this);
-        this.parent = parent;
-        label = new JLabel(parent.getDisplayTitle(), text, JLabel.CENTER);
-        this.add(label, BorderLayout.CENTER);
-        closeButton.addActionListener(this);
-
-        this.setOpaque(false);
-        label.setOpaque(false);
-        closeButton.setOpaque(false);
-
-        this.addMouseListener(this);
-    }
-
-    public JLabel getLabel() {
-        return label;
-    }
-
-    public JButton getCloseButton() {
-        return closeButton;
-    }
-
-    protected void close() {
-        parent.getParentComponent().closeTab(parent);
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        close();
-    }
-
-    @Override
-    public void mouseClicked(MouseEvent e) {
-        if (e.getComponent() == closeButton) {
-            close();
-        }
-        if (e.getComponent() == this) {
-            if (e.getButton() == MouseEvent.BUTTON2) {
-                close();
-            }
-        }
-    }
-
-    @Override
-    public void mousePressed(MouseEvent e) {
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e) {
-        if (e.getComponent() == this) {
-            if (e.getButton() == MouseEvent.BUTTON1) {
-                parent.getParentComponent().select(parent);
-            }
-        }
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent e) {
-        if (e.getComponent() == closeButton) {
-            closeButton.setIcon(closeHovered);
-        }
-    }
-
-    @Override
-    public void mouseExited(MouseEvent e) {
-        if (e.getComponent() == closeButton) {
-            closeButton.setIcon(close);
-        }
     }
 
 }

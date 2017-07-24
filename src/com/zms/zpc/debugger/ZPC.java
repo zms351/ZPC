@@ -97,7 +97,7 @@ public class ZPC extends JFrame implements ActionListener, Runnable {
 
     private Map<String, ImageIcon> iconCache = new HashMap<>();
 
-    ImageIcon loadIcon(String name) {
+    public ImageIcon loadIcon(String name) {
         return iconCache.computeIfAbsent(name, n -> new ImageIcon(this.getClass().getClassLoader().getResource("icons/" + name + ".png")));
     }
 
