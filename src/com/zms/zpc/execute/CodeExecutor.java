@@ -1063,6 +1063,31 @@ public class CodeExecutor extends BaseObj {
                 }
                 break;
 
+            case 0xcc:
+                //INT03		void				[	cc]					8086,ND
+                //INT3		void				[	cc]					8086
+                jump=instruction.executeInt(3);
+                break;
+
+            case 0xcd:
+                //INT		imm				[i:	cd ib,u]				8086,SB
+                jump=instruction.executeInt(-1);
+                break;
+
+            case 0xce:
+                //INTO		void				[	ce]					8086,NOLONG
+                jump=instruction.executeInt(4);
+                break;
+
+            case 0xcf:
+                //IRET		void				[	odf cf]					8086
+                //IRETD		void				[	o32 cf]					386
+                //IRETQ		void				[	o64 cf]					X64
+                //IRETW		void				[	o16 cf]					8086
+
+                jump=instruction.executeIRet();
+                break;
+
             case 0xd0:
                 //ROL		rm8,unity			[m-:	d0 /0]					8086
                 //ROR		rm8,unity			[m-:	d0 /1]					8086

@@ -104,6 +104,7 @@ public class Regs {
 
     public final Flags rflags = new Flags("rflags", this, 62, 64);
     public final Flags eflags = new Flags("eflags", this, 62, 32);
+    public final Flags flags = new Flags("flags", this, 62, 16);
 
     public final ControlReg cr0 = new ControlReg("cr0", this, 80, 64);
     public final ControlReg cr2 = new ControlReg("cr2", this, 82, 64);

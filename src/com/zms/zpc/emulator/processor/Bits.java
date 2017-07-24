@@ -20,6 +20,9 @@ public class Bits extends BaseObj {
     public final BitControl pf; //奇偶
     public final BitControl if_; //中断
     public final BitControl df; //direction
+    public final BitControl tf; //trap
+    public final BitControl ac; //AlignmentCheck
+    public final BitControl rf; //resume
 
     public Bits(Regs regs) {
         this.regs = regs;
@@ -32,6 +35,9 @@ public class Bits extends BaseObj {
         pf = new BitControl("pf", regs, index, 2);
         if_ = new BitControl("if", regs, index, 9);
         df = new BitControl("df", regs, index, 10);
+        tf = new BitControl("tf", regs, index, 8);
+        ac = new BitControl("ac", regs, index, 18);
+        rf = new BitControl("rf", regs, index, 16);
     }
 
     private long result, op1, op2;
@@ -76,6 +82,13 @@ public class Bits extends BaseObj {
         af.clear();
     }
 
+    public void clearITACR() {
+        if_.clear();
+        tf.clear();
+        ac.clear();
+        rf.clear();
+    }
+
     public boolean zf() {
         if ((status & ZF) == 0) {
             return zf.get();
@@ -106,6 +119,10 @@ public class Bits extends BaseObj {
         } else {
             return testCF();
         }
+    }
+
+    public boolean of() {
+        throw new NotImplException();
     }
 
     private boolean testCF() {

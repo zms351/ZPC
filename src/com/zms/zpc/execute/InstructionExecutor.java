@@ -376,4 +376,37 @@ public abstract class InstructionExecutor extends Instruction {
         mrs.setValReg(pc,mrs.addressCal);
     }
 
+    public boolean executeInt(long v) {
+        if(v==-1) {
+            v=readOp(8);
+        }
+        if(v==4) {
+            if(!bits.of()) {
+                return false;
+            }
+        }
+
+        Regs regs = pc.cpu.regs;
+        push_(regs.eflags.getValue(),16);
+        bits.clearITACR();
+
+        BaseReg rip = pc.cpu.regs.rip;
+        executor.reLoc(input);
+        push_(regs.cs.getValue(),16);
+        push_(regs.rip.getValue(),16);
+
+        regs.rip.setValue(mrs.memoryRead(pc,4*v,16));
+        regs.cs.setValue(mrs.memoryRead(pc,4*v+2,16));
+
+        return false;
+    }
+
+    public boolean executeIRet() {
+        Regs regs = pc.cpu.regs;
+        regs.rip.setValue(pop_(16));
+        regs.cs.setValue(pop_(16));
+        regs.flags.setValue(pop_(16));
+        return false;
+    }
+
 }
