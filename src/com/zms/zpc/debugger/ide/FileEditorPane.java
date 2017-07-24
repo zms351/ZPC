@@ -6,13 +6,14 @@ import com.zms.zpc.support.GarUtils;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.text.DefaultStyledDocument;
+import java.awt.event.*;
 import java.io.File;
 
 /**
  * Created by 张小美 on 17/七月/24.
  * Copyright 2002-2016
  */
-public class FileEditorPane extends JScrollPane implements DocumentListener {
+public class FileEditorPane extends JScrollPane implements DocumentListener,KeyListener {
 
     private DefaultStyledDocument doc;
     private IDEFrame parent;
@@ -25,6 +26,7 @@ public class FileEditorPane extends JScrollPane implements DocumentListener {
         doc = (DefaultStyledDocument) pane.getDocument();
         doc.addDocumentListener(this);
         this.parent = parent;
+        pane.addKeyListener(this);
     }
 
     private String docTitle;
@@ -156,6 +158,18 @@ public class FileEditorPane extends JScrollPane implements DocumentListener {
 
     public void setText(String t) {
         pane.setText(t);
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
     }
 
 }

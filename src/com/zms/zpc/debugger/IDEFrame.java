@@ -1,6 +1,6 @@
 package com.zms.zpc.debugger;
 
-import com.zms.zpc.debugger.ide.*;
+import com.zms.zpc.debugger.ide.FileEditorPane;
 import com.zms.zpc.debugger.util.*;
 import com.zms.zpc.emulator.PC;
 import com.zms.zpc.emulator.assembler.Assembler;
@@ -71,13 +71,14 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
                 item.setActionCommand(command);
                 menu.add(item);
                 item.setIconCommand("menu-saveall");
-                item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK));
+                item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
             }
             {
                 command = "Save As";
                 item = new JIconMenuItem("Save As...");
                 item.setActionCommand(command);
                 menu.add(item);
+                item.setIconCommand("profileMemory");
             }
             {
                 command = "Close Tab";
@@ -103,6 +104,48 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
                 item.setActionCommand(command);
                 menu.add(item);
                 item.setIconCommand("resume");
+            }
+            menu.addSeparator();
+            {
+                command = "Step Into";
+                item = new JIconMenuItem(command);
+                item.setActionCommand(command);
+                menu.add(item);
+                item.setIconCommand("traceInto");
+                item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0));
+            }
+            {
+                command = "Step Over";
+                item = new JIconMenuItem(command);
+                item.setActionCommand(command);
+                menu.add(item);
+                item.setIconCommand("traceOver");
+                item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0));
+            }
+            {
+                command = "Step Out";
+                item = new JIconMenuItem(command);
+                item.setActionCommand(command);
+                menu.add(item);
+                item.setIconCommand("stepOut");
+                item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F7, 0));
+            }
+            {
+                command = "Run To Cursor";
+                item = new JIconMenuItem(command);
+                item.setActionCommand(command);
+                menu.add(item);
+                item.setIconCommand("runToCursor");
+                item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F9, 0));
+            }
+            menu.addSeparator();
+            {
+                command = "Show Execution Point";
+                item = new JIconMenuItem(command);
+                item.setActionCommand(command);
+                menu.add(item);
+                item.setIconCommand("showCurrentFrame");
+                item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0));
             }
         }
         Map<String, JIconMenuItem> menuItems = new HashMap<>();
@@ -161,15 +204,14 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
             button.setIconCommand("traceOver");
         }
         {
-            button = new JIconButton("Run To Cursor");
-            toolButtons.add(button);
-            button.setIconCommand("runToCursor");
-        }
-
-        {
             button = new JIconButton("Step Out");
             toolButtons.add(button);
             button.setIconCommand("stepOut");
+        }
+        {
+            button = new JIconButton("Run To Cursor");
+            toolButtons.add(button);
+            button.setIconCommand("runToCursor");
         }
         {
             button = new JIconButton("Resume");
@@ -198,9 +240,9 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
             button.setIconCommand("output");
         }
         {
-            button = new JIconButton("Decompile");
+            button = new JIconButton("Show Execution Point");
             toolButtons.add(button);
-            button.setIconCommand("information");
+            button.setIconCommand("showCurrentFrame");
         }
         {
             button = new JIconButton("Write Instruction");
@@ -337,7 +379,26 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
                 pc.setPause(11, command);
             }
             break;
-            case "Decompile": {
+            case "Step Over": {
+                PC pc = getFrame().getPc();
+                pc.setDebugger(this);
+                pc.setPause(14, command);
+            }
+            break;
+            case "Step Out": {
+                PC pc = getFrame().getPc();
+                pc.setDebugger(this);
+                pc.setPause(15, command);
+            }
+            break;
+            case "Run To Cursor": {
+                PC pc = getFrame().getPc();
+                pc.setDebugger(this);
+                pc.setPause(16, command);
+
+            }
+            break;
+            case "Show Execution Point": {
                 PC pc = getFrame().getPc();
                 pc.setDebugger(this);
                 pc.setPause(12, command);

@@ -199,6 +199,9 @@ public class ZPC extends JFrame implements ActionListener, Runnable {
             menuBar.add(one);
             for (int i = 0; i < one.getItemCount(); i++) {
                 item = (JIconMenuItem) one.getItem(i);
+                if(item==null) {
+                    continue;
+                }
                 item.addActionListener(this);
                 menuItems.put(item.getActionCommand(), item);
             }
