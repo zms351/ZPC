@@ -398,7 +398,7 @@ public abstract class InstructionExecutor extends Instruction {
         regs.rip.setValue(mrs.memoryRead(pc,4*v,16));
         regs.cs.setValue(mrs.memoryRead(pc,4*v+2,16));
 
-        return false;
+        return true;
     }
 
     public boolean executeIRet() {
@@ -406,7 +406,7 @@ public abstract class InstructionExecutor extends Instruction {
         regs.rip.setValue(pop_(16));
         regs.cs.setValue(pop_(16));
         regs.flags.setValue(pop_(16));
-        return false;
+        return true;
     }
 
 }
