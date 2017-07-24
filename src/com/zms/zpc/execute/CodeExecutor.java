@@ -1066,17 +1066,17 @@ public class CodeExecutor extends BaseObj {
             case 0xcc:
                 //INT03		void				[	cc]					8086,ND
                 //INT3		void				[	cc]					8086
-                jump=instruction.executeInt(3);
+                jump = instruction.executeInt(3);
                 break;
 
             case 0xcd:
                 //INT		imm				[i:	cd ib,u]				8086,SB
-                jump=instruction.executeInt(-1);
+                jump = instruction.executeInt(-1);
                 break;
 
             case 0xce:
                 //INTO		void				[	ce]					8086,NOLONG
-                jump=instruction.executeInt(4);
+                jump = instruction.executeInt(4);
                 break;
 
             case 0xcf:
@@ -1085,7 +1085,7 @@ public class CodeExecutor extends BaseObj {
                 //IRETQ		void				[	o64 cf]					X64
                 //IRETW		void				[	o16 cf]					8086
 
-                jump=instruction.executeIRet();
+                jump = instruction.executeIRet();
                 break;
 
             case 0xd0:
@@ -1258,6 +1258,12 @@ public class CodeExecutor extends BaseObj {
                 jump = true;
                 break;
 
+            case 0xf4:
+                //HLT		void				[	f4]					8086,PRIV
+
+                instruction.executeHlt();
+                break;
+
             case 0xf5:
                 //CMC		void				[	f5]					8086
                 instruction.executeCMC();
@@ -1272,7 +1278,7 @@ public class CodeExecutor extends BaseObj {
                 //IMUL rm8				[m:	f6 /5]					8086
                 //DIV		rm8				[m:	f6 /6]					8086
                 //IDIV rm8				[m:	f6 /7]					8086
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0xf7:
                 //TEST		rm16,imm			[mi:	o16 f7 /0 iw]				8086,SM
                 //TEST		rm32,imm			[mi:	o32 f7 /0 id]				386,SM
@@ -1363,7 +1369,7 @@ public class CodeExecutor extends BaseObj {
         if (!jump) {
             reLoc(input);
         }
-        checkIR();
+        checkIR(false);
         return 0;
     }
 
@@ -1390,7 +1396,16 @@ public class CodeExecutor extends BaseObj {
         this.bits = bits;
     }
 
-    public void checkIR() {
+    public void checkIR(boolean hlt) {
+        try {
+            if (hlt) {
+                Thread.sleep(3600);
+            } else {
+                Thread.sleep(1);
+            }
+        } catch (InterruptedException e) {
+            throw new NotImplException(e);
+        }
     }
 
 }

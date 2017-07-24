@@ -1,6 +1,7 @@
 package com.zms.zpc.emulator.board;
 
 import com.zms.zpc.emulator.PC;
+import com.zms.zpc.emulator.debug.DummyDebugger;
 
 import java.util.*;
 
@@ -17,10 +18,11 @@ public class MotherBoard {
     public DMAController dma2;
     public RTC rtc;
     public Keyboard keyboard;
+    public DummyDebugger debugger;
 
     public MotherBoard(PC pc) {
         this.pc = pc;
-        devices=new ArrayList<>();
+        devices = new ArrayList<>();
         this.init();
     }
 
@@ -40,8 +42,11 @@ public class MotherBoard {
         rtc = new RTC(this);
         devices.add(rtc);
 
-        keyboard=new Keyboard(this);
+        keyboard = new Keyboard(this);
         devices.add(keyboard);
+
+        debugger = new DummyDebugger(this);
+        devices.add(debugger);
     }
 
     public void reset() {

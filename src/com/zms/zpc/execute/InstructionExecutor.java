@@ -270,7 +270,7 @@ public abstract class InstructionExecutor extends Instruction {
             BaseReg cr = regs.cx.getRegWithWidth(getAddressWidth(executor.getBits()));
             long c = cr.getValue();
             while (c != 0) {
-                executor.checkIR();
+                executor.checkIR(false);
                 executeSTOS_(base, off, val, width);
                 off = df ? off - n : off + n;
                 c--;
@@ -305,7 +305,7 @@ public abstract class InstructionExecutor extends Instruction {
             BaseReg cr = regs.cx.getRegWithWidth(getAddressWidth(executor.getBits()));
             long c = cr.getValue();
             while (c != 0) {
-                executor.checkIR();
+                executor.checkIR(false);
                 executeLODS_(base, off, width, reg);
                 off = df ? off - n : off + n;
                 c--;
@@ -409,6 +409,10 @@ public abstract class InstructionExecutor extends Instruction {
         regs.cs.setValue(pop_(16));
         regs.flags.setValue(pop_(16));
         return true;
+    }
+
+    public void executeHlt() {
+        executor.checkIR(true);
     }
 
 }

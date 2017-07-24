@@ -1,10 +1,12 @@
 package com.zms.zpc.emulator.board;
 
+import com.zms.zpc.support.BaseObj;
+
 /**
  * Created by 张小美 on 17/七月/23.
  * Copyright 2002-2016
  */
-public class Keyboard implements IODevice {
+public class Keyboard extends BaseObj implements IODevice {
 
     public MotherBoard mb;
 
