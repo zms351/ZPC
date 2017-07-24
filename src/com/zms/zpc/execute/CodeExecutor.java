@@ -189,6 +189,31 @@ public class CodeExecutor extends BaseObj {
                         //POP		reg_gs				[-:	0f a9]					386
                         instruction.executePop(regs.gs, instruction.getOpWidth(getBits()));
                         break;
+
+                    case 0xb2:
+                        //LSS		reg16,mem			[rm:	o16 0f b2 /r]				386
+                        //LSS		reg32,mem			[rm:	o32 0f b2 /r]				386
+                        //LSS		reg64,mem			[rm:	o64 0f b2 /r]				X64
+                        instruction.parse2(bits);
+                        instruction.executeLSegment(regs.ss);
+                        break;
+
+                    case 0xb4:
+                        //LFS		reg16,mem			[rm:	o16 0f b4 /r]				386
+                        //LFS		reg32,mem			[rm:	o32 0f b4 /r]				386
+                        //LFS		reg64,mem			[rm:	o64 0f b4 /r]				X64
+                        instruction.parse2(bits);
+                        instruction.executeLSegment(regs.fs);
+                        break;
+
+                    case 0xb5:
+                        //LGS		reg16,mem			[rm:	o16 0f b5 /r]				386
+                        //LGS		reg32,mem			[rm:	o32 0f b5 /r]				386
+                        //LGS		reg64,mem			[rm:	o64 0f b5 /r]				X64
+                        instruction.parse2(bits);
+                        instruction.executeLSegment(regs.gs);
+                        break;
+
                     default:
                         throw new NotImplException("op2: " + op);
                 }
@@ -1036,11 +1061,18 @@ public class CodeExecutor extends BaseObj {
                 jump = true;
                 break;
 
+            case 0xc4:
+                //LES		reg16,mem			[rm:	o16 c4 /r]				8086,NOLONG
+                //LES		reg32,mem			[rm:	o32 c4 /r]				386,NOLONG
+                instruction.parse2(bits);
+                instruction.executeLSegment(regs.es);
+                break;
+
             case 0xc5:
                 //LDS		reg16,mem			[rm:	o16 c5 /r]				8086,NOLONG
                 //LDS		reg32,mem			[rm:	o32 c5 /r]				386,NOLONG
                 instruction.parse2(bits);
-                instruction.executeLds();
+                instruction.executeLSegment(regs.ds);
                 break;
 
             case 0xc6:

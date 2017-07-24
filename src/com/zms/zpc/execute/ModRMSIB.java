@@ -200,12 +200,9 @@ public class ModRMSIB {
     }
 
     private boolean addressUseReg;
-    public Segment addressCalSegment;
-    public long addressCal;
 
     public long getMemoryAddress(PC pc) {
         assert addressReg == null;
-        addressCalSegment=null;
         addressUseReg = false;
         long address = calAddress(pc, this.address);
         if (addressUseReg) {
@@ -214,8 +211,7 @@ public class ModRMSIB {
         } else {
             address += this.disp;
         }
-        addressCal=address;
-        Segment seg = addressCalSegment=(Segment) pc.cpu.regs.getReg(instru.segBase);
+        Segment seg = (Segment) pc.cpu.regs.getReg(instru.segBase);
         return seg.getAddress(address);
     }
 

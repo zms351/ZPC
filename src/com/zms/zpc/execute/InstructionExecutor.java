@@ -374,10 +374,14 @@ public abstract class InstructionExecutor extends Instruction {
         mrs.setValMemory(pc,__v1);
     }
 
-    public void executeLds() {
-        mrs.getMemoryAddress(pc);
-        pc.cpu.regs.ds.setValue(mrs.addressCalSegment.getValue());
-        mrs.setValReg(pc,mrs.addressCal);
+    public void executeLSegment(Segment seg) {
+        int width=getOpWidth();
+        int n=width/8;
+        assert n*8==width;
+        mrs.disp+=n;
+        seg.setValue(mrs.getValMemory(pc));
+        mrs.disp-=n;
+        mrs.setValReg(pc,mrs.getValMemory(pc));
     }
 
     public boolean executeInt(long v) {
