@@ -53,6 +53,9 @@ public interface Constants {
     int DIV = CAL2_BASE + 6;
     int IDIV = CAL2_BASE + 7;
 
+    int Call=501;
+    int Ret=502;
+
     int DEBUG = 31;
 
 }

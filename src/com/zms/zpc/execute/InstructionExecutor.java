@@ -334,6 +334,7 @@ public abstract class InstructionExecutor extends Instruction {
         long to = rip.getValue() + offset;
         pc.getDebugger().onMessage(DEBUG, "Call Near from %H to %H\n", from, to);
         rip.setValue(to);
+        executor.ins=Call;
     }
 
     public void executeRetNear() {
@@ -341,6 +342,7 @@ public abstract class InstructionExecutor extends Instruction {
         long v = pop_(width);
         pc.getDebugger().onMessage(DEBUG, "Ret to %H\n", v);
         pc.cpu.regs.rip.setValue(v);
+        executor.ins=Ret;
     }
 
     public void executeLEA() {

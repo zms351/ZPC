@@ -14,7 +14,7 @@ import java.io.InputStream;
  * Created by 张小美 on 17/五月/25.
  * Copyright 2002-2016
  */
-public class PC implements Runnable {
+public class PC extends BaseObj implements Runnable {
 
     public Processor processor, cpu;
     private PCConfig config;
@@ -203,6 +203,22 @@ public class PC implements Runnable {
                             if(bytes.length>0) {
                                 stream.seek(this);
                                 stream.write(bytes);
+                            }
+                            break;
+                        }
+                        case 14:{
+                            stream.seek(this);
+                            executor.execute(this, stream);
+                            if(executor.ins==Call) {
+                                pauseCommand=15;
+                            }
+                            break;
+                        }
+                        case 15:{
+                            stream.seek(this);
+                            executor.execute(this, stream);
+                            if(executor.ins!=Ret) {
+                                pauseCommand=15;
                             }
                             break;
                         }

@@ -14,6 +14,7 @@ public class CodeExecutor extends BaseObj {
     private byte[] previewBuffer;
     private InstructionExecutor2 instruction;
     private Regs regs;
+    public int ins;
 
     public CodeExecutor() {
         previewBuffer = new byte[48];
@@ -34,6 +35,7 @@ public class CodeExecutor extends BaseObj {
         instruction.segBase = null;
         instruction.mrs.opWidth = -1;
         instruction.pc = pc;
+        ins=-1;
     }
 
     public int execute(PC pc, CodeStream input) {
