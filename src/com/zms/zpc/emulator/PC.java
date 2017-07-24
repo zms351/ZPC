@@ -99,11 +99,11 @@ public class PC extends BaseObj implements Runnable {
                     resetBefore = state;
                 }
                 state = PCState.Reset;
-                Thread thread = new Thread(this,getName()+"执行线程");
+                Thread thread = new Thread(this, getName() + "执行线程");
                 thread.setDaemon(true);
                 thread.start();
-            } else if(state==PCState.Pause) {
-                state=PCState.Running;
+            } else if (state == PCState.Pause) {
+                state = PCState.Running;
             }
         }
     }
@@ -165,6 +165,8 @@ public class PC extends BaseObj implements Runnable {
         memory.write(0, 0x100000 - bytes.length, bytes, 0, bytes.length);
     }
 
+    public int[] intObj = new int[2];
+
     @Override
     public void run() {
         try {
@@ -181,7 +183,7 @@ public class PC extends BaseObj implements Runnable {
                         executor.execute(this, stream);
                     } catch (Throwable t) {
                         t.printStackTrace();
-                        state=PCState.Pause;
+                        state = PCState.Pause;
                     }
                 } else if (state == PCState.Pause) {
                     int command = pauseCommand;
@@ -199,26 +201,40 @@ public class PC extends BaseObj implements Runnable {
                             break;
                         }
                         case 13: {  //replace instruction
-                            byte[] bytes= (byte[]) this.pauseObj;
-                            if(bytes.length>0) {
+                            byte[] bytes = (byte[]) this.pauseObj;
+                            if (bytes.length > 0) {
                                 stream.seek(this);
                                 stream.write(bytes);
                             }
                             break;
                         }
-                        case 14:{
+                        case 14: {  //step over
                             stream.seek(this);
                             executor.execute(this, stream);
-                            if(executor.ins==Call) {
-                                pauseCommand=15;
+                            if (executor.ins == Call) {
+                                pauseCommand = 16;
+                                intObj[0] = 1;
                             }
                             break;
                         }
-                        case 15:{
+                        case 15: { //step out
                             stream.seek(this);
                             executor.execute(this, stream);
-                            if(executor.ins!=Ret) {
-                                pauseCommand=15;
+                            if (executor.ins != Ret) {
+                                pauseCommand = 15;
+                            }
+                            break;
+                        }
+                        case 16: { //step out with counter
+                            stream.seek(this);
+                            executor.execute(this, stream);
+                            if (executor.ins == Call) {
+                                intObj[0]++;
+                            } else if (executor.ins == Ret) {
+                                intObj[0]--;
+                            }
+                            if (intObj[0] > 0) {
+                                pauseCommand = 16;
                             }
                             break;
                         }
