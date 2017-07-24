@@ -64,6 +64,47 @@ public class InstructionExecutor2 extends InstructionExecutor {
         return result;
     }
 
+    public long div_() {
+        Regs regs = pc.cpu.regs;
+        long v1, v2, result1, result2;
+        v2 = mrs.getValMemory(pc);
+        int width = getOpWidth();
+        switch (width) {
+            case 8:
+                v1 = regs.ax.getValue();
+                break;
+            case 16:
+                v1 = (regs.dx.getValue() << 16) | regs.ax.getValue();
+                break;
+            case 32:
+                v1 = (regs.edx.getValue() << 32) | regs.eax.getValue();
+                break;
+            case 64:
+            default:
+                throw new NotImplException();
+        }
+        result1 = v1 / v2;
+        result2 = v1 % v2;
+        long half;
+        switch (width) {
+            case 8:
+                regs.al.setValue(result1);
+                regs.ah.setValue(result2);
+                break;
+            case 16:
+                regs.ax.setValue(result1);
+                regs.dx.setValue(result2);
+                break;
+            case 32:
+                regs.eax.setValue(result1);
+                regs.edx.setValue(result2);
+                break;
+            default:
+                throw new NotImplException();
+        }
+        return result1;
+    }
+
     //0
     public long add_(long v1, long v2) {
         bits.setData(v1, v2, v1 + v2, ADD, getOpWidth(), OSZAPC);
@@ -258,6 +299,9 @@ public class InstructionExecutor2 extends InstructionExecutor {
         switch (oper) {
             case MUL:
                 mul_();
+                break;
+            case DIV:
+                div_();
                 break;
             default:
                 throw new NotImplException();

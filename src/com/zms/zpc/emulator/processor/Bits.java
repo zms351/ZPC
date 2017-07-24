@@ -18,6 +18,7 @@ public class Bits extends BaseObj {
     public final BitControl cf; //进位
     public final BitControl zf; //进位
     public final BitControl pf; //奇偶
+    public final BitControl sf; //sign
     public final BitControl if_; //中断
     public final BitControl df; //direction
     public final BitControl tf; //trap
@@ -28,16 +29,17 @@ public class Bits extends BaseObj {
         this.regs = regs;
         pe = new BitControl("pe", regs, regs.cr0.getIndex(), 0);
         int index = regs.rflags.getIndex();
-        of = new BitControl("of", regs, index, 11);
-        af = new BitControl("af", regs, index, 4);
         cf = new BitControl("cf", regs, index, 0);
-        zf = new BitControl("zf", regs, index, 6);
         pf = new BitControl("pf", regs, index, 2);
+        af = new BitControl("af", regs, index, 4);
+        zf = new BitControl("zf", regs, index, 6);
+        sf = new BitControl("sf", regs, index, 7);
+        tf = new BitControl("tf", regs, index, 8);
         if_ = new BitControl("if", regs, index, 9);
         df = new BitControl("df", regs, index, 10);
-        tf = new BitControl("tf", regs, index, 8);
-        ac = new BitControl("ac", regs, index, 18);
+        of = new BitControl("of", regs, index, 11);
         rf = new BitControl("rf", regs, index, 16);
+        ac = new BitControl("ac", regs, index, 18);
     }
 
     private long result, op1, op2;
@@ -122,7 +124,52 @@ public class Bits extends BaseObj {
     }
 
     public boolean of() {
-        throw new NotImplException();
+        if ((status & OF) == 0) {
+            return of.get();
+        } else {
+            switch (ins) {
+                case ADD:
+                    switch (opWidth) {
+                        case 8:
+                            return (((~((op1) ^ (op2)) & ((op2) ^ (result))) & (0x80)) != 0);
+                        case 16:
+                            return (((~((op1) ^ (op2)) & ((op2) ^ (result))) & (0x8000)) != 0);
+                        case 32:
+                            return (((~((op1) ^ (op2)) & ((op2) ^ (result))) & (0x80000000)) != 0);
+                    }
+                    break;
+                case SUB:
+                    switch (opWidth) {
+                        case 8:
+                            return (((((op1) ^ (op2)) & ((op1) ^ (result))) & (0x80)) != 0);
+                        case 16:
+                            return (((((op1) ^ (op2)) & ((op1) ^ (result))) & (0x8000)) != 0);
+                        case 32:
+                            return (((((op1) ^ (op2)) & ((op1) ^ (result))) & (0x80000000)) != 0);
+                    }
+                    break;
+            }
+            throw new NotImplException();
+        }
+    }
+
+    public boolean sf() {
+        if ((status & SF) == 0) {
+            return sf.get();
+        } else {
+            switch (opWidth) {
+                case 8:
+                    return ((byte) result) < 0;
+                case 16:
+                    return ((short) result) < 0;
+                case 32:
+                    return ((int) result) < 0;
+                case 64:
+                    return result < 0;
+                default:
+                    throw new NotImplException();
+            }
+        }
     }
 
     private boolean testCF() {
