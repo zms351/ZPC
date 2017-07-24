@@ -56,6 +56,8 @@ public interface Constants {
     int Call=501;
     int Ret=502;
 
+    int LOG=30;
     int DEBUG = 31;
+    int INFO = 32;
 
 }

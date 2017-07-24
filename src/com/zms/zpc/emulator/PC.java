@@ -74,7 +74,7 @@ public class PC extends BaseObj implements Runnable {
 
     public IDebugger getDebugger() {
         if (_debugger == null) {
-            _debugger = new DummyDebugger();
+            _debugger = DummyDebugger.getInstance();
         }
         return _debugger;
     }
