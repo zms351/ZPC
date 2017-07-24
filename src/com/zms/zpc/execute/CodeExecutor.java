@@ -1434,8 +1434,6 @@ public class CodeExecutor extends BaseObj {
         try {
             if (hlt) {
                 Thread.sleep(3600);
-            } else {
-                Thread.sleep(1);
             }
         } catch (InterruptedException e) {
             throw new NotImplException(e);
