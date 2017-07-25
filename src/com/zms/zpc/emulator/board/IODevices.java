@@ -24,7 +24,7 @@ public class IODevices extends BaseObj {
         if (device != null) {
             device.write(address, value, width);
         } else {
-            pc.getDebugger().onMessage(DEBUG,"io write,address: %d\tvalue: %d\twidth: %d\n", address, value, width);
+            pc.getDebugger().onMessage(WARN,"io write,address: %d\tvalue: %d\twidth: %d\n", address, value, width);
         }
     }
 
@@ -33,7 +33,7 @@ public class IODevices extends BaseObj {
         if (device != null) {
             return device.read(address,width);
         } else {
-            pc.getDebugger().onMessage(DEBUG,"io read,address: %h\twidth: %d\n", address, width);
+            pc.getDebugger().onMessage(WARN,"io read,address: %h\twidth: %d\n", address, width);
             return 0;
         }
     }

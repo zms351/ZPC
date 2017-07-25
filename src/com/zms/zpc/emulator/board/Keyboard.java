@@ -79,6 +79,7 @@ public class Keyboard extends BaseObj implements IODevice {
     private int mode;
     private boolean keyboardScanEnabled;
     private byte commandWrite;
+    private int keyboardWriteCommand;
     private InputDataQueue queue;
 
     private void init() {
@@ -166,6 +167,8 @@ public class Keyboard extends BaseObj implements IODevice {
             queue = new InputDataQueue();
         }
         mode = KBD_MODE_KBD_INT | KBD_MODE_MOUSE_INT;
+        commandWrite=0;
+        keyboardWriteCommand = -1;
     }
 
     public void update() {
@@ -194,6 +197,10 @@ public class Keyboard extends BaseObj implements IODevice {
 
     public InputDataQueue getQueue() {
         return queue;
+    }
+
+    public int getKeyboardWriteCommand() {
+        return keyboardWriteCommand;
     }
 
 }

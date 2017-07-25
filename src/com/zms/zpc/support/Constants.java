@@ -59,5 +59,6 @@ public interface Constants {
     int LOG=30;
     int DEBUG = 31;
     int INFO = 32;
+    int WARN = 33;
 
 }
