@@ -54,6 +54,7 @@ public class DummyDebugger extends BaseObj implements IDebugger, IODevice {
     }
 
     private StringBuilder[] builders;
+    private long diag;
 
     @Override
     public void write(int address, long v, int width) {
@@ -63,11 +64,13 @@ public class DummyDebugger extends BaseObj implements IDebugger, IODevice {
                 if (v == '\n') {
                     String s = builders[index].toString();
                     builders[index].setLength(0);
-                    onMessage(INFO, "%s\n",s);
+                    onMessage(INFO, "%s\n", s);
                 } else {
                     builders[index].append((char) v);
                 }
             }
+        } else {
+            diag = v;
         }
     }
 
@@ -88,6 +91,10 @@ public class DummyDebugger extends BaseObj implements IDebugger, IODevice {
                 builders[i].setLength(0);
             }
         }
+    }
+
+    public long getDiag() {
+        return diag;
     }
 
 }
