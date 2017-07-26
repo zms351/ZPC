@@ -64,6 +64,18 @@ public class InstructionExecutor2 extends InstructionExecutor {
         return result;
     }
 
+    public long imul_(long v1, long v2, int width) {
+        v1 = NumberUtils.asSigned(v1, width);
+        v2 = NumberUtils.asSigned(v2, width);
+        long v = v1 * v2;
+        bits.clearOCA();
+        bits.setData(v1, v2, v, IMUL, width, SZP);
+        boolean ok = v == NumberUtils.asSigned(v, width * 2);
+        bits.of.set(!ok);
+        bits.cf.set(!ok);
+        return v;
+    }
+
     public long div_() {
         Regs regs = pc.cpu.regs;
         long v1, v2, result1, result2;
@@ -306,6 +318,24 @@ public class InstructionExecutor2 extends InstructionExecutor {
             default:
                 throw new NotImplException();
         }
+    }
+
+    public void executeIMUL1() {
+        int width = getOpWidth();
+        long v=imul_(mrs.getValMemory(pc),mrs.getValReg(pc),width);
+        mrs.setValReg(pc,v);
+    }
+
+    public void executeIMUL2() {
+        read0();
+        long v=imul_(mrs.getValMemory(pc),__v1,__width);
+        mrs.setValReg(pc,v);
+    }
+
+    public void executeIMUL3() {
+        long v2=NumberUtils.asSigned(readOp(8),8);
+        long v=imul_(mrs.getValMemory(pc),v2,getOpWidth());
+        mrs.setValReg(pc,v);
     }
 
 }

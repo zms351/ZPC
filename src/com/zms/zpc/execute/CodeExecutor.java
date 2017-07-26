@@ -35,7 +35,7 @@ public class CodeExecutor extends BaseObj {
         instruction.segBase = null;
         instruction.mrs.opWidth = -1;
         instruction.pc = pc;
-        ins=-1;
+        ins = -1;
     }
 
     public int execute(PC pc, CodeStream input) {
@@ -188,6 +188,17 @@ public class CodeExecutor extends BaseObj {
                     case 0xa9:
                         //POP		reg_gs				[-:	0f a9]					386
                         instruction.executePop(regs.gs, instruction.getOpWidth(getBits()));
+                        break;
+
+                    case 0xaf:
+                        //IMUL		reg16,mem			[rm:	o16 0f af /r]				386,SM
+                        //IMUL		reg16,reg16			[rm:	o16 0f af /r]				386
+                        //IMUL		reg32,mem			[rm:	o32 0f af /r]				386,SM
+                        //IMUL		reg32,reg32			[rm:	o32 0f af /r]				386
+                        //IMUL		reg64,mem			[rm:	o64 0f af /r]				X64,SM
+                        //IMUL		reg64,reg64			[rm:	o64 0f af /r]				X64
+                        instruction.parse2(bits);
+                        instruction.executeIMUL1();
                         break;
 
                     case 0xb2:
@@ -566,6 +577,52 @@ public class CodeExecutor extends BaseObj {
                 //POP		reg64				[r:	o64nw 58+r]				X64
 
                 instruction.executePop58();
+                break;
+
+            case 0x69:
+                //IMUL		reg16,mem,imm16			[rmi:	o16 69 /r iw]				186,SM
+                //IMUL		reg16,mem,imm			[rmi:	o16 69 /r iw]				186,SM,ND
+                //IMUL		reg16,reg16,imm16		[rmi:	o16 69 /r iw]				186
+                //IMUL		reg16,reg16,imm			[rmi:	o16 69 /r iw]				186,SM,ND
+                //IMUL		reg32,mem,imm32			[rmi:	o32 69 /r id]				386,SM
+                //IMUL		reg32,mem,imm			[rmi:	o32 69 /r id]				386,SM,ND
+                //IMUL		reg32,reg32,imm32		[rmi:	o32 69 /r id]				386
+                //IMUL		reg32,reg32,imm			[rmi:	o32 69 /r id]				386,SM,ND
+                //IMUL		reg64,mem,imm32			[rmi:	o64 69 /r id]				X64,SM
+                //IMUL		reg64,mem,imm			[rmi:	o64 69 /r id,s]				X64,SM,ND
+                //IMUL		reg64,reg64,imm32		[rmi:	o64 69 /r id]				X64
+                //IMUL		reg64,reg64,imm			[rmi:	o64 69 /r id,s]				X64,SM,ND
+                //IMUL		reg16,imm16			[r+mi:	o16 69 /r iw]				186
+                //IMUL		reg16,imm			[r+mi:	o16 69 /r iw]				186,SM,ND
+                //IMUL		reg32,imm32			[r+mi:	o32 69 /r id]				386
+                //IMUL		reg32,imm			[r+mi:	o32 69 /r id]				386,SM,ND
+                //IMUL		reg64,imm32			[r+mi:	o64 69 /r id,s]				X64
+                //IMUL		reg64,imm			[r+mi:	o64 69 /r id,s]				X64,SM,ND
+                instruction.parse2(bits);
+                instruction.executeIMUL2();
+                break;
+
+            case 0x6b:
+                //IMUL		reg16,mem,imm8			[rmi:	o16 6b /r ib,s]				186,SM
+                //IMUL		reg16,mem,sbyteword		[rmi:	o16 6b /r ib,s]				186,SM,ND
+                //IMUL		reg16,reg16,imm8		[rmi:	o16 6b /r ib,s]				186
+                //IMUL		reg16,reg16,sbyteword		[rmi:	o16 6b /r ib,s]				186,SM,ND
+                //IMUL		reg32,mem,imm8			[rmi:	o32 6b /r ib,s]				386,SM
+                //IMUL		reg32,mem,sbytedword		[rmi:	o32 6b /r ib,s]				386,SM,ND
+                //IMUL		reg32,reg32,imm8		[rmi:	o32 6b /r ib,s]				386
+                //IMUL		reg32,reg32,sbytedword		[rmi:	o32 6b /r ib,s]				386,SM,ND
+                //IMUL		reg64,mem,imm8			[rmi:	o64 6b /r ib,s]				X64,SM
+                //IMUL		reg64,mem,sbytedword		[rmi:	o64 6b /r ib,s]				X64,SM,ND
+                //IMUL		reg64,reg64,imm8		[rmi:	o64 6b /r ib,s]				X64
+                //IMUL		reg64,reg64,sbytedword		[rmi:	o64 6b /r ib,s]				X64,SM,ND
+                //IMUL		reg32,imm8			[r+mi:	o32 6b /r ib,s]				386
+                //IMUL		reg32,sbytedword		[r+mi:	o32 6b /r ib,s]				386,SM,ND
+                //IMUL		reg64,imm8			[r+mi:	o64 6b /r ib,s]				X64
+                //IMUL		reg64,sbytedword		[r+mi:	o64 6b /r ib,s]				X64,SM,ND
+                //IMUL		reg16,imm8			[r+mi:	o16 6b /r ib,s]				186
+                //IMUL		reg16,sbyteword			[r+mi:	o16 6b /r ib,s]				186,SM,ND
+                instruction.parse2(bits);
+                instruction.executeIMUL3();
                 break;
 
             case 0x70:

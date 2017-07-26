@@ -101,6 +101,7 @@ public class NumberUtils {
             case 32:
                 return (int) n;
             case 64:
+                return n;
             default:
                 throw new NotImplException();
         }
