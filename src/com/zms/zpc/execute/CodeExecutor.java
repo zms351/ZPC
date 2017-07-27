@@ -151,6 +151,54 @@ public class CodeExecutor extends BaseObj {
                 instruction.readNextOp();
                 op = instruction.getOpcode(1);
                 switch (op) {
+
+                    case 0x00:
+                        //SLDT		mem				[m:	0f 00 /0]				286
+                        //SLDT		mem16				[m:	0f 00 /0]				286
+                        //SLDT		reg16				[m:	o16 0f 00 /0]				286
+                        //SLDT		reg32				[m:	o32 0f 00 /0]				386
+                        //SLDT		reg64				[m:	o64nw 0f 00 /0]				X64,ND
+                        //SLDT		reg64				[m:	o64 0f 00 /0]				X64
+                        //STR		mem				[m:	0f 00 /1]				286,PROT
+                        //STR		mem16				[m:	0f 00 /1]				286,PROT
+                        //STR		reg16				[m:	o16 0f 00 /1]				286,PROT
+                        //STR		reg32				[m:	o32 0f 00 /1]				386,PROT
+                        //STR		reg64				[m:	o64 0f 00 /1]				X64
+                        //LLDT		mem				[m:	0f 00 /2]				286,PROT,PRIV
+                        //LLDT		mem16				[m:	0f 00 /2]				286,PROT,PRIV
+                        //LLDT		reg16				[m:	0f 00 /2]				286,PROT,PRIV
+                        //LTR		mem				[m:	0f 00 /3]				286,PROT,PRIV
+                        //LTR		mem16				[m:	0f 00 /3]				286,PROT,PRIV
+                        //LTR		reg16				[m:	0f 00 /3]				286,PROT,PRIV
+                        //VERR		mem				[m:	0f 00 /4]				286,PROT
+                        //VERR		mem16				[m:	0f 00 /4]				286,PROT
+                        //VERR		reg16				[m:	0f 00 /4]				286,PROT
+                        //VERW		mem				[m:	0f 00 /5]				286,PROT
+                        //VERW		mem16				[m:	0f 00 /5]				286,PROT
+                        //VERW		reg16				[m:	0f 00 /5]				286,PROT
+                        //JMPE		rm16				[m:	o16 0f 00 /6]				IA64
+                        //JMPE		rm32				[m:	o32 0f 00 /6]				IA64
+                    case 0x01:
+                        //SGDT		mem				[m:	0f 01 /0]				286
+                        //SIDT		mem				[m:	0f 01 /1]				286
+                        //LGDT		mem				[m:	0f 01 /2]				286,PRIV
+                        //LIDT		mem				[m:	0f 01 /3]				286,PRIV
+                        //SMSW		mem				[m:	0f 01 /4]				286
+                        //SMSW		mem16				[m:	0f 01 /4]				286
+                        //SMSW		reg16				[m:	o16 0f 01 /4]				286
+                        //SMSW		reg32				[m:	o32 0f 01 /4]				386
+                        //SMSW		reg64				[m:	o64 0f 01 /4]				X64
+                        //LMSW		mem				[m:	0f 01 /6]				286,PRIV
+                        //LMSW		mem16				[m:	0f 01 /6]				286,PRIV
+                        //LMSW		reg16				[m:	0f 01 /6]				286,PRIV
+                        //INVLPG		mem				[m:	0f 01 /7]				486,PRIV
+                        instruction.parse2(bits);
+                        instruction.executeMem1();
+                        break;
+
+                    //case 0x20:
+
+
                     case 0x80:
                     case 0x81:
                     case 0x82:

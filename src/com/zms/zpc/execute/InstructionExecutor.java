@@ -65,7 +65,7 @@ public abstract class InstructionExecutor extends Instruction {
             case 0x7:
                 return (!bits.cf()) && (!bits.zf());
             case 0xf:
-                return bits.zf() && bits.sf()==bits.of();
+                return bits.zf() && bits.sf() == bits.of();
             default:
                 throw new NotImplException();
         }
@@ -96,8 +96,8 @@ public abstract class InstructionExecutor extends Instruction {
                 throw new NotImplException();
         }
         BaseReg rip = pc.cpu.regs.rip;
-        long jump=NumberUtils.asSigned(input.read(), 8);
-        if(!out) {
+        long jump = NumberUtils.asSigned(input.read(), 8);
+        if (!out) {
             rip.setValue(rip.getValue() + jump);
         }
         return false;
@@ -334,7 +334,7 @@ public abstract class InstructionExecutor extends Instruction {
         long to = rip.getValue() + offset;
         pc.getDebugger().onMessage(DEBUG, "Call Near from %H to %H\n", from, to);
         rip.setValue(to);
-        executor.ins=Call;
+        executor.ins = Call;
     }
 
     public void executeRetNear() {
@@ -342,7 +342,7 @@ public abstract class InstructionExecutor extends Instruction {
         long v = pop_(width);
         pc.getDebugger().onMessage(DEBUG, "Ret to %H\n", v);
         pc.cpu.regs.rip.setValue(v);
-        executor.ins=Ret;
+        executor.ins = Ret;
     }
 
     public void executeLEA() {
@@ -355,56 +355,56 @@ public abstract class InstructionExecutor extends Instruction {
         mrs.setValReg(pc, address);
     }
 
-    public void executeMov6(BaseReg reg,boolean rm) {
-        int width=getOpWidth();
-        reg=reg.getRegWithWidth(width);
-        int addressWidth=getAddressWidth(executor.getBits());
-        long address=readOp(addressWidth);
-        if(rm) {
+    public void executeMov6(BaseReg reg, boolean rm) {
+        int width = getOpWidth();
+        reg = reg.getRegWithWidth(width);
+        int addressWidth = getAddressWidth(executor.getBits());
+        long address = readOp(addressWidth);
+        if (rm) {
             long v = mrs.memoryRead(pc, address, width);
-            reg.setValue(width,v);
+            reg.setValue(width, v);
         } else {
-            long v=reg.getValue(width);
-            mrs.memoryWrite(pc,address,v,width);
+            long v = reg.getValue(width);
+            mrs.memoryWrite(pc, address, v, width);
         }
     }
 
     public void executeMov7() {
         read0();
-        mrs.setValMemory(pc,__v1);
+        mrs.setValMemory(pc, __v1);
     }
 
     public void executeLSegment(Segment seg) {
-        int width=getOpWidth();
-        int n=width/8;
-        assert n*8==width;
-        mrs.disp+=n;
+        int width = getOpWidth();
+        int n = width / 8;
+        assert n * 8 == width;
+        mrs.disp += n;
         seg.setValue(mrs.getValMemory(pc));
-        mrs.disp-=n;
-        mrs.setValReg(pc,mrs.getValMemory(pc));
+        mrs.disp -= n;
+        mrs.setValReg(pc, mrs.getValMemory(pc));
     }
 
     public boolean executeInt(long v) {
-        if(v==-1) {
-            v=readOp(8);
+        if (v == -1) {
+            v = readOp(8);
         }
-        if(v==4) {
-            if(!bits.of()) {
+        if (v == 4) {
+            if (!bits.of()) {
                 return false;
             }
         }
 
         Regs regs = pc.cpu.regs;
-        push_(regs.eflags.getValue(),16);
+        push_(regs.eflags.getValue(), 16);
         bits.clearITACR();
 
         BaseReg rip = pc.cpu.regs.rip;
         executor.reLoc(input);
-        push_(regs.cs.getValue(),16);
-        push_(regs.rip.getValue(),16);
+        push_(regs.cs.getValue(), 16);
+        push_(regs.rip.getValue(), 16);
 
-        regs.rip.setValue(mrs.memoryRead(pc,4*v,16));
-        regs.cs.setValue(mrs.memoryRead(pc,4*v+2,16));
+        regs.rip.setValue(mrs.memoryRead(pc, 4 * v, 16));
+        regs.cs.setValue(mrs.memoryRead(pc, 4 * v + 2, 16));
 
         return true;
     }
@@ -419,6 +419,45 @@ public abstract class InstructionExecutor extends Instruction {
 
     public void executeHlt() {
         executor.checkIR(true);
+    }
+
+    private void loadBigSegment(BigSegment reg) {
+        int width = getOpWidth();
+        long address = mrs.getValMemory(pc);
+        reg.limit = mrs.memoryRead(pc, address, 16);
+        switch (width) {
+            case 16:
+                reg.setValue(mrs.memoryRead(pc, address + 2, 32) & 0xffffff);
+                break;
+            case 32:
+                reg.setValue(mrs.memoryRead(pc, address + 2, 32));
+                break;
+            case 64:
+                reg.setValue(mrs.memoryRead(pc, address + 2, 64));
+                break;
+            default:
+                throw new NotImplException();
+        }
+    }
+
+    public void executeMem1() {
+        Regs regs = pc.cpu.regs;
+        switch (getOpWidth(1)) {
+            case 1:
+                switch (mrs.regIndex) {
+                    case 2:
+                        loadBigSegment(regs.gdtr);
+                        break;
+                    case 3:
+                        loadBigSegment(regs.idtr);
+                        break;
+                    default:
+                        throw new NotImplException();
+                }
+                break;
+            default:
+                throw new NotImplException();
+        }
     }
 
 }
