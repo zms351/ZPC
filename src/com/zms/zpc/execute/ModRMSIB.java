@@ -9,7 +9,7 @@ import com.zms.zpc.support.*;
  * Created by 张小美 on 17/六月/29.
  * Copyright 2002-2016
  */
-public class ModRMSIB {
+public class ModRMSIB extends BaseObj {
 
     Instruction instru;
 
@@ -32,6 +32,16 @@ public class ModRMSIB {
     private int addressWidth;
 
     public String parseReg(Instruction instruction, int bits, int reg) {
+        switch (regType) {
+            case SREG:
+                return (String) Assembler.ModData[3][6][reg];
+            case CREG:
+                return (String) Assembler.ModData[3][7][reg];
+            case DREG:
+                return (String) Assembler.ModData[3][8][reg];
+            case TREG:
+                return (String) Assembler.ModData[3][10][reg];
+        }
         if (this.reg8) {
             this.opWidth = 8;
             if (bits == 64 && instruction.isHasRex40()) {
@@ -70,21 +80,13 @@ public class ModRMSIB {
         int mod = ModRM >> 6;
         int reg = regIndex = (ModRM >> 3) & 0b111;
         int rm = ModRM & 0b111;
-
-        switch (regType) {
-            case 0:
-                this.reg = parseReg(instruction, bits, reg);
-                break;
-            case 1:
-                this.reg = (String) Assembler.ModData[3][6][reg];
-                break;
-            default:
-                throw new NotImplException();
-        }
+        this.reg = parseReg(instruction, bits, reg);
         assert this.reg != null;
-
         if (mod == 0b11) {
+            int n=regType;
+            regType=0;
             this.addressReg = parseReg(instruction, bits, rm);
+            regType=n;
             this.addressType = -1;
         } else {
             int width = addressWidth = instruction.getAddressWidth(bits);

@@ -196,8 +196,36 @@ public class CodeExecutor extends BaseObj {
                         instruction.executeMem1();
                         break;
 
-                    //case 0x20:
+                    case 0x20:
+                        //MOV		reg32,reg_creg			[mr:	rex.l 0f 20 /r]				386,PRIV,NOLONG
+                        //MOV		reg64,reg_creg			[mr:	o64nw 0f 20 /r]				X64,PRIV
+                    case 0x22:
+                        //MOV		reg_creg,reg32			[rm:	rex.l 0f 22 /r]				386,PRIV,NOLONG
+                        //MOV		reg_creg,reg64			[rm:	o64nw 0f 22 /r]				X64,PRIV
+                        instruction.mrs.regType = CREG;
+                        instruction.parse2(bits);
+                        instruction.executeMov(1,0x20,0x22);
+                        break;
 
+                    case 0x21:
+                        //MOV		reg32,reg_dreg			[mr:	0f 21 /r]				386,PRIV,NOLONG
+                        //MOV		reg64,reg_dreg			[mr:	o64nw 0f 21 /r]				X64,PRIV
+                    case 0x23:
+                        //MOV		reg_dreg,reg32			[rm:	0f 23 /r]				386,PRIV,NOLONG
+                        //MOV		reg_dreg,reg64			[rm:	o64nw 0f 23 /r]				X64,PRIV
+                        instruction.mrs.regType = DREG;
+                        instruction.parse2(bits);
+                        instruction.executeMov(1,0x21,0x23);
+                        break;
+
+                    case 0x24:
+                        //MOV		reg32,reg_treg			[mr:	0f 24 /r]				386,NOLONG,ND
+                    case 0x26:
+                        //MOV		reg_treg,reg32			[rm:	0f 26 /r]				386,NOLONG,ND
+                        instruction.mrs.regType = TREG;
+                        instruction.parse2(bits);
+                        instruction.executeMov(1,0x24,0x26);
+                        break;
 
                     case 0x80:
                     case 0x81:
@@ -986,21 +1014,6 @@ public class CodeExecutor extends BaseObj {
                 //MOV		reg32,reg_sreg			[mr:	o32 8c /r]				386
                 //MOV		reg64,reg_sreg			[mr:	o64nw 8c /r]				X64,OPT,ND
                 //MOV		rm64,reg_sreg			[mr:	o64 8c /r]				X64
-
-                instruction.mrs.regType = 1;
-                instruction.parse2(bits);
-                instruction.executeMovMR();
-                break;
-
-            case 0x8d:
-                //LEA		reg16,mem			[rm:	o16 8d /r]				8086
-                //LEA		reg32,mem			[rm:	o32 8d /r]				386
-                //LEA		reg64,mem			[rm:	o64 8d /r]				X64
-
-                instruction.parse2(bits);
-                instruction.executeLEA();
-                break;
-
             case 0x8e:
                 //MOV		reg_sreg,mem			[rm:	8e /r]					8086,SW
                 //MOV		reg_sreg,reg16			[rm:	8e /r]					8086,OPT,ND
@@ -1010,9 +1023,18 @@ public class CodeExecutor extends BaseObj {
                 //MOV		reg_sreg,reg32			[rm:	o32 8e /r]				386
                 //MOV		reg_sreg,rm64			[rm:	o64 8e /r]				X64
 
-                instruction.mrs.regType = 1;
+                instruction.mrs.regType = SREG;
                 instruction.parse2(bits);
-                instruction.executeMovRM();
+                instruction.executeMov(0,0x8c,0x8e);
+                break;
+
+            case 0x8d:
+                //LEA		reg16,mem			[rm:	o16 8d /r]				8086
+                //LEA		reg32,mem			[rm:	o32 8d /r]				386
+                //LEA		reg64,mem			[rm:	o64 8d /r]				X64
+
+                instruction.parse2(bits);
+                instruction.executeLEA();
                 break;
 
             case 0x8f:

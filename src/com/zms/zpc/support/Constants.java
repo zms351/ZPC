@@ -61,4 +61,9 @@ public interface Constants {
     int INFO = 32;
     int WARN = 33;
 
+    int SREG=321;
+    int CREG=322;
+    int DREG=323;
+    int TREG=324;
+
 }

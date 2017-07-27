@@ -225,6 +225,19 @@ public abstract class InstructionExecutor extends Instruction {
         return v;
     }
 
+    public void executeMov(int op,int mr,int rm) {
+        if(op<2) {
+            op=getOpcode(op);
+        }
+        if(op==mr) {
+            executeMovMR();
+        } else if(op==rm) {
+            executeMovRM();
+        } else {
+            throw new NotImplException();
+        }
+    }
+
     public void executeMovMR() {
         long v = mrs.getValReg(pc);
         mrs.setValMemory(pc, v);
