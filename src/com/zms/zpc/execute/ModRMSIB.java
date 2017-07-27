@@ -36,6 +36,11 @@ public class ModRMSIB extends BaseObj {
             case SREG:
                 return (String) Assembler.ModData[3][6][reg];
             case CREG:
+                if(bits==64) {
+                    this.opWidth=64;
+                } else {
+                    this.opWidth=32;
+                }
                 return (String) Assembler.ModData[3][7][reg];
             case DREG:
                 return (String) Assembler.ModData[3][8][reg];

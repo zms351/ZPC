@@ -12,4 +12,14 @@ public class ControlReg extends Reg {
         super(name, regs, index, width);
     }
 
+    @Override
+    public long getValue32() {
+        return super.getValue64();
+    }
+
+    @Override
+    public void setValue32(int v) {
+        super.setValue64(v);
+    }
+
 }

@@ -455,7 +455,7 @@ public abstract class InstructionExecutor extends Instruction {
 
     public void executeMem1() {
         Regs regs = pc.cpu.regs;
-        switch (getOpWidth(1)) {
+        switch (getOpcode(1)) {
             case 1:
                 switch (mrs.regIndex) {
                     case 2:
