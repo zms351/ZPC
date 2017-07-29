@@ -15,6 +15,7 @@ public class CS extends Segment {
     @Override
     public void setValue16(int v, boolean changeBase) {
         super.setValue16(v, changeBase);
+        regs.cpu.checkState();
     }
 
 }

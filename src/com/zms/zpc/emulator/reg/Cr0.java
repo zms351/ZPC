@@ -15,13 +15,7 @@ public class Cr0 extends ControlReg {
     @Override
     public void setValue64(long v) {
         super.setValue64(v);
-        if(!regs.bits.pe.get()) {
-            regs.bits.setMode(CPUMode.Real);
-        } else {
-            if(regs.bits.getMode()==CPUMode.Real) {
-                regs.bits.setMode(CPUMode.Protected32);
-            }
-        }
+        regs.cpu.checkState();
     }
 
 }

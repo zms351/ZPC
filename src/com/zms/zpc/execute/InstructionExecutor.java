@@ -37,8 +37,8 @@ public abstract class InstructionExecutor extends Instruction {
         long offset = readOp();
         int base = read16();
         if (executor.getBits() == 16) {
-            pc.cpu.regs.cs.setValue(base);
             pc.cpu.regs.rip.setValue64(offset);
+            pc.cpu.regs.cs.setValue(base);
         } else {
             throw new NotImplException();
         }
