@@ -24,10 +24,16 @@ public class CodeExecutor extends BaseObj {
 
     protected void pre(PC pc) {
         regs = pc.cpu.regs;
-        if (regs.bits.pe.get()) {
-            throw new NotImplException();
-        } else {
-            bits = 16;
+        switch (pc.cpu.getMode()) {
+            case Protected16:
+            case Real:
+                bits = 16;
+                break;
+            case Protected32:
+                bits = 32;
+                break;
+            default:
+                throw new NotImplException();
         }
         instruction.mrs.reg8 = false;
         instruction.bits = regs.bits;
@@ -204,7 +210,7 @@ public class CodeExecutor extends BaseObj {
                         //MOV		reg_creg,reg64			[rm:	o64nw 0f 22 /r]				X64,PRIV
                         instruction.mrs.regType = CREG;
                         instruction.parse2(bits);
-                        instruction.executeMov(1,0x20,0x22);
+                        instruction.executeMov(1, 0x20, 0x22);
                         break;
 
                     case 0x21:
@@ -215,7 +221,7 @@ public class CodeExecutor extends BaseObj {
                         //MOV		reg_dreg,reg64			[rm:	o64nw 0f 23 /r]				X64,PRIV
                         instruction.mrs.regType = DREG;
                         instruction.parse2(bits);
-                        instruction.executeMov(1,0x21,0x23);
+                        instruction.executeMov(1, 0x21, 0x23);
                         break;
 
                     case 0x24:
@@ -224,7 +230,7 @@ public class CodeExecutor extends BaseObj {
                         //MOV		reg_treg,reg32			[rm:	0f 26 /r]				386,NOLONG,ND
                         instruction.mrs.regType = TREG;
                         instruction.parse2(bits);
-                        instruction.executeMov(1,0x24,0x26);
+                        instruction.executeMov(1, 0x24, 0x26);
                         break;
 
                     case 0x80:
@@ -1025,7 +1031,7 @@ public class CodeExecutor extends BaseObj {
 
                 instruction.mrs.regType = SREG;
                 instruction.parse2(bits);
-                instruction.executeMov(0,0x8c,0x8e);
+                instruction.executeMov(0, 0x8c, 0x8e);
                 break;
 
             case 0x8d:

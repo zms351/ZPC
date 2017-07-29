@@ -137,11 +137,11 @@ public class PC extends BaseObj implements Runnable {
     private void doReset() {
         synchronized (this) {
             board.reset();
-            cpu.regs.rip.setValue64(0xFFF0);
-            cpu.regs.cs.setValue(0xf000);
             cpu.regs.bits.pe.clear();
             cpu.setMode(CPUMode.Real);
             cpu.checkState();
+            cpu.regs.rip.setValue64(0xFFF0);
+            cpu.regs.cs.setValue(0xf000);
             installBios();
             if (resetBefore == PCState.Pause) {
                 state = PCState.Pause;

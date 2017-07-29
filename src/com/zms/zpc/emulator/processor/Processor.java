@@ -28,8 +28,24 @@ public class Processor {
         return regs;
     }
 
+    private CPUMode mode = CPUMode.Real;
+
+    public void setMode(CPUMode mode) {
+        this.mode = mode;
+    }
+
     public CPUMode getMode() {
-        return regs.bits.getMode();
+        return mode;
+    }
+
+    public void checkState() {
+        if (!regs.bits.pe.get()) {
+            setMode(CPUMode.Real);
+        } else {
+            if (getMode() == CPUMode.Real) {
+                setMode(CPUMode.Protected32);
+            }
+        }
     }
 
 }
