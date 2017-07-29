@@ -19,7 +19,13 @@ public class ControlReg extends Reg {
 
     @Override
     public void setValue32(int v) {
+        setValue64(v);
+    }
+
+    @Override
+    public void setValue64(long v) {
         super.setValue64(v);
+        regs.cpu.checkState();
     }
 
 }

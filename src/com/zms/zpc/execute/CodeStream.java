@@ -3,7 +3,6 @@ package com.zms.zpc.execute;
 import com.zms.zpc.emulator.PC;
 import com.zms.zpc.emulator.memory.RAM;
 import com.zms.zpc.emulator.processor.Regs;
-import com.zms.zpc.support.NotImplException;
 
 import java.io.InputStream;
 
@@ -18,12 +17,8 @@ public class CodeStream extends InputStream {
 
     public void seek(PC pc) {
         Regs regs = pc.cpu.regs;
-        if (regs.bits.pe.get()) {
-            throw new NotImplException();
-        } else {
-            ram = pc.memory;
-            pos = regs.cs.getAddress(regs.rip);
-        }
+        ram = pc.memory;
+        pos = regs.cs.getAddress(regs.rip);
     }
 
     @Override

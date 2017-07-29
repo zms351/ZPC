@@ -1,6 +1,6 @@
 package com.zms.zpc.emulator.reg;
 
-import com.zms.zpc.emulator.processor.*;
+import com.zms.zpc.emulator.processor.Regs;
 import com.zms.zpc.support.NotImplException;
 
 /**
@@ -27,16 +27,23 @@ public class Segment extends Reg {
     public void setValue16(int v, boolean changeBase) {
         super.setValue16(v);
         if (changeBase) {
-            base=(v & 0xffff) << 4;
+            switch (regs.cpu.getMode()) {
+                case Real:
+                    base = (v & 0xffff) << 4;
+                    break;
+                default:
+                    throw new NotImplException();
+            }
         }
     }
 
     public long getAddress(long address) {
-        CPUMode mode = regs.cpu.getMode();
-        if (mode == CPUMode.Real) {
-            return base + (address & 0xffff);
-        } else {
-            throw new NotImplException();
+        switch (regs.cpu.getMode()) {
+            case Protected32:
+            case Real:
+                return base + (address & 0xffff);
+            default:
+                throw new NotImplException();
         }
     }
 
