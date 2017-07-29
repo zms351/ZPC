@@ -190,8 +190,18 @@ public class Bits extends BaseObj {
         throw new NotImplException();
     }
 
+    private CPUMode mode=CPUMode.Real;
+
+    public void setMode(CPUMode mode) {
+        this.mode = mode;
+    }
+
     public CPUMode getMode() {
-        return CPUMode.Real;
+        return mode;
+    }
+
+    public void checkState() {
+
     }
 
 }

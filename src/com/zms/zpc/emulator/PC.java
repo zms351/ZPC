@@ -3,7 +3,7 @@ package com.zms.zpc.emulator;
 import com.zms.zpc.emulator.board.MotherBoard;
 import com.zms.zpc.emulator.debug.*;
 import com.zms.zpc.emulator.memory.*;
-import com.zms.zpc.emulator.processor.Processor;
+import com.zms.zpc.emulator.processor.*;
 import com.zms.zpc.emulator.reg.Segment;
 import com.zms.zpc.execute.*;
 import com.zms.zpc.support.*;
@@ -143,7 +143,7 @@ public class PC extends BaseObj implements Runnable {
             //cs.base.setValue64(0xffff0000L);
             cpu.regs.rip.setValue64(0xFFF0);
             cpu.regs.bits.pe.clear();
-            memory = new RealModeMemory(memory);
+            cpu.regs.bits.setMode(CPUMode.Real);
             installBios();
             if (resetBefore == PCState.Pause) {
                 state = PCState.Pause;
@@ -184,6 +184,7 @@ public class PC extends BaseObj implements Runnable {
                     } catch (Throwable t) {
                         t.printStackTrace();
                         state = PCState.Pause;
+                        pauseCommand=0;
                     }
                 } else if (state == PCState.Pause) {
                     int command = pauseCommand;

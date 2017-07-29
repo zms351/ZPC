@@ -106,7 +106,7 @@ public class Regs {
     public final Flags eflags = new Flags("eflags", this, 62, 32);
     public final Flags flags = new Flags("flags", this, 62, 16);
 
-    public final ControlReg cr0 = new ControlReg("cr0", this, 80, 64);
+    public final ControlReg cr0 = new Cr0("cr0", this, 80, 64);
     public final ControlReg cr2 = new ControlReg("cr2", this, 82, 64);
     public final ControlReg cr3 = new ControlReg("cr3", this, 83, 64);
     public final ControlReg cr4 = new ControlReg("cr4", this, 84, 64);
@@ -114,7 +114,7 @@ public class Regs {
 
     //ES、CS、SS、DS、FS和GS
 
-    public final Segment cs = new Segment("cs", this, 101);
+    public final Segment cs = new CS("cs", this, 101);
     public final Segment ds = new Segment("ds", this, 102);
     public final Segment es = new Segment("es", this, 103);
     public final Segment fs = new Segment("fs", this, 104);

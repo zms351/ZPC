@@ -7,6 +7,7 @@ package com.zms.zpc.emulator.processor;
 public enum CPUMode {
 
     Real,
-    Protected,
+    Protected32,
+    Protected16,
 
 }
