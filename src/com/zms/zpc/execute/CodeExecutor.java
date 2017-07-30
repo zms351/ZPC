@@ -1,6 +1,5 @@
 package com.zms.zpc.execute;
 
-import com.sun.org.apache.bcel.internal.generic.PUSH;
 import com.zms.zpc.emulator.PC;
 import com.zms.zpc.emulator.processor.Regs;
 import com.zms.zpc.support.*;
@@ -1085,7 +1084,7 @@ public class CodeExecutor extends BaseObj {
                 //MOV		reg_ax,mem_offs			[-i:	o16 a1 iwdq]				8086,SM
                 //MOV		reg_eax,mem_offs		[-i:	o32 a1 iwdq]				386,SM
                 //MOV		reg_rax,mem_offs		[-i:	o64 a1 iwdq]				X64,SM
-                instruction.executeMov6(pc.cpu.regs.al, false);
+                instruction.executeMov6(pc.cpu.regs.al, true);
                 break;
 
             case 0xa2:
@@ -1095,7 +1094,7 @@ public class CodeExecutor extends BaseObj {
                 //MOV		mem_offs,reg_ax			[i-:	o16 a3 iwdq]				8086,SM,NOHLE
                 //MOV		mem_offs,reg_eax		[i-:	o32 a3 iwdq]				386,SM,NOHLE
                 //MOV		mem_offs,reg_rax		[i-:	o64 a3 iwdq]				X64,SM,NOHLE
-                instruction.executeMov6(pc.cpu.regs.al, true);
+                instruction.executeMov6(pc.cpu.regs.al, false);
                 break;
 
             case 0xa8:

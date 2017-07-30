@@ -179,12 +179,12 @@ public abstract class InstructionExecutor extends Instruction {
 
     public void exeucutePush68() {
         read0();
-        push_(__v1,__width);
+        push_(__v1, __width);
     }
 
     public void exeucutePush6a() {
-        long v=NumberUtils.asSigned(input.read(), 8);
-        push_(__v1,getOpWidth());
+        long v = NumberUtils.asSigned(input.read(), 8);
+        push_(__v1, getOpWidth());
     }
 
     public void executePop58() {
@@ -361,8 +361,8 @@ public abstract class InstructionExecutor extends Instruction {
     }
 
     public void executeCallNearFF() {
-        int width=getOpWidth();
-        long offset=NumberUtils.asSigned(mrs.getValMemory(pc),width);
+        int width = getOpWidth();
+        long offset = NumberUtils.asSigned(mrs.getValMemory(pc), width);
         callNear_(offset);
     }
 
@@ -389,6 +389,7 @@ public abstract class InstructionExecutor extends Instruction {
         reg = reg.getRegWithWidth(width);
         int addressWidth = getAddressWidth(executor.getBits());
         long address = readOp(addressWidth);
+        address = mrs.getMemoryAddress(pc, address);
         if (rm) {
             long v = mrs.memoryRead(pc, address, width);
             reg.setValue(width, v);

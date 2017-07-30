@@ -26,6 +26,13 @@ public abstract class Instruction extends BaseObj {
     public int __width;
     public String segBase;
 
+    public String getSegBase() {
+        if (segBase == null) {
+            segBase = "DS";
+        }
+        return segBase;
+    }
+
     public Instruction() {
     }
 

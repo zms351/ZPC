@@ -36,10 +36,10 @@ public class ModRMSIB extends BaseObj {
             case SREG:
                 return (String) Assembler.ModData[3][6][reg];
             case CREG:
-                if(bits==64) {
-                    this.opWidth=64;
+                if (bits == 64) {
+                    this.opWidth = 64;
                 } else {
-                    this.opWidth=32;
+                    this.opWidth = 32;
                 }
                 return (String) Assembler.ModData[3][7][reg];
             case DREG:
@@ -88,10 +88,10 @@ public class ModRMSIB extends BaseObj {
         this.reg = parseReg(instruction, bits, reg);
         assert this.reg != null;
         if (mod == 0b11) {
-            int n=regType;
-            regType=0;
+            int n = regType;
+            regType = 0;
             this.addressReg = parseReg(instruction, bits, rm);
-            regType=n;
+            regType = n;
             this.addressType = -1;
         } else {
             int width = addressWidth = instruction.getAddressWidth(bits);
@@ -218,7 +218,11 @@ public class ModRMSIB extends BaseObj {
         } else {
             address += this.disp;
         }
-        Segment seg = (Segment) pc.cpu.regs.getReg(instru.segBase);
+        return getMemoryAddress(pc,address);
+    }
+
+    public long getMemoryAddress(PC pc,long address) {
+        Segment seg = (Segment) pc.cpu.regs.getReg(instru.getSegBase());
         return seg.getAddress(address);
     }
 
