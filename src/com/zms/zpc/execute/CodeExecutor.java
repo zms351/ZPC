@@ -1414,7 +1414,7 @@ public class CodeExecutor extends BaseObj {
                 //JMP		imm32|near			[i:	o32 e9 rel]				386,ND,NOLONG,BND
                 //JMP		imm64				[i:	o64nw e9 rel]				X64,BND
                 //JMP		imm64|near			[i:	o64nw e9 rel]				X64,ND,BND
-                instruction.executeJumpNear();
+                instruction.executeJumpShort();
                 break;
 
             case 0xea:
@@ -1489,7 +1489,7 @@ public class CodeExecutor extends BaseObj {
                 //CALL		imm64				[i:	o64nw e8 rel]				X64,BND
                 //CALL		imm64|near			[i:	o64nw e8 rel]				X64,ND,BND
 
-                instruction.executeCallNear();
+                instruction.executeCallShort();
                 jump = true;
                 break;
 
@@ -1595,7 +1595,19 @@ public class CodeExecutor extends BaseObj {
                         //CALL		rm16				[m:	o16 ff /2]				8086,NOLONG,BND
                         //CALL		rm32				[m:	o32 ff /2]				386,NOLONG,BND
                         //CALL		rm64				[m:	o64nw ff /2]				X64,BND
-                        jump = instruction.executeCallNearFF();
+                        jump = instruction.executeCallNear();
+                        break;
+
+                    case 4:
+                        //JMP		mem|near			[m:	odf ff /4]				8086,ND,BND
+                        //JMP		rm16|near			[m:	o16 ff /4]				8086,NOLONG,ND,BND
+                        //JMP		rm32|near			[m:	o32 ff /4]				386,NOLONG,ND,BND
+                        //JMP		rm64|near			[m:	o64nw ff /4]				X64,ND,BND
+                        //JMP		mem				[m:	odf ff /4]				8086,BND
+                        //JMP		rm16				[m:	o16 ff /4]				8086,NOLONG,BND
+                        //JMP		rm32				[m:	o32 ff /4]				386,NOLONG,BND
+                        //JMP		rm64				[m:	o64nw ff /4]				X64,BND
+                        jump=instruction.executeJumpNear();
                         break;
 
                     case 6:

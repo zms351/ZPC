@@ -40,11 +40,18 @@ public abstract class InstructionExecutor extends Instruction {
         pc.cpu.regs.cs.setValue(base);
     }
 
-    public void executeJumpNear() {
+    public void executeJumpShort() {
         long offset = readOp();
         offset = NumberUtils.asSigned(offset, getOpWidth());
         BaseReg rip = pc.cpu.regs.rip;
         rip.setValue(rip.getValue() + offset);
+    }
+
+    public boolean executeJumpNear() {
+        long offset=mrs.getValMemory(pc);
+        BaseReg rip = pc.cpu.regs.rip;
+        rip.setValue(offset);
+        return true;
     }
 
     public boolean testCondition(int code) {
@@ -342,13 +349,13 @@ public abstract class InstructionExecutor extends Instruction {
         }
     }
 
-    public void executeCallNear() {
+    public void executeCallShort() {
         int width = getOpWidth();
         long offset = NumberUtils.asSigned(readOp(width), width);
-        callNear_(offset, false);
+        call_(offset, false);
     }
 
-    protected void callNear_(long offset, boolean replace) {
+    protected void call_(long offset, boolean replace) {
         BaseReg rip = pc.cpu.regs.rip;
         executor.reLoc(input);
         long from = rip.getValue();
@@ -359,9 +366,9 @@ public abstract class InstructionExecutor extends Instruction {
         executor.ins = Call;
     }
 
-    public boolean executeCallNearFF() {
+    public boolean executeCallNear() {
         long offset = mrs.getValMemory(pc);
-        callNear_(offset, true);
+        call_(offset, true);
         return true;
     }
 
