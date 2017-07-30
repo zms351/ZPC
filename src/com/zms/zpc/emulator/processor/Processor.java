@@ -43,7 +43,7 @@ public class Processor {
             setMode(CPUMode.Real);
         } else {
             if (getMode() == CPUMode.Real) {
-                setMode(CPUMode.Protected32);
+                setMode(CPUMode.Protected16);
             }
         }
     }

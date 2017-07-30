@@ -122,6 +122,7 @@ public class Regs {
     public final Segment ss = new Segment("ss", this, 106);
 
     public final BigSegment gdtr=new BigSegment("gdtr",this,107);
+    public final BigSegment ldtr=new BigSegment("ldtr",this,110);
     public final BigSegment idtr=new BigSegment("idtr",this,108);
     public final BigSegment tss=new BigSegment("tss",this,109);
 

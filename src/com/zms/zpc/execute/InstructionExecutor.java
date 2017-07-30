@@ -36,12 +36,8 @@ public abstract class InstructionExecutor extends Instruction {
     public void executeJumpFar() {
         long offset = readOp();
         int base = read16();
-        if (executor.getBits() == 16) {
-            pc.cpu.regs.rip.setValue64(offset);
-            pc.cpu.regs.cs.setValue(base);
-        } else {
-            throw new NotImplException();
-        }
+        pc.cpu.regs.ip.setValue(offset);
+        pc.cpu.regs.cs.setValue(base);
     }
 
     public void executeJumpNear() {
@@ -225,13 +221,13 @@ public abstract class InstructionExecutor extends Instruction {
         return v;
     }
 
-    public void executeMov(int op,int mr,int rm) {
-        if(op<2) {
-            op=getOpcode(op);
+    public void executeMov(int op, int mr, int rm) {
+        if (op < 2) {
+            op = getOpcode(op);
         }
-        if(op==mr) {
+        if (op == mr) {
             executeMovMR();
-        } else if(op==rm) {
+        } else if (op == rm) {
             executeMovRM();
         } else {
             throw new NotImplException();
@@ -436,7 +432,7 @@ public abstract class InstructionExecutor extends Instruction {
 
     private void loadBigSegment(BigSegment reg) {
         int width = getOpWidth();
-        long address = mrs.getValMemory(pc);
+        long address = mrs.getMemoryAddress(pc);
         reg.limit = mrs.memoryRead(pc, address, 16);
         switch (width) {
             case 16:

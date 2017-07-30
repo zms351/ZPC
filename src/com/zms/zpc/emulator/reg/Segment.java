@@ -12,16 +12,31 @@ public class Segment extends Reg {
     public BaseReg_16 attribute;
     public BaseReg_32 limit;
     public long base;
+    public DTR dtr;
 
     public Segment(String name, Regs regs, int index) {
         super(name, regs, index, 16);
         attribute = new BaseReg_16(name + "r", regs, index);
         limit = new BaseReg_32(name + "l", regs, index);
+        dtr = new DTR(this);
     }
 
     @Override
     public void setValue16(int v) {
         this.setValue16(v, true);
+    }
+
+    public void loadProtected() {
+        long v = getValue();
+        BigSegment big;
+        long v1 = v >> 3;
+        if ((v & 4) > 0) {
+            big = regs.ldtr;
+        } else {
+            big = regs.gdtr;
+            assert v1 > 0;
+        }
+        dtr.load(big.getValue(), v1);
     }
 
     public void setValue16(int v, boolean changeBase) {
@@ -31,6 +46,11 @@ public class Segment extends Reg {
                 case Real:
                     base = (v & 0xffff) << 4;
                     break;
+                case Protected16:
+                case Protected32:
+                    loadProtected();
+                    regs.cpu.checkState();
+                    break;
                 default:
                     throw new NotImplException();
             }
@@ -39,7 +59,7 @@ public class Segment extends Reg {
 
     public long getAddress(long address) {
         switch (regs.cpu.getMode()) {
-            case Protected32:
+            case Protected16:
             case Real:
                 return base + (address & 0xffff);
             default:

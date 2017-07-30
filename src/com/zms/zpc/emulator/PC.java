@@ -15,6 +15,8 @@ import java.io.InputStream;
  */
 public class PC extends BaseObj implements Runnable {
 
+    public static final ThreadLocal<PC> currentPC=new ThreadLocal<>();
+
     public Processor processor, cpu;
     private PCConfig config;
     private PCState state = PCState.Shutddown;
@@ -139,7 +141,6 @@ public class PC extends BaseObj implements Runnable {
             board.reset();
             cpu.regs.bits.pe.clear();
             cpu.setMode(CPUMode.Real);
-            cpu.checkState();
             cpu.regs.rip.setValue64(0xFFF0);
             cpu.regs.cs.setValue(0xf000);
             installBios();
@@ -168,6 +169,7 @@ public class PC extends BaseObj implements Runnable {
     @Override
     public void run() {
         try {
+            currentPC.set(this);
             CodeExecutor executor = new CodeExecutor();
             CodeStream stream = new CodeStream();
             while (state != PCState.Shutddown) {
