@@ -1538,6 +1538,18 @@ public class CodeExecutor extends BaseObj {
                         instruction.executeDecRm();
                         break;
 
+                    case 2:
+                        //CALL		mem|near			[m:	odf ff /2]				8086,ND,BND
+                        //CALL		rm16|near			[m:	o16 ff /2]				8086,NOLONG,ND,BND
+                        //CALL		rm32|near			[m:	o32 ff /2]				386,NOLONG,ND,BND
+                        //CALL		rm64|near			[m:	o64nw ff /2]				X64,ND,BND
+                        //CALL		mem				[m:	odf ff /2]				8086,BND
+                        //CALL		rm16				[m:	o16 ff /2]				8086,NOLONG,BND
+                        //CALL		rm32				[m:	o32 ff /2]				386,NOLONG,BND
+                        //CALL		rm64				[m:	o64nw ff /2]				X64,BND
+                        instruction.executeCallNearFF();
+                        break;
+
                     case 6:
                         //PUSH rm16				[m:	o16 ff /6]				8086
                         //PUSH		rm32				[m:	o32 ff /6]				386,NOLONG

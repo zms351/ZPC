@@ -344,16 +344,26 @@ public abstract class InstructionExecutor extends Instruction {
     }
 
     public void executeCallNear() {
-        int width = getOpWidth(executor.getBits());
+        int width = getOpWidth();
         long offset = NumberUtils.asSigned(readOp(width), width);
+        callNear_(offset);
+    }
+
+    protected void callNear_(long offset) {
         BaseReg rip = pc.cpu.regs.rip;
         executor.reLoc(input);
         long from = rip.getValue();
-        push_(rip.getValue(), width);
+        push_(rip.getValue(), getOpWidth());
         long to = rip.getValue() + offset;
         pc.getDebugger().onMessage(DEBUG, "Call Near from %H to %H\n", from, to);
         rip.setValue(to);
         executor.ins = Call;
+    }
+
+    public void executeCallNearFF() {
+        int width=getOpWidth();
+        long offset=NumberUtils.asSigned(mrs.getValMemory(pc),width);
+        callNear_(offset);
     }
 
     public void executeRetNear() {
