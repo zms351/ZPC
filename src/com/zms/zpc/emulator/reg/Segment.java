@@ -62,6 +62,8 @@ public class Segment extends Reg {
             case Protected16:
             case Real:
                 return base + (address & 0xffff);
+            case Protected32:
+                return base+(address & 0xffffffffL);
             default:
                 throw new NotImplException();
         }

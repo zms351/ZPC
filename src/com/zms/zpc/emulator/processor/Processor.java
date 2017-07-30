@@ -42,8 +42,17 @@ public class Processor {
         if (!regs.bits.pe.get()) {
             setMode(CPUMode.Real);
         } else {
-            if (getMode() == CPUMode.Real) {
+            CPUMode mode = getMode();
+            if (mode == CPUMode.Real) {
                 setMode(CPUMode.Protected16);
+            } else if (mode == CPUMode.Protected16) {
+                if (regs.cs.dtr.hasDB()) {
+                    setMode(CPUMode.Protected32);
+                }
+            } else if (mode == CPUMode.Protected32) {
+                if (!regs.cs.dtr.hasDB()) {
+                    setMode(CPUMode.Protected16);
+                }
             }
         }
     }

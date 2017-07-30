@@ -36,7 +36,7 @@ public abstract class InstructionExecutor extends Instruction {
     public void executeJumpFar() {
         long offset = readOp();
         int base = read16();
-        pc.cpu.regs.ip.setValue(offset);
+        pc.cpu.regs.ip.getRegWithWidth(getOpWidth()).setValue(offset);
         pc.cpu.regs.cs.setValue(base);
     }
 
