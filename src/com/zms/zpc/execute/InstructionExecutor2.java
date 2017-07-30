@@ -253,7 +253,11 @@ public class InstructionExecutor2 extends InstructionExecutor {
             v = cal(type, v1, v2);
         }
         if (type != CMP && type != TEST) {
-            mrs.setValReg(pc, v);
+            if(rm) {
+                mrs.setValReg(pc, v);
+            } else {
+                mrs.setValMemory(pc, v);
+            }
         }
     }
 
