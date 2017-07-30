@@ -10,6 +10,7 @@ import com.zms.zpc.support.BaseObj;
 public class DTR extends BaseObj {
 
     public Segment segment;
+    public boolean _null;
 
     public long val;
 
@@ -30,6 +31,10 @@ public class DTR extends BaseObj {
 
     public boolean hasDB() {
         return (val & Pows[54])>0;
+    }
+
+    public boolean isNull() {
+        return _null;
     }
 
 }

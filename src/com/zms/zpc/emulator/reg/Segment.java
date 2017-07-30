@@ -34,7 +34,7 @@ public class Segment extends Reg {
             big = regs.ldtr;
         } else {
             big = regs.gdtr;
-            assert v1 > 0;
+            dtr._null=v1==0;
         }
         dtr.load(big.getValue(), v1);
     }
@@ -71,6 +71,11 @@ public class Segment extends Reg {
 
     public long getAddress(BaseReg pointer) {
         return getAddress(pointer.getValue());
+    }
+
+    @Override
+    public void setValue32(int v) {
+        setValue16(v);
     }
 
 }
