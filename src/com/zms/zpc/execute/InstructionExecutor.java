@@ -320,27 +320,24 @@ public abstract class InstructionExecutor extends Instruction {
         int n = width / 8;
         assert n * 8 == width;
 
-        if (isHasf2() || isHasf3()) {
+        if (isHasf3()) {
             BaseReg cr = regs.cx.getRegWithWidth(getAddressWidth(executor.getBits()));
             long c = cr.getValue();
             while (c != 0) {
                 executor.checkIR(false);
-                executeLODS_(base, off, width, reg);
+                long val = mrs.memoryRead(pc, base.getAddress(off), width);
+                reg.setValue(width, val);
                 off = df ? off - n : off + n;
                 c--;
             }
             cr.setValue(0);
             offr.setValue(off);
         } else {
-            executeLODS_(base, off, width, reg);
+            long val = mrs.memoryRead(pc, base.getAddress(off), width);
+            reg.setValue(width, val);
             off = df ? off - n : off + n;
             offr.setValue(off);
         }
-    }
-
-    public void executeLODS_(Segment base, long off, int width, BaseReg reg) {
-        long val = mrs.memoryRead(pc, base.getAddress(off), width);
-        reg.setValue(width, val);
     }
 
     public void executeCallNear() {
@@ -487,6 +484,46 @@ public abstract class InstructionExecutor extends Instruction {
                 break;
             default:
                 throw new NotImplException();
+        }
+    }
+
+    public void executeMovs() {
+        int addressWidth = getAddressWidth(executor.getBits());
+        Regs regs = pc.cpu.regs;
+        boolean df = bits.df.get();
+
+        Segment seg1 = (Segment) regs.getReg(getSegBase());
+        BaseReg off1 = regs.si.getRegWithWidth(addressWidth);
+        long address1 = seg1.getAddress(off1);
+
+        Segment seg2 = regs.es;
+        BaseReg off2 = regs.di.getRegWithWidth(addressWidth);
+        long address2 = seg2.getAddress(off2);
+
+        int opWidth = getOpWidth();
+        int n = opWidth / 8;
+        assert n * 8 == opWidth;
+
+        if (isHasf3()) {
+            BaseReg cr = regs.cx.getRegWithWidth(getAddressWidth(executor.getBits()));
+            long c = cr.getValue();
+            long c1 = c;
+            while (c != 0) {
+                executor.checkIR(false);
+                long v = mrs.memoryRead(pc, address1, opWidth);
+                mrs.memoryWrite(pc, address2, v, opWidth);
+                address1 = df ? address1 - n : address1 + n;
+                address2 = df ? address2 - n : address2 + n;
+                c--;
+            }
+            cr.setValue(0);
+            off1.setValue(df ? (off1.getValue() - n * c1) : (off1.getValue() + n * c1));
+            off2.setValue(df ? (off2.getValue() - n * c1) : (off2.getValue() + n * c1));
+        } else {
+            long v = mrs.memoryRead(pc, address1, opWidth);
+            mrs.memoryWrite(pc, address2, v, opWidth);
+            off1.setValue(df ? (off1.getValue() - n) : (off1.getValue() + n));
+            off2.setValue(df ? (off2.getValue() - n) : (off2.getValue() + n));
         }
     }
 

@@ -18,7 +18,7 @@ public abstract class Instruction extends BaseObj {
     private int[] rexPrefix = new int[20];
 
     private boolean has66, has67;
-    private boolean hasf3, hasf2;
+    private boolean hasf3, hasf2, hasf0;
 
     private int opcodeCount;
     private int[] opcode = new int[20];
@@ -45,7 +45,7 @@ public abstract class Instruction extends BaseObj {
         rexPrefixCount = 0;
         int n;
         has66 = has67 = false;
-        hasf3 = hasf2 = false;
+        hasf3 = hasf2 = hasf0 = false;
         out:
         while (true) {
             n = input.read();
@@ -92,6 +92,7 @@ public abstract class Instruction extends BaseObj {
                     break;
                 case 0xf0:
                     legacyPrefix[legacyPrefixCount++] = n;
+                    hasf0 = true;
                     break;
                 default:
                     break out;
@@ -179,6 +180,10 @@ public abstract class Instruction extends BaseObj {
 
     public boolean isHasf3() {
         return hasf3;
+    }
+
+    public boolean isHasf0() {
+        return hasf0;
     }
 
     public boolean isHasf2() {

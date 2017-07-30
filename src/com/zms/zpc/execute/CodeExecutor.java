@@ -1097,6 +1097,16 @@ public class CodeExecutor extends BaseObj {
                 instruction.executeMov6(pc.cpu.regs.al, false);
                 break;
 
+            case 0xa4:
+                //MOVSB		void				[	a4]					8086
+                mrs.reg8 = true;
+            case 0xa5:
+                //MOVSD		void				[	o32 a5]					386
+                //MOVSQ		void				[	o64 a5]					X64
+                //MOVSW		void				[	o16 a5]					8086
+                instruction.executeMovs();
+                break;
+
             case 0xa8:
                 //TEST		reg_al,imm			[-i:	a8 ib]					8086,SM
                 mrs.reg8 = true;
@@ -1546,7 +1556,7 @@ public class CodeExecutor extends BaseObj {
                         //CALL		rm16				[m:	o16 ff /2]				8086,NOLONG,BND
                         //CALL		rm32				[m:	o32 ff /2]				386,NOLONG,BND
                         //CALL		rm64				[m:	o64nw ff /2]				X64,BND
-                        jump=instruction.executeCallNearFF();
+                        jump = instruction.executeCallNearFF();
                         break;
 
                     case 6:
@@ -1566,6 +1576,19 @@ public class CodeExecutor extends BaseObj {
         }
         if (!jump) {
             reLoc(input);
+        }
+        if (instruction.isHasf0() || instruction.isHasf2() || instruction.isHasf3()) {
+            int pre = 0;
+            if (instruction.isHasf0()) {
+                pre += 0xf0;
+            }
+            if (instruction.isHasf2()) {
+                pre = 0xf200;
+            }
+            if (instruction.isHasf3()) {
+                pre = 0xf30000;
+            }
+            pc.getDebugger().onMessage(DEBUG, "rep %H %H\n", pre, instruction.getOpcode());
         }
         checkIR(false);
         return 0;
