@@ -177,6 +177,16 @@ public abstract class InstructionExecutor extends Instruction {
         push_(val, mrs.opWidth);
     }
 
+    public void exeucutePush68() {
+        read0();
+        push_(__v1,__width);
+    }
+
+    public void exeucutePush6a() {
+        long v=NumberUtils.asSigned(input.read(), 8);
+        push_(__v1,getOpWidth());
+    }
+
     public void executePop58() {
         int r = getOpcode() - 0x58;
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));

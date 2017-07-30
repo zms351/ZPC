@@ -1,5 +1,6 @@
 package com.zms.zpc.execute;
 
+import com.sun.org.apache.bcel.internal.generic.PUSH;
 import com.zms.zpc.emulator.PC;
 import com.zms.zpc.emulator.processor.Regs;
 import com.zms.zpc.support.*;
@@ -661,6 +662,15 @@ public class CodeExecutor extends BaseObj {
                 instruction.executePop58();
                 break;
 
+            case 0x68:
+                //PUSH imm16				[i:	o16 68 iw]				186,AR0,SIZE
+                //PUSH		imm32				[i:	o32 68 id]				386,NOLONG,AR0,SIZE
+                //PUSH		imm32				[i:	o32 68 id]				386,NOLONG,SD
+                //PUSH		imm64				[i:	o64nw 68 id,s]				X64,AR0,SIZE
+                //PUSH		imm32				[i:	o64nw 68 id,s]				X64,AR0,SIZE
+                instruction.exeucutePush68();
+                break;
+
             case 0x69:
                 //IMUL		reg16,mem,imm16			[rmi:	o16 69 /r iw]				186,SM
                 //IMUL		reg16,mem,imm			[rmi:	o16 69 /r iw]				186,SM,ND
@@ -682,6 +692,16 @@ public class CodeExecutor extends BaseObj {
                 //IMUL		reg64,imm			[r+mi:	o64 69 /r id,s]				X64,SM,ND
                 instruction.parse2(bits);
                 instruction.executeIMUL2();
+                break;
+
+            case 0x6a:
+                //PUSH		imm8				[i:	6a ib,s]					186
+                //PUSH		sbyteword16			[i:	o16 6a ib,s]				186,AR0,SIZE,ND
+                //PUSH		sbytedword32			[i:	o32 6a ib,s]				386,NOLONG,AR0,SIZE,ND
+                //PUSH		sbytedword32			[i:	o32 6a ib,s]				386,NOLONG,SD,ND
+                //PUSH		sbytedword64			[i:	o64nw 6a ib,s]				X64,AR0,SIZE,ND
+                //PUSH		sbytedword32			[i:	o64nw 6a ib,s]				X64,AR0,SIZE,ND
+                instruction.exeucutePush6a();
                 break;
 
             case 0x6b:
