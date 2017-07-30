@@ -233,6 +233,13 @@ public class CodeExecutor extends BaseObj {
                         instruction.executeMov(1, 0x24, 0x26);
                         break;
 
+                    case 0x63:
+                        //MOVSX		reg64,rm32			[rm:	o64 63 /r]				X64,ND
+                        //MOVSXD		reg64,rm32			[rm:	o64 63 /r]				X64
+                        instruction.parse2(bits);
+                        instruction.executeMovc();
+                        break;
+
                     case 0x80:
                     case 0x81:
                     case 0x82:
@@ -305,6 +312,38 @@ public class CodeExecutor extends BaseObj {
                         //LGS		reg64,mem			[rm:	o64 0f b5 /r]				X64
                         instruction.parse2(bits);
                         instruction.executeLSegment(regs.gs);
+                        break;
+
+                    case 0xb6:
+                        //MOVZX		reg16,mem			[rm:	o16 0f b6 /r]				386,SB
+                        //MOVZX		reg16,reg8			[rm:	o16 0f b6 /r]				386
+                        //MOVZX		reg32,rm8			[rm:	o32 0f b6 /r]				386
+                        //MOVZX		reg64,rm8			[rm:	o64 0f b6 /r]				X64
+                        instruction.parse2(bits);
+                        instruction.executeMov8();
+                        break;
+
+                    case 0xb7:
+                        //MOVZX		reg32,rm16			[rm:	o32 0f b7 /r]				386
+                        //MOVZX		reg64,rm16			[rm:	o64 0f b7 /r]				X64
+                        instruction.parse2(bits);
+                        instruction.executeMov9();
+                        break;
+
+                    case 0xbe:
+                        //MOVSX		reg16,mem			[rm:	o16 0f be /r]				386,SB
+                        //MOVSX		reg16,reg8			[rm:	o16 0f be /r]				386
+                        //MOVSX		reg32,rm8			[rm:	o32 0f be /r]				386
+                        //MOVSX		reg64,rm8			[rm:	o64 0f be /r]				X64
+                        instruction.parse2(bits);
+                        instruction.executeMova();
+                        break;
+
+                    case 0xbf:
+                        //MOVSX		reg32,rm16			[rm:	o32 0f bf /r]				386
+                        //MOVSX		reg64,rm16			[rm:	o64 0f bf /r]				X64
+                        instruction.parse2(bits);
+                        instruction.executeMovb();
                         break;
 
                     default:

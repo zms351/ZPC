@@ -174,11 +174,15 @@ public class ModRMSIB extends BaseObj {
     }
 
     public long getValMemory(PC pc) {
+        return getValMemory(pc,this.opWidth);
+    }
+
+    public long getValMemory(PC pc,int width) {
         if (addressReg != null) {
             return getValReg(pc, this.addressReg);
         }
         long address = getMemoryAddress(pc);
-        return memoryRead(pc, address, this.opWidth);
+        return memoryRead(pc, address, width);
     }
 
     public int setValReg(PC pc, long val) {

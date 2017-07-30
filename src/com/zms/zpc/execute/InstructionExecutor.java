@@ -60,6 +60,8 @@ public abstract class InstructionExecutor extends Instruction {
                 return !bits.zf();
             case 0x7:
                 return (!bits.cf()) && (!bits.zf());
+            case 0xe:
+                return bits.zf() || (bits.sf() != bits.of());
             case 0xf:
                 return bits.zf() && bits.sf() == bits.of();
             default:
@@ -399,6 +401,31 @@ public abstract class InstructionExecutor extends Instruction {
     public void executeMov7() {
         read0();
         mrs.setValMemory(pc, __v1);
+    }
+
+    public void executeMov8() {
+        long v = mrs.getValMemory(pc, 8) & 0xff;
+        mrs.setValReg(pc, v);
+    }
+
+    public void executeMov9() {
+        long v = mrs.getValMemory(pc, 16) & 0xffff;
+        mrs.setValReg(pc, v);
+    }
+
+    public void executeMova() {
+        long v = NumberUtils.asSigned(mrs.getValMemory(pc, 8), 8);
+        mrs.setValReg(pc, v);
+    }
+
+    public void executeMovb() {
+        long v = NumberUtils.asSigned(mrs.getValMemory(pc, 16), 16);
+        mrs.setValReg(pc, v);
+    }
+
+    public void executeMovc() {
+        long v = NumberUtils.asSigned(mrs.getValMemory(pc, 32), 32);
+        mrs.setValReg(pc, v);
     }
 
     public void executeLSegment(Segment seg) {
