@@ -1546,7 +1546,7 @@ public class CodeExecutor extends BaseObj {
                         //CALL		rm16				[m:	o16 ff /2]				8086,NOLONG,BND
                         //CALL		rm32				[m:	o32 ff /2]				386,NOLONG,BND
                         //CALL		rm64				[m:	o64nw ff /2]				X64,BND
-                        instruction.executeCallNearFF();
+                        jump=instruction.executeCallNearFF();
                         break;
 
                     case 6:
