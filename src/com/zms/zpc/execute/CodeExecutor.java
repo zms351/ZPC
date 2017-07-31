@@ -202,6 +202,19 @@ public class CodeExecutor extends BaseObj {
                         instruction.executeMem1();
                         break;
 
+                    case 0x1f:
+                        instruction.parse2(bits);
+                        switch (mrs.regIndex) {
+                            case 0:
+                                //NOP rm16				[m:	o16 0f 1f /0]				P6
+                                //NOP		rm32				[m:	o32 0f 1f /0]				P6
+                                //NOP		rm64				[m:	o64 0f 1f /0]				X64
+                                break;
+                            default:
+                                throw new NotImplException();
+                        }
+                        break;
+
                     case 0x20:
                         //MOV		reg32,reg_creg			[mr:	rex.l 0f 20 /r]				386,PRIV,NOLONG
                         //MOV		reg64,reg_creg			[mr:	o64nw 0f 20 /r]				X64,PRIV
@@ -1116,6 +1129,10 @@ public class CodeExecutor extends BaseObj {
                 }
                 break;
 
+            case 0x90:
+                //NOP		void				[	norexb nof3 90]				8086
+                break;
+
             case 0xa0:
                 //MOV		reg_al,mem_offs			[-i:	a0 iwdq]				8086,SM
                 mrs.reg8 = true;
@@ -1607,7 +1624,7 @@ public class CodeExecutor extends BaseObj {
                         //JMP		rm16				[m:	o16 ff /4]				8086,NOLONG,BND
                         //JMP		rm32				[m:	o32 ff /4]				386,NOLONG,BND
                         //JMP		rm64				[m:	o64nw ff /4]				X64,BND
-                        jump=instruction.executeJumpNear();
+                        jump = instruction.executeJumpNear();
                         break;
 
                     case 6:
