@@ -1,6 +1,7 @@
 package com.zms.zpc.support;
 
 import com.zms.zpc.debugger.*;
+import com.zms.zpc.debugger.ide.FileEditorPane;
 import com.zms.zpc.emulator.PC;
 import com.zms.zpc.emulator.processor.*;
 import com.zms.zpc.emulator.reg.*;
@@ -19,6 +20,7 @@ public class Warnings {
         new CodeStream().readFully(new byte[10], 2, 3);
         IDEFrame ide = new IDEFrame(new ZPC());
         ide.showNew("a", "b", false);
+        ((FileEditorPane)ide.getTabs().getSelectedComponent()).setText("ab",false,3);
         System.out.println(ide.select(null));
         InstructionExecutor2 is = new InstructionExecutor2();
         ModRMSIB mod = new ModRMSIB(is);

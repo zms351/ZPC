@@ -17,7 +17,7 @@ public class CodeExecutor extends BaseObj {
     public int ins;
 
     public CodeExecutor() {
-        previewBuffer = new byte[48];
+        previewBuffer = new byte[128];
         instruction = new InstructionExecutor2();
         instruction.executor = this;
     }

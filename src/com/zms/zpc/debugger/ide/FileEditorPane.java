@@ -1,6 +1,6 @@
 package com.zms.zpc.debugger.ide;
 
-import com.zms.zpc.debugger.*;
+import com.zms.zpc.debugger.IDEFrame;
 import com.zms.zpc.support.GarUtils;
 
 import javax.swing.*;
@@ -13,7 +13,7 @@ import java.io.File;
  * Created by 张小美 on 17/七月/24.
  * Copyright 2002-2016
  */
-public class FileEditorPane extends JScrollPane implements DocumentListener,KeyListener {
+public class FileEditorPane extends JScrollPane implements DocumentListener, KeyListener {
 
     private DefaultStyledDocument doc;
     private IDEFrame parent;
@@ -21,8 +21,8 @@ public class FileEditorPane extends JScrollPane implements DocumentListener,KeyL
     private JTextPane pane;
 
     public FileEditorPane(IDEFrame parent) {
-        super(new JTextPane(new DefaultStyledDocument()),JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        pane= (JTextPane) getViewport().getView();
+        super(new JTextPane(new DefaultStyledDocument()), JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        pane = (JTextPane) getViewport().getView();
         doc = (DefaultStyledDocument) pane.getDocument();
         doc.addDocumentListener(this);
         this.parent = parent;
@@ -116,7 +116,7 @@ public class FileEditorPane extends JScrollPane implements DocumentListener,KeyL
     public String getDocName() {
         return docName;
     }
-    
+
     public void setDocName(String name) {
         this.docName = name;
     }
@@ -125,16 +125,44 @@ public class FileEditorPane extends JScrollPane implements DocumentListener,KeyL
         this.file = file;
         this.docTitle = file.getName();
         String s = GarUtils.loadFile(file);
-        setText(s, true);
+        setText(s, true,2);
     }
 
-    public void setText(String text, boolean silent) {
+    /**
+     * @param caretPosition cursor pos parameter 0 none  1  header 2  original  3  tail
+     */
+    public void setText(String text, boolean silent, int caretPosition) {
+        int n1 = pane.getSelectionStart();
+        int n2 = pane.getSelectionEnd();
         if (silent) {
             modifed = true;
             setText(text);
             setModifed(false);
         } else {
             setText(text);
+        }
+        int len = text.length();
+        switch (caretPosition) {
+            case 1:
+                pane.setSelectionStart(0);
+                pane.setSelectionEnd(0);
+                break;
+            case 3:
+                pane.setSelectionStart(len);
+                pane.setSelectionEnd(len);
+                break;
+            case 2:
+                int n3 = n2;
+                if (n3 > len) {
+                    n3 = len;
+                }
+                n1 = n3 - (n2 - n1);
+                if (n1 < 0) {
+                    n1 = 0;
+                }
+                pane.setSelectionStart(n1);
+                pane.setSelectionEnd(n2);
+                break;
         }
     }
 
@@ -170,6 +198,10 @@ public class FileEditorPane extends JScrollPane implements DocumentListener,KeyL
 
     @Override
     public void keyReleased(KeyEvent e) {
+    }
+
+    public JTextPane getPane() {
+        return pane;
     }
 
 }

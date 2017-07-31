@@ -300,7 +300,7 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
             tab.setDocTitle(title);
         }
         if (text != null) {
-            tab.setText(text, silent);
+            tab.setText(text, silent,2);
         }
         refreshTitle(tab);
     }
@@ -394,8 +394,7 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
             case "Run To Cursor": {
                 PC pc = getFrame().getPc();
                 pc.setDebugger(this);
-                pc.setPause(16, command);
-
+                pc.setPause(17, command);
             }
             break;
             case "Show Execution Point": {
@@ -438,7 +437,7 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
                 }
                 tab.setDocName(name);
                 tab.setDocTitle((String) os[1]);
-                tab.setText(message, true);
+                tab.setText(message, true,1);
                 select(tab);
                 refreshTitle(tab);
             });
@@ -456,6 +455,10 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
     public FileEditorPane select(FileEditorPane tab) {
         tabs.setSelectedComponent(tab);
         return tab;
+    }
+
+    public JTabbedPane getTabs() {
+        return tabs;
     }
 
 }
