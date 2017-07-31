@@ -15,7 +15,7 @@ import java.io.InputStream;
  */
 public class PC extends BaseObj implements Runnable {
 
-    public static final ThreadLocal<PC> currentPC=new ThreadLocal<>();
+    public static final ThreadLocal<PC> currentPC = new ThreadLocal<>();
 
     public Processor processor, cpu;
     private PCConfig config;
@@ -133,6 +133,7 @@ public class PC extends BaseObj implements Runnable {
             } else if (state == PCState.Shutddown) {
                 powerOn(true);
             }
+            intObj[2]=-3;
         }
     }
 
@@ -164,7 +165,7 @@ public class PC extends BaseObj implements Runnable {
         memory.write(0, 0x100000 - bytes.length, bytes, 0, bytes.length);
     }
 
-    public int[] intObj = new int[2];
+    public long[] intObj = new long[3];
 
     @Override
     public void run() {
@@ -189,6 +190,10 @@ public class PC extends BaseObj implements Runnable {
                 } else if (state == PCState.Pause) {
                     int command = pauseCommand;
                     pauseCommand = 0;
+                    if(intObj[2]==-3) {
+                        command=0;
+                        intObj[2]=-2;
+                    }
                     switch (command) {
                         case 11: {     //step into
                             stream.seek(this);
@@ -222,7 +227,7 @@ public class PC extends BaseObj implements Runnable {
                             stream.seek(this);
                             executor.execute(this, stream);
                             if (executor.ins != Ret) {
-                                pauseCommand = 15;
+                                pauseCommand = command;
                             }
                             break;
                         }
@@ -235,7 +240,19 @@ public class PC extends BaseObj implements Runnable {
                                 intObj[0]--;
                             }
                             if (intObj[0] > 0) {
-                                pauseCommand = 16;
+                                pauseCommand = command;
+                            }
+                            break;
+                        }
+                        case 17: { //run to cursor
+                            long rip = cpu.regs.rip.getValue();
+                            if (intObj[1] == -1) {
+                                intObj[1] = rip + intObj[0];
+                            }
+                            if (rip != intObj[1]) {
+                                stream.seek(this);
+                                executor.execute(this, stream);
+                                pauseCommand = command;
                             }
                             break;
                         }

@@ -5,7 +5,7 @@ import com.zms.zpc.support.GarUtils;
 
 import javax.swing.*;
 import javax.swing.event.*;
-import javax.swing.text.DefaultStyledDocument;
+import javax.swing.text.*;
 import java.awt.event.*;
 import java.io.File;
 
@@ -125,7 +125,7 @@ public class FileEditorPane extends JScrollPane implements DocumentListener, Key
         this.file = file;
         this.docTitle = file.getName();
         String s = GarUtils.loadFile(file);
-        setText(s, true,2);
+        setText(s, true, 2);
     }
 
     /**
@@ -202,6 +202,21 @@ public class FileEditorPane extends JScrollPane implements DocumentListener, Key
 
     public JTextPane getPane() {
         return pane;
+    }
+
+    public int getCurrentLine() {
+        int pos = pane.getSelectionEnd();
+        int rn = (pos == 0) ? 1 : 0;
+        try {
+            int offs = pos;
+            while (offs > 0) {
+                offs = Utilities.getRowStart(pane, offs) - 1;
+                rn++;
+            }
+        } catch (BadLocationException e) {
+            throw new RuntimeException(e);
+        }
+        return rn;
     }
 
 }

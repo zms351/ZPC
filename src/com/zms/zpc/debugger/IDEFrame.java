@@ -5,7 +5,7 @@ import com.zms.zpc.debugger.util.*;
 import com.zms.zpc.emulator.PC;
 import com.zms.zpc.emulator.assembler.Assembler;
 import com.zms.zpc.emulator.debug.*;
-import com.zms.zpc.support.*;
+import com.zms.zpc.support.GarUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -300,7 +300,7 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
             tab.setDocTitle(title);
         }
         if (text != null) {
-            tab.setText(text, silent,2);
+            tab.setText(text, silent, 2);
         }
         refreshTitle(tab);
     }
@@ -392,9 +392,14 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
             }
             break;
             case "Run To Cursor": {
-                PC pc = getFrame().getPc();
-                pc.setDebugger(this);
-                pc.setPause(17, command);
+                int gap=getRun2CursorGap();
+                if(gap>0) {
+                    PC pc = getFrame().getPc();
+                    pc.setDebugger(this);
+                    pc.intObj[0]=gap;
+                    pc.intObj[1]=-1;
+                    pc.setPause(17, pc.intObj);
+                }
             }
             break;
             case "Show Execution Point": {
@@ -417,10 +422,47 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
         }
     }
 
+    public int getRun2CursorGap() {
+        FileEditorPane pane = (FileEditorPane) tabs.getSelectedComponent();
+        if (pane == null) {
+            return -1;
+        }
+        int line = pane.getCurrentLine();
+        if (line < 1) {
+            return -1;
+        }
+        if (line == 1) {
+            return 0;
+        }
+        String[] lines = pane.getText().split("\n");
+        if (line > lines.length) {
+            return -1;
+        }
+        line--;
+        int gap = 0;
+        for (int i = 0; i < line; i++) {
+            String s = lines[i];
+            int index = s.indexOf(' ');
+            if (index < 0) {
+                return -1;
+            }
+            s = s.substring(index + 1).trim();
+            index = s.indexOf(' ');
+            if (index < 0) {
+                return -1;
+            }
+            s = s.substring(0, index).trim();
+            if ((s.length() % 2) == 0) {
+                gap += s.length() / 2;
+            }
+        }
+        return gap;
+    }
+
     @Override
     public void onMessage(int type, String message, Object... params) {
-        if(type>=LOG) {
-            DummyDebugger.getInstance().onMessage(type,message,params);
+        if (type >= LOG) {
+            DummyDebugger.getInstance().onMessage(type, message, params);
             return;
         }
         final Object[] os = new Object[2];
@@ -437,7 +479,7 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
                 }
                 tab.setDocName(name);
                 tab.setDocTitle((String) os[1]);
-                tab.setText(message, true,1);
+                tab.setText(message, true, 1);
                 select(tab);
                 refreshTitle(tab);
             });
