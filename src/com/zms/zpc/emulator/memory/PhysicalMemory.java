@@ -19,6 +19,7 @@ public class PhysicalMemory extends RAM {
     }
 
     private void init() {
+        long totalSize=this.totalSize+8192;
         assert totalSize>0 && totalSize<Integer.MAX_VALUE;
         memory=new byte[(int) totalSize];
     }
