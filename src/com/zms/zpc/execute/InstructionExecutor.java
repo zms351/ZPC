@@ -72,7 +72,7 @@ public abstract class InstructionExecutor extends Instruction {
             case 0xe:
                 return bits.zf() || (bits.sf() != bits.of());
             case 0xf:
-                return bits.zf() && bits.sf() == bits.of();
+                return !bits.zf() && bits.sf() == bits.of();
             default:
                 throw new NotImplException();
         }
