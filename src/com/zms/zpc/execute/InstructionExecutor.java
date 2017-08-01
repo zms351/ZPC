@@ -48,7 +48,7 @@ public abstract class InstructionExecutor extends Instruction {
     }
 
     public boolean executeJumpNear() {
-        long offset=mrs.getValMemory(pc);
+        long offset = mrs.getValMemory(pc);
         BaseReg rip = pc.cpu.regs.rip;
         rip.setValue(offset);
         return true;
@@ -562,6 +562,56 @@ public abstract class InstructionExecutor extends Instruction {
             mrs.memoryWrite(pc, address2, v, opWidth);
             off1.setValue(df ? (off1.getValue() - n) : (off1.getValue() + n));
             off2.setValue(df ? (off2.getValue() - n) : (off2.getValue() + n));
+        }
+    }
+
+    public void executeCPUID() {
+        Regs regs = pc.cpu.regs;
+        switch ((int) regs.eax.getValue()) {
+            case 0x00:
+                regs.eax.setValue(0x02);
+                regs.ebx.setValue(0x756e6547); /* "Genu", with G in the low nibble of BL */
+                regs.edx.setValue(0x49656e69); /* "ineI", with i in the low nibble of DL */
+                regs.ecx.setValue(0x6c65746e); /* "ntel", with n in the low nibble of CL */
+                return;
+            case 0x01:
+                regs.eax.setValue(0x634);
+                regs.ebx.setValue(1 << 16);
+                regs.ecx.setValue(0);
+
+                int features = 0;
+                features |= 1; //Have an FPU;
+                features |= (1 << 1);  // VME - Virtual 8086 mode enhancements, CR4.VME and eflags.VIP and VIF
+                features |= (1 << 2); // Debugging extensions CR4.DE and DR4 and DR5
+                features |= (1 << 3);  // Support Page-Size Extension (4M pages)
+
+                features |= (1 << 4);  // implement TSC
+                //features |= (1<< 5);  // support RDMSR/WRMSR
+                features |= (1 << 6);  // Support PAE.
+                features |= (1 << 7);  // Machine Check exception
+
+                features |= (1 << 8);  // Support CMPXCHG8B instruction - Bochs doesn't have this!
+                //features |= (1<< 9);   // APIC on chip
+                // (1<<10) is reserved
+                features |= (1 << 11);  // SYSENTER/SYSEXIT
+
+                //features |= (1<<12);  // Memory type range registers (MSR)
+                features |= (1 << 13);  // Support Global pages.
+                features |= (1 << 14);  // Machine check architecture
+                features |= (1 << 15);  // Implement CMOV instructions.
+
+                features |= (1 << 23);  // support MMX
+                features |= (1 << 28);  // max APIC ID (cpuid.1.ebx[23-16]) is valid
+                regs.edx.setValue(features);
+                return;
+            case 0x02:
+                regs.eax.setValue(0x3020101);
+                regs.ebx.setValue(0);
+                regs.ecx.setValue(0);
+                regs.edx.setValue(0xc040843);
+                return;
+            default:
+                throw new NotImplException();
         }
     }
 

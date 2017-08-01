@@ -282,6 +282,11 @@ public class CodeExecutor extends BaseObj {
                         instruction.executePop(regs.fs, instruction.getOpWidth(getBits()));
                         break;
 
+                    case 0xa2:
+                        //CPUID		void				[	0f a2]					PENT
+                        instruction.executeCPUID();
+                        break;
+
                     case 0xa4:
                         //SHLD		mem,reg16,imm			[mri:	o16 0f a4 /r ib,u]			386,SM2,SB,AR2
                         //SHLD		reg16,reg16,imm			[mri:	o16 0f a4 /r ib,u]			386,SM2,SB,AR2

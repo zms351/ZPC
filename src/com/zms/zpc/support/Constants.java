@@ -46,6 +46,7 @@ public interface Constants {
     int TEST = 308;
 
     int CAL2_BASE = 400;
+    int TEST2=CAL2_BASE/*+0*/;
     int NOT = CAL2_BASE + 2;
     int NEG = CAL2_BASE + 3;
     int MUL = CAL2_BASE + 4;

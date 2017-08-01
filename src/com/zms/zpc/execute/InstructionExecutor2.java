@@ -191,6 +191,7 @@ public class InstructionExecutor2 extends InstructionExecutor {
             case 4:
             case AND:
             case TEST:
+            case TEST2:
                 v = and_(v1, v2);
                 break;
             case 5:
@@ -313,6 +314,11 @@ public class InstructionExecutor2 extends InstructionExecutor {
         }
         int oper = CAL2_BASE + mrs.regIndex;
         switch (oper) {
+            case TEST:
+            case TEST2:
+                read0();
+                and_(mrs.getValMemory(pc),__v1);
+                break;
             case MUL:
                 mul_();
                 break;
