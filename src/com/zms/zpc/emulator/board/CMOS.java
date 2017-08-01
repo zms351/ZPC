@@ -8,11 +8,11 @@ import com.zms.zpc.support.NotImplException;
  * Created by 张小美 on 17/七月/2.
  * Copyright 2002-2016
  */
-public class RTC implements IODevice {
+public class CMOS implements IODevice {
 
     public MotherBoard mb;
 
-    public RTC(MotherBoard mb) {
+    public CMOS(MotherBoard mb) {
         this.mb = mb;
         this.init();
     }

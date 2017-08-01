@@ -16,7 +16,7 @@ public class MotherBoard {
 
     public DMAController dma1;
     public DMAController dma2;
-    public RTC rtc;
+    public CMOS cmos;
     public Keyboard keyboard;
     public DummyDebugger debugger;
 
@@ -39,8 +39,8 @@ public class MotherBoard {
         dma2 = new DMAController(this);
         devices.add(dma2);
 
-        rtc = new RTC(this);
-        devices.add(rtc);
+        cmos = new CMOS(this);
+        devices.add(cmos);
 
         keyboard = new Keyboard(this);
         devices.add(keyboard);
