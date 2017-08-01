@@ -8,6 +8,8 @@ import com.zms.zpc.support.NotImplException;
  */
 public abstract class RAM {
 
+    public abstract long getTotalSize();
+
     public abstract int read(long context, long pos);
 
     public abstract int read(long context, long pos, byte[] bytes, int offset, int size);

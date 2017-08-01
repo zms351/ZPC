@@ -68,6 +68,26 @@ public class CMOS implements IODevice {
 
     public void reset() {
         cmos[0xf] = 0x0; //shutdown status
+
+        //ram size
+        long ramSize = mb.pc.memory.getTotalSize();
+        long val = (ramSize / 1024) - 1024;
+        if (val > 65535) {
+            val = 65535;
+        }
+        cmos[0x17] = (byte) val;
+        cmos[0x18] = (byte) (val >>> 8);
+        cmos[0x30] = (byte) val;
+        cmos[0x31] = (byte) (val >>> 8);
+
+        if (ramSize > (16 * 1024 * 1024)) {
+            val = (ramSize / 65536) - ((16 * 1024 * 1024) / 65536);
+        } else {
+            val = 0;
+        }
+        if (val > 65535) val = 65535;
+        cmos[0x34] = (byte) val;
+        cmos[0x35] = (byte) (val >>> 8);
     }
 
 }
