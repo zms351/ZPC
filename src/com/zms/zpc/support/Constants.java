@@ -66,4 +66,7 @@ public interface Constants {
     int DREG=323;
     int TREG=324;
 
+    int SHLD=361;
+    int SHRD=362;
+
 }

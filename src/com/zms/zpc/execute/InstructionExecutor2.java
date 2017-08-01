@@ -253,7 +253,7 @@ public class InstructionExecutor2 extends InstructionExecutor {
             v = cal(type, v1, v2);
         }
         if (type != CMP && type != TEST) {
-            if(rm) {
+            if (rm) {
                 mrs.setValReg(pc, v);
             } else {
                 mrs.setValMemory(pc, v);
@@ -326,20 +326,66 @@ public class InstructionExecutor2 extends InstructionExecutor {
 
     public void executeIMUL1() {
         int width = getOpWidth();
-        long v=imul_(mrs.getValMemory(pc),mrs.getValReg(pc),width);
-        mrs.setValReg(pc,v);
+        long v = imul_(mrs.getValMemory(pc), mrs.getValReg(pc), width);
+        mrs.setValReg(pc, v);
     }
 
     public void executeIMUL2() {
         read0();
-        long v=imul_(mrs.getValMemory(pc),__v1,__width);
-        mrs.setValReg(pc,v);
+        long v = imul_(mrs.getValMemory(pc), __v1, __width);
+        mrs.setValReg(pc, v);
     }
 
     public void executeIMUL3() {
-        long v2=NumberUtils.asSigned(readOp(8),8);
-        long v=imul_(mrs.getValMemory(pc),v2,getOpWidth());
-        mrs.setValReg(pc,v);
+        long v2 = NumberUtils.asSigned(readOp(8), 8);
+        long v = imul_(mrs.getValMemory(pc), v2, getOpWidth());
+        mrs.setValReg(pc, v);
+    }
+
+    private long getSHRLD(boolean cl, boolean shl) {
+        long count;
+        if (cl) {
+            count = bits.regs.cl.getValue();
+        } else {
+            count = readOp(8);
+        }
+        int width = getOpWidth();
+        if (width == 64) {
+            count = count % width;
+        } else {
+            count = count % 32;
+        }
+        __v2 = count;
+        __v3 = 0;
+        if (count > 0 && count <= width) {
+            long v1 = mrs.getValMemory(pc);
+            __v1 = v1;
+            long v2 = mrs.getValReg(pc);
+            if (shl) {
+                v1 = v1 << count;
+                v2 = v2 >> (width - count);
+            } else {
+                v1 = v1 >> count;
+                v2 = v2 << (width - count);
+            }
+            bits.setData(__v1, __v2, v1 | v2, shl ? SHLD : SHRD, width, OSZAPC);
+            __v3 = 1;
+        }
+        return bits.getResult();
+    }
+
+    public void executeSHRD(boolean cl) {
+        long v = getSHRLD(cl, false);
+        if (__v3 == 1) {
+            mrs.setValMemory(pc, v);
+        }
+    }
+
+    public void executeSHLD(boolean cl) {
+        long v = getSHRLD(cl, true);
+        if (__v3 == 1) {
+            mrs.setValMemory(pc, v);
+        }
     }
 
 }

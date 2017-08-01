@@ -282,6 +282,30 @@ public class CodeExecutor extends BaseObj {
                         instruction.executePop(regs.fs, instruction.getOpWidth(getBits()));
                         break;
 
+                    case 0xa4:
+                        //SHLD		mem,reg16,imm			[mri:	o16 0f a4 /r ib,u]			386,SM2,SB,AR2
+                        //SHLD		reg16,reg16,imm			[mri:	o16 0f a4 /r ib,u]			386,SM2,SB,AR2
+                        //SHLD		mem,reg32,imm			[mri:	o32 0f a4 /r ib,u]			386,SM2,SB,AR2
+                        //SHLD		reg32,reg32,imm			[mri:	o32 0f a4 /r ib,u]			386,SM2,SB,AR2
+                        //SHLD		mem,reg64,imm			[mri:	o64 0f a4 /r ib,u]			X64,SM2,SB,AR2
+                        //SHLD		reg64,reg64,imm			[mri:	o64 0f a4 /r ib,u]			X64,SM2,SB,AR2
+
+                        instruction.parse2(bits);
+                        instruction.executeSHLD(false);
+                        break;
+
+                    case 0xa5:
+                        //SHLD		mem,reg16,reg_cl		[mr-:	o16 0f a5 /r]				386,SM
+                        //SHLD		reg16,reg16,reg_cl		[mr-:	o16 0f a5 /r]				386
+                        //SHLD		mem,reg32,reg_cl		[mr-:	o32 0f a5 /r]				386,SM
+                        //SHLD		reg32,reg32,reg_cl		[mr-:	o32 0f a5 /r]				386
+                        //SHLD		mem,reg64,reg_cl		[mr-:	o64 0f a5 /r]				X64,SM
+                        //SHLD		reg64,reg64,reg_cl		[mr-:	o64 0f a5 /r]				X64
+
+                        instruction.parse2(bits);
+                        instruction.executeSHLD(true);
+                        break;
+
                     case 0xa8:
                         //PUSH		reg_gs				[-:	0f a8]					386
                         instruction.executePush(regs.gs, instruction.getOpWidth(getBits()));
@@ -290,6 +314,30 @@ public class CodeExecutor extends BaseObj {
                     case 0xa9:
                         //POP		reg_gs				[-:	0f a9]					386
                         instruction.executePop(regs.gs, instruction.getOpWidth(getBits()));
+                        break;
+
+                    case 0xac:
+                        //SHRD		mem,reg16,imm			[mri:	o16 0f ac /r ib,u]			386,SM2,SB,AR2
+                        //SHRD		reg16,reg16,imm			[mri:	o16 0f ac /r ib,u]			386,SM2,SB,AR2
+                        //SHRD		mem,reg32,imm			[mri:	o32 0f ac /r ib,u]			386,SM2,SB,AR2
+                        //SHRD		reg32,reg32,imm			[mri:	o32 0f ac /r ib,u]			386,SM2,SB,AR2
+                        //SHRD		mem,reg64,imm			[mri:	o64 0f ac /r ib,u]			X64,SM2,SB,AR2
+                        //SHRD		reg64,reg64,imm			[mri:	o64 0f ac /r ib,u]			X64,SM2,SB,AR2
+
+                        instruction.parse2(bits);
+                        instruction.executeSHRD(false);
+                        break;
+
+                    case 0xad:
+                        //SHRD		mem,reg16,reg_cl		[mr-:	o16 0f ad /r]				386,SM
+                        //SHRD		reg16,reg16,reg_cl		[mr-:	o16 0f ad /r]				386
+                        //SHRD		mem,reg32,reg_cl		[mr-:	o32 0f ad /r]				386,SM
+                        //SHRD		reg32,reg32,reg_cl		[mr-:	o32 0f ad /r]				386
+                        //SHRD		mem,reg64,reg_cl		[mr-:	o64 0f ad /r]				X64,SM
+                        //SHRD		reg64,reg64,reg_cl		[mr-:	o64 0f ad /r]				X64
+
+                        instruction.parse2(bits);
+                        instruction.executeSHRD(true);
                         break;
 
                     case 0xaf:
