@@ -163,6 +163,15 @@ public class PC extends BaseObj implements Runnable {
         }
         assert bytes.length > 100;
         memory.write(0, 0x100000 - bytes.length, bytes, 0, bytes.length);
+
+        url = "images/" + config.getVgaBios();
+        try (InputStream input = this.getClass().getClassLoader().getResourceAsStream(url)) {
+            bytes = GarUtils.readAll(input);
+        } catch (Throwable t) {
+            throw new RuntimeException(t);
+        }
+        assert bytes.length > 100;
+        memory.write(0, 0xc0000, bytes, 0, bytes.length);
     }
 
     public long[] intObj = new long[3];

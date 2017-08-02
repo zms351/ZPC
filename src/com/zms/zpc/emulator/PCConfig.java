@@ -14,6 +14,7 @@ public class PCConfig {
     private int memoryCount;
 
     private String bios;
+    private String vgaBios;
     private String name="一个虚拟机";
 
     public PCConfig() {
@@ -27,6 +28,7 @@ public class PCConfig {
         this.memoryCount=1;
 
         this.bios="BIOS-bochs-latest";
+        this.vgaBios="VGABIOS-lgpl-latest.debug.bin";
     }
 
     public static PCConfig defaultPCConfig() {
@@ -55,6 +57,10 @@ public class PCConfig {
 
     public String getBios() {
         return bios;
+    }
+
+    public String getVgaBios() {
+        return vgaBios;
     }
 
     public String getName() {
