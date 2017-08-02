@@ -766,6 +766,13 @@ public class CodeExecutor extends BaseObj {
                 instruction.executePop58();
                 break;
 
+            case 0x60:
+                //PUSHA		void				[	odf 60]					186,NOLONG
+                //PUSHAD		void				[	o32 60]					386,NOLONG
+                //PUSHAW		void				[	o16 60]					186,NOLONG
+                instruction.executePusha();
+                break;
+
             case 0x68:
                 //PUSH imm16				[i:	o16 68 iw]				186,AR0,SIZE
                 //PUSH		imm32				[i:	o32 68 id]				386,NOLONG,AR0,SIZE

@@ -615,4 +615,25 @@ public abstract class InstructionExecutor extends Instruction {
         }
     }
 
+    public void executePusha() {
+        int width = getOpWidth();
+        Regs regs = pc.cpu.regs;
+        long v = regs.esp.getValue();
+        switch (width) {
+            case 16:
+            case 32:
+                push_(regs.eax.getValue(), width);
+                push_(regs.ecx.getValue(), width);
+                push_(regs.edx.getValue(), width);
+                push_(regs.ebx.getValue(), width);
+                push_(v, width);
+                push_(regs.ebp.getValue(), width);
+                push_(regs.esi.getValue(), width);
+                push_(regs.edi.getValue(), width);
+                break;
+            default:
+                throw new NotImplException();
+        }
+    }
+
 }
