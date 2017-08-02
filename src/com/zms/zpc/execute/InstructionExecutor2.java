@@ -316,7 +316,6 @@ public class InstructionExecutor2 extends InstructionExecutor {
         switch (oper) {
             case TEST:
             case TEST2:
-                read0();
                 and_(mrs.getValMemory(pc),__v1);
                 break;
             case MUL:
