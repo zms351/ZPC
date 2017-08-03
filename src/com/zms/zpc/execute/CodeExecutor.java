@@ -1682,6 +1682,15 @@ public class CodeExecutor extends BaseObj {
                         jump = instruction.executeCallNear();
                         break;
 
+                    case 3:
+                        //CALL		mem|far				[m:	odf ff /3]				8086,NOLONG
+                        //CALL		mem|far				[m:	o64 ff /3]				X64
+                        //CALL		mem16|far			[m:	o16 ff /3]				8086
+                        //CALL		mem32|far			[m:	o32 ff /3]				386
+                        //CALL		mem64|far			[m:	o64 ff /3]				X64
+                        jump=instruction.executeCallFar();
+                        break;
+
                     case 4:
                         //JMP		mem|near			[m:	odf ff /4]				8086,ND,BND
                         //JMP		rm16|near			[m:	o16 ff /4]				8086,NOLONG,ND,BND

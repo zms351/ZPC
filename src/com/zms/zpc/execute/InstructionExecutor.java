@@ -353,6 +353,21 @@ public abstract class InstructionExecutor extends Instruction {
         }
     }
 
+    public boolean executeCallFar() {
+        assert pc.cpu.getMode()==CPUMode.Real;
+        int width=getOpWidth();
+        long address = mrs.getMemoryAddress(pc);
+        executor.reLoc(input);
+        Regs regs = pc.cpu.regs;
+        push_(regs.cs.getValue(),width);
+        push_(regs.rip.getValue(),width);
+        regs.rip.getRegWithWidth(width).setValue(mrs.memoryRead(pc,address,width));
+        int n=width/8;
+        assert n*8==width;
+        regs.cs.setValue(16,mrs.memoryRead(pc,address+n,16));
+        return true;
+    }
+
     public void executeCallShort() {
         int width = getOpWidth();
         long offset = NumberUtils.asSigned(readOp(width), width);
