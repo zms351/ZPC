@@ -1,5 +1,6 @@
 package com.zms.zpc.emulator.board;
 
+import com.zms.zpc.emulator.board.helper.BaseDevice;
 import com.zms.zpc.support.NotImplException;
 
 /**
@@ -8,7 +9,7 @@ import com.zms.zpc.support.NotImplException;
  * Created by 张小美 on 17/七月/2.
  * Copyright 2002-2016
  */
-public class CMOS implements IODevice {
+public class CMOS extends BaseDevice {
 
     public MotherBoard mb;
 

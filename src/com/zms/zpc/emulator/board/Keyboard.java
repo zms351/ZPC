@@ -1,13 +1,12 @@
 package com.zms.zpc.emulator.board;
 
-import com.zms.zpc.emulator.board.helper.InputDataQueue;
-import com.zms.zpc.support.BaseObj;
+import com.zms.zpc.emulator.board.helper.*;
 
 /**
  * Created by 张小美 on 17/七月/23.
  * Copyright 2002-2016
  */
-public class Keyboard extends BaseObj implements IODevice {
+public class Keyboard extends BaseDevice {
 
     public MotherBoard mb;
 
@@ -167,7 +166,7 @@ public class Keyboard extends BaseObj implements IODevice {
             queue = new InputDataQueue();
         }
         mode = KBD_MODE_KBD_INT | KBD_MODE_MOUSE_INT;
-        commandWrite=0;
+        commandWrite = 0;
         keyboardWriteCommand = -1;
     }
 

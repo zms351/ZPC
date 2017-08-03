@@ -1,6 +1,7 @@
 package com.zms.zpc.emulator.debug;
 
 import com.zms.zpc.emulator.board.*;
+import com.zms.zpc.emulator.board.helper.BaseDevice;
 import com.zms.zpc.support.BaseObj;
 
 import java.util.Arrays;
@@ -9,7 +10,7 @@ import java.util.Arrays;
  * Created by 张小美 on 17/六月/27.
  * Copyright 2002-2016
  */
-public class DummyDebugger extends BaseObj implements IDebugger, IODevice {
+public class DummyDebugger extends BaseDevice implements IDebugger {
 
     public static int[] Ports = new int[]{0x80, 0x400, 0x401, 0x402, 0x403,0x500, 0x501, 0x502, 0x503};
 

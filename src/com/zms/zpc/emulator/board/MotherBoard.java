@@ -1,6 +1,7 @@
 package com.zms.zpc.emulator.board;
 
 import com.zms.zpc.emulator.PC;
+import com.zms.zpc.emulator.board.pci.*;
 import com.zms.zpc.emulator.debug.DummyDebugger;
 
 import java.util.*;
@@ -19,6 +20,7 @@ public class MotherBoard {
     public CMOS cmos;
     public Keyboard keyboard;
     public DummyDebugger debugger;
+    public PCIBus pciBus;
 
     public MotherBoard(PC pc) {
         this.pc = pc;
@@ -47,6 +49,11 @@ public class MotherBoard {
 
         debugger = new DummyDebugger(this);
         devices.add(debugger);
+
+        pciBus = new PCIBus(this);
+        devices.add(pciBus);
+
+        devices.add(new PCIHostBridge(this));
     }
 
     public void reset() {
