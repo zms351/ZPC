@@ -11,7 +11,7 @@ import java.util.Arrays;
  */
 public class DummyDebugger extends BaseObj implements IDebugger, IODevice {
 
-    public static int[] Ports = new int[]{0x80, 0x400, 0x401, 0x402, 0x403};
+    public static int[] Ports = new int[]{0x80, 0x400, 0x401, 0x402, 0x403,0x500, 0x501, 0x502, 0x503};
 
     private static DummyDebugger instance = new DummyDebugger();
 
