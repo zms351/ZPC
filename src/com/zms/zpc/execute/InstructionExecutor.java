@@ -636,4 +636,24 @@ public abstract class InstructionExecutor extends Instruction {
         }
     }
 
+    public void executePopa() {
+        int width = getOpWidth();
+        Regs regs = pc.cpu.regs;
+        switch (width) {
+            case 16:
+            case 32:
+                regs.rdi.getRegWithWidth(width).setValue(pop_(width));
+                regs.rsi.getRegWithWidth(width).setValue(pop_(width));
+                regs.rbp.getRegWithWidth(width).setValue(pop_(width));
+                pop_(width);
+                regs.rbx.getRegWithWidth(width).setValue(pop_(width));
+                regs.rdx.getRegWithWidth(width).setValue(pop_(width));
+                regs.rcx.getRegWithWidth(width).setValue(pop_(width));
+                regs.rax.getRegWithWidth(width).setValue(pop_(width));
+                break;
+            default:
+                throw new NotImplException();
+        }
+    }
+
 }

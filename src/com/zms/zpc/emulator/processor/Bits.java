@@ -173,19 +173,16 @@ public class Bits extends BaseObj {
     }
 
     private boolean testCF() {
+        if (opWidth == 64) {
+            throw new NotImplException();
+        }
         switch (ins) {
             case ADD:
             case CMP:
             case SUB:
-                switch (opWidth) {
-                    case 8:
-                        return (result & 0xff) != result;
-                    case 16:
-                        return (result & 0xffff) != result;
-                    case 32:
-                        return (result & 0xffffffffL) != result;
-                    case 64:
-                }
+                return (result & (Pows[opWidth] - 1)) != result;
+            case SHL:
+                return ((op1 >> (opWidth - op2)) & 0x1) != 0;
         }
         throw new NotImplException();
     }

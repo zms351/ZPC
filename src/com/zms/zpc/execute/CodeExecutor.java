@@ -773,6 +773,13 @@ public class CodeExecutor extends BaseObj {
                 instruction.executePusha();
                 break;
 
+            case 0x61:
+                //POPA		void				[	odf 61]					186,NOLONG
+                //POPAD		void				[	o32 61]					386,NOLONG
+                //POPAW		void				[	o16 61]					186,NOLONG
+                instruction.executePopa();
+                break;
+
             case 0x68:
                 //PUSH imm16				[i:	o16 68 iw]				186,AR0,SIZE
                 //PUSH		imm32				[i:	o32 68 id]				386,NOLONG,AR0,SIZE
