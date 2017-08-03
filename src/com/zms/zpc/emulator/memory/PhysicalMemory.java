@@ -14,14 +14,19 @@ public class PhysicalMemory extends RAM {
         init();
     }
 
+    public PhysicalMemory(byte[] bytes) {
+        this.memory = bytes;
+        this.totalSize = bytes.length;
+    }
+
     public long getTotalSize() {
         return totalSize;
     }
 
     private void init() {
-        long totalSize=this.totalSize+8192;
-        assert totalSize>0 && totalSize<Integer.MAX_VALUE;
-        memory=new byte[(int) totalSize];
+        long totalSize = this.totalSize + 8192;
+        assert totalSize > 0 && totalSize < Integer.MAX_VALUE;
+        memory = new byte[(int) totalSize];
     }
 
     public byte[] getMemory() {
@@ -35,18 +40,18 @@ public class PhysicalMemory extends RAM {
 
     @Override
     public void write(long context, long pos, int v) {
-        memory[(int)pos]= (byte) v;
+        memory[(int) pos] = (byte) v;
     }
 
     @Override
     public int read(long context, long pos, byte[] bytes, int offset, int size) {
-        System.arraycopy(memory, (int) pos,bytes,offset,size);
+        System.arraycopy(memory, (int) pos, bytes, offset, size);
         return size;
     }
 
     @Override
     public int write(long context, long pos, byte[] bytes, int offset, int size) {
-        System.arraycopy(bytes,offset,memory, (int) pos,size);
+        System.arraycopy(bytes, offset, memory, (int) pos, size);
         return size;
     }
 

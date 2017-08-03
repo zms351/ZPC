@@ -1,7 +1,7 @@
 package com.zms.zpc.emulator.board.pci;
 
 import com.zms.zpc.emulator.board.MotherBoard;
-import com.zms.zpc.emulator.board.helper.BaseDevice;
+import com.zms.zpc.emulator.board.helper.*;
 
 /**
  * Created by 张小美 on 17/八月/4.
@@ -10,6 +10,7 @@ import com.zms.zpc.emulator.board.helper.BaseDevice;
 public class PCIBus extends BaseDevice {
 
     public MotherBoard mb;
+    public BasePCIDevice[] devices = new BasePCIDevice[256];
 
     public PCIBus(MotherBoard mb) {
         this.mb = mb;
@@ -32,8 +33,38 @@ public class PCIBus extends BaseDevice {
         return 0;
     }
 
-    public void addDevice(BaseDevice device) {
+    public void addDevice(BasePCIDevice device) {
+        if (device.getFuncNum() < 0) {
+            int fn = findFreeDevFN();
+            assert fn >= 0;
+            device.setFuncNum(fn);
+        }
+        devices[device.getFuncNum()] = device;
+    }
 
+    private BasePCIDevice validPCIDataAccess(long address) {
+        long bus = (address >>> 16) & 0xff;
+        if (0 != bus) {
+            return null;
+        }
+        return this.devices[(int) ((address >>> 8) & 0xff)];
+    }
+
+    public long readPCIData(long address, int width) {
+        BasePCIDevice device = this.validPCIDataAccess(address);
+        if (null == device) {
+            return 0xffffffffffffffffL;
+        }
+        return device.configRead(address & 0xff, width);
+    }
+
+    private int findFreeDevFN() {
+        for (int i = 8; i < 256; i += 8) {
+            if (null == devices[i]) {
+                return i;
+            }
+        }
+        return -1;
     }
 
 }

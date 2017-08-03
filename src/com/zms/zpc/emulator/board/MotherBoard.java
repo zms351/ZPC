@@ -54,6 +54,7 @@ public class MotherBoard {
         devices.add(pciBus);
 
         devices.add(new PCIHostBridge(this));
+        devices.add(new DefaultVGACard(this));
     }
 
     public void reset() {
