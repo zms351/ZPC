@@ -187,4 +187,8 @@ public class Bits extends BaseObj {
         throw new NotImplException();
     }
 
+    public boolean af() {
+        throw new NotImplException();
+    }
+
 }

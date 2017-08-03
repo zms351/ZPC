@@ -1200,6 +1200,14 @@ public class CodeExecutor extends BaseObj {
                 //NOP		void				[	norexb nof3 90]				8086
                 break;
 
+            case 0x9c:
+                //PUSHF		void				[	odf 9c]					8086
+                //PUSHFD		void				[	o32 9c]					386,NOLONG
+                //PUSHFQ		void				[	o32 9c]					X64
+                //PUSHFW		void				[	o16 9c]					8086
+                instruction.executePushf();
+                break;
+
             case 0xa0:
                 //MOV		reg_al,mem_offs			[-i:	a0 iwdq]				8086,SM
                 mrs.reg8 = true;

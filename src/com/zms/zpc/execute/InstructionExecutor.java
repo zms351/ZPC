@@ -671,4 +671,9 @@ public abstract class InstructionExecutor extends Instruction {
         }
     }
 
+    public void executePushf() {
+        long val=pc.cpu.regs.getFlag();
+        push_(val,getOpWidth());
+    }
+
 }

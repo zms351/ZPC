@@ -206,4 +206,14 @@ public class Regs {
         }
     }
 
+    public long getFlag() {
+        bits.of.set(bits.of());
+        bits.cf.set(bits.cf());
+        bits.zf.set(bits.zf());
+        //bits.af.set(bits.af());
+        bits.pf.set(bits.pf());
+        bits.sf.set(bits.sf());
+        return rflags.getValue();
+    }
+
 }
