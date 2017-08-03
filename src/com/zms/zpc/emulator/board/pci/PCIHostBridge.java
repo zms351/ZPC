@@ -24,7 +24,6 @@ public class PCIHostBridge extends BasePCIDevice {
         for (int port : ports) {
             mb.ios.register(port, this);
         }
-        mb.pciBus.addDevice(this);
 
         setFuncNum(0);
         putConfig(PCI_CONFIG_VENDOR_ID, 0x8086, 16); // vendor_id
@@ -34,6 +33,7 @@ public class PCIHostBridge extends BasePCIDevice {
         putConfig(PCI_CONFIG_HEADER, 0x00, 8); // header_type
 
         reset();
+        mb.pciBus.addDevice(this);
     }
 
     @Override

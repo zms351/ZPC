@@ -7,21 +7,22 @@ import com.zms.zpc.emulator.board.helper.BasePCIDevice;
  * Created by 张小美 on 17/八月/4.
  * Copyright 2002-2016
  */
-public abstract class VGACard extends BasePCIDevice {
+public class PIIX3IDEInterface extends BasePCIDevice {
 
     public MotherBoard mb;
 
-    public VGACard(MotherBoard mb) {
+    public PIIX3IDEInterface(MotherBoard mb) {
         super(mb.pciBus);
         this.mb = mb;
         this.init();
     }
 
     public void init() {
-        setFuncNum(-1);
-        putConfig(PCI_CONFIG_VENDOR_ID, 0x1234, 16); // Dummy
-        putConfig(PCI_CONFIG_DEVICE_ID, 0x1111, 16);
-        putConfig(PCI_CONFIG_CLASS_DEVICE, 0x0300, 16); // VGA Controller
+        setFuncNum(11);
+        putConfig(PCI_CONFIG_VENDOR_ID, 0x8086, 16); // Intel
+        putConfig(PCI_CONFIG_DEVICE_ID, 0x7010, 16);
+        putConfig(0x09, 0x80, 8); // legacy ATA mode
+        putConfig(PCI_CONFIG_CLASS_DEVICE, 0x0101, 16); // PCI IDE
         putConfig(PCI_CONFIG_HEADER, 0x00, 8); // header_type
 
         reset();

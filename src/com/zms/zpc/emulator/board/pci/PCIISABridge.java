@@ -7,11 +7,11 @@ import com.zms.zpc.emulator.board.helper.BasePCIDevice;
  * Created by 张小美 on 17/八月/4.
  * Copyright 2002-2016
  */
-public abstract class VGACard extends BasePCIDevice {
+public class PCIISABridge extends BasePCIDevice {
 
     public MotherBoard mb;
 
-    public VGACard(MotherBoard mb) {
+    public PCIISABridge(MotherBoard mb) {
         super(mb.pciBus);
         this.mb = mb;
         this.init();
@@ -19,10 +19,10 @@ public abstract class VGACard extends BasePCIDevice {
 
     public void init() {
         setFuncNum(-1);
-        putConfig(PCI_CONFIG_VENDOR_ID, 0x1234, 16); // Dummy
-        putConfig(PCI_CONFIG_DEVICE_ID, 0x1111, 16);
-        putConfig(PCI_CONFIG_CLASS_DEVICE, 0x0300, 16); // VGA Controller
-        putConfig(PCI_CONFIG_HEADER, 0x00, 8); // header_type
+        putConfig(PCI_CONFIG_VENDOR_ID, 0x8086, 16); // Intel
+        putConfig(PCI_CONFIG_DEVICE_ID, 0x7000, 16); // 82371SB PIIX3 PCI-to-ISA bridge (Step A1)
+        putConfig(PCI_CONFIG_CLASS_DEVICE, 0x0601, 16); // ISA Bridge
+        putConfig(PCI_CONFIG_HEADER, 0x80, 8); // PCI_multifunction
 
         reset();
         mb.pciBus.addDevice(this);

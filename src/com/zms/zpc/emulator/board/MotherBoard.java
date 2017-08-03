@@ -55,6 +55,8 @@ public class MotherBoard {
 
         devices.add(new PCIHostBridge(this));
         devices.add(new DefaultVGACard(this));
+        devices.add(new PCIISABridge(this));
+        devices.add(new PIIX3IDEInterface(this));
     }
 
     public void reset() {
