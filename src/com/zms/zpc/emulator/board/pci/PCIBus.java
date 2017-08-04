@@ -58,6 +58,20 @@ public class PCIBus extends BaseDevice {
         return device.configRead(address & 0xff, width);
     }
 
+    public void writePCIData(long address, long data, int width) {
+        BasePCIDevice device = this.validPCIDataAccess(address);
+        if (null == device) {
+            return;
+        }
+        if (device.configWrite(address & 0xff, data, width)) {
+            this.updateMappings(device);
+        }
+    }
+
+    protected void updateMappings(BasePCIDevice device) {
+        //todo
+    }
+
     private int findFreeDevFN() {
         for (int i = 8; i < 256; i += 8) {
             if (null == devices[i]) {

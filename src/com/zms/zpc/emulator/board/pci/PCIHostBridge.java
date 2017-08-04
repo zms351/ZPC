@@ -44,12 +44,14 @@ public class PCIHostBridge extends BasePCIDevice {
 
     @Override
     public void write(int address, long v, int width) {
-        switch (width) {
-            case 32:
-                switch (address) {
-                    case 0xcf8:
-                        configRegister = v;
-                        break;
+        switch (address) {
+            case 0xcf8:
+                assert width == 32;
+                configRegister = v;
+                break;
+            case 0xcfc:
+                if ((configRegister & Pows[31]) != 0) {
+                    bus.writePCIData(configRegister | (address & 0x3), v, width);
                 }
                 break;
         }

@@ -57,4 +57,9 @@ public abstract class BasePCIDevice extends BaseDevice {
         return configuration.read(0, address, width);
     }
 
+    public final boolean configWrite(long address, long data,int width) {
+        //todo
+        return true;
+    }
+
 }

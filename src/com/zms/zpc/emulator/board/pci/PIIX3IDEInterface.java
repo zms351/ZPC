@@ -18,7 +18,7 @@ public class PIIX3IDEInterface extends BasePCIDevice {
     }
 
     public void init() {
-        setFuncNum(11);
+        setFuncNum(0x11);
         putConfig(PCI_CONFIG_VENDOR_ID, 0x8086, 16); // Intel
         putConfig(PCI_CONFIG_DEVICE_ID, 0x7010, 16);
         putConfig(0x09, 0x80, 8); // legacy ATA mode
