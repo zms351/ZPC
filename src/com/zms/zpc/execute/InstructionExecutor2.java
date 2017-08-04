@@ -291,6 +291,10 @@ public class InstructionExecutor2 extends InstructionExecutor {
             case SHR:
                 bits.setData(v, c, v >> c, oper, getOpWidth(), OSZAPC);
                 break;
+            case SAR:
+                v = NumberUtils.asSigned(v, opWidth);
+                bits.setData(v, c, v >>> c, oper, getOpWidth(), OSZAPC);
+                break;
             default:
                 throw new NotImplException();
         }
@@ -316,13 +320,19 @@ public class InstructionExecutor2 extends InstructionExecutor {
         switch (oper) {
             case TEST:
             case TEST2:
-                and_(mrs.getValMemory(pc),__v1);
+                and_(mrs.getValMemory(pc), __v1);
                 break;
             case MUL:
                 mul_();
                 break;
             case DIV:
                 div_();
+                break;
+            case NEG:
+                long v1=mrs.getValMemory(pc);
+                long v2=-NumberUtils.asSigned(v1,getOpWidth());
+                mrs.setValMemory(pc,v2);
+                bits.setData(v1,getOpcode(),v2,oper,getOpWidth(),OSZAPC);
                 break;
             default:
                 throw new NotImplException();

@@ -71,6 +71,8 @@ public abstract class InstructionExecutor extends Instruction {
                 return (!bits.cf()) && (!bits.zf());
             case 0x8:
                 return bits.sf();
+            case 0xd:
+                return bits.sf()==bits.of();
             case 0xe:
                 return bits.zf() || (bits.sf() != bits.of());
             case 0xf:

@@ -202,6 +202,10 @@ public class CodeExecutor extends BaseObj {
                         instruction.executeMem1();
                         break;
 
+                    case 0x09:
+                        //WBINVD		void				[	0f 09]					486,PRIV
+                        break;
+
                     case 0x1f:
                         instruction.parse2(bits);
                         switch (mrs.regIndex) {
