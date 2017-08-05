@@ -680,6 +680,12 @@ public abstract class InstructionExecutor extends Instruction {
         push_(val,getOpWidth());
     }
 
+    public void executePopf() {
+        int width=getOpWidth();
+        long v=pop_(width);
+        pc.cpu.regs.setFlag(v,width);
+    }
+
     public void executeXchg1() {
         int width=getOpWidth();
         int r = getOpcode() - 0x90;

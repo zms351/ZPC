@@ -1254,6 +1254,14 @@ public class CodeExecutor extends BaseObj {
                 instruction.executePushf();
                 break;
 
+            case 0x9d:
+                //POPF		void				[	odf 9d]					8086
+                //POPFD		void				[	o32 9d]					386,NOLONG
+                //POPFQ		void				[	o32 9d]					X64
+                //POPFW		void				[	o16 9d]					8086
+                instruction.executePopf();
+                break;
+
             case 0xa0:
                 //MOV		reg_al,mem_offs			[-i:	a0 iwdq]				8086,SM
                 mrs.reg8 = true;

@@ -216,4 +216,8 @@ public class Regs {
         return rflags.getValue();
     }
 
+    public void setFlag(long v,int width) {
+        rflags.getRegWithWidth(width).setValue(v);
+    }
+
 }

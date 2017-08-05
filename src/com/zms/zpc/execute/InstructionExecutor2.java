@@ -357,6 +357,9 @@ public class InstructionExecutor2 extends InstructionExecutor {
                 mrs.setValMemory(pc, v2);
                 bits.setData(v1, getOpcode(), v2, oper, getOpWidth(), OSZAPC);
                 break;
+            case NOT:
+                mrs.setValMemory(pc,~mrs.getValMemory(pc));
+                break;
             default:
                 throw new NotImplException();
         }
