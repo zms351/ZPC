@@ -405,7 +405,8 @@ public class IDEFrame extends UtilityFrame implements ActionListener, IDebugger 
             case "Show Execution Point": {
                 PC pc = getFrame().getPc();
                 pc.setDebugger(this);
-                pc.setPause(12, command);
+                pc.intObj[0]=e.getModifiers();
+                pc.setPause(12, pc.intObj);
             }
             break;
             case "Write Instruction": {

@@ -7,6 +7,7 @@ import com.zms.zpc.emulator.processor.*;
 import com.zms.zpc.execute.*;
 import com.zms.zpc.support.*;
 
+import java.awt.event.ActionEvent;
 import java.io.InputStream;
 
 /**
@@ -211,6 +212,9 @@ public class PC extends BaseObj implements Runnable {
                         }
                         case 12: {  //decompile
                             stream.seek(this);
+                            if((intObj[0] & ActionEvent.CTRL_MASK)==ActionEvent.CTRL_MASK) {
+                                executor.adjustDecompilePos(stream);
+                            }
                             String code = executor.decode(this, stream);
                             getDebugger().onMessage(12, code);
                             break;

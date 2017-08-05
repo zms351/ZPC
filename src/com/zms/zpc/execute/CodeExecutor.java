@@ -15,11 +15,13 @@ public class CodeExecutor extends BaseObj {
     private InstructionExecutor2 instruction;
     private Regs regs;
     public int ins;
+    public long[] poses;
 
     public CodeExecutor() {
         previewBuffer = new byte[128];
         instruction = new InstructionExecutor2();
         instruction.executor = this;
+        poses=new long[5];
     }
 
     protected void pre(PC pc) {
@@ -1746,12 +1748,31 @@ public class CodeExecutor extends BaseObj {
             }
             pc.getDebugger().onMessage(DEBUG, "rep %H %H\n", pre, instruction.getOpcode());
         }
+        {
+            int n=poses.length;
+            System.arraycopy(poses, 1, poses, 0, n - 1);
+            poses[n-1]=instruction.getStartPos();
+        }
         checkIR(false);
         return 0;
     }
 
     public void reLoc(CodeStream input) {
         regs.rip.setValue64(regs.rip.getValue64() + (input.getPos() - instruction.getStartPos()));
+    }
+
+    public void adjustDecompilePos(CodeStream input) {
+        int n=poses.length;
+        long pos=input.getPos();
+        int index = -1;
+        for (int i = n - 1; i >= 0; i--) {
+            if (poses[i] < pos && (poses[i]+48)>pos) {
+                index=i;
+            }
+        }
+        if(index>=0) {
+            input.setPos(poses[index]);
+        }
     }
 
     public String decode(PC pc, CodeStream input) {
