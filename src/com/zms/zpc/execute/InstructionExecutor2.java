@@ -22,7 +22,7 @@ public class InstructionExecutor2 extends InstructionExecutor {
         return bits.getResult();
     }
 
-    public long mul_() {
+    public long mul_(int code) {
         Regs regs = pc.cpu.regs;
         long v1, v2, result;
         v2 = mrs.getValMemory(pc);
@@ -39,7 +39,16 @@ public class InstructionExecutor2 extends InstructionExecutor {
             default:
                 throw new NotImplException();
         }
-        result = v1 * v2;
+        switch (code) {
+            case MUL:
+                result = v1 * v2;
+                break;
+            case IMUL:
+                result = NumberUtils.asSigned(v1, width) * NumberUtils.asSigned(v2, width);
+                break;
+            default:
+                throw new NotImplException();
+        }
         long half;
         switch (width) {
             case 8:
@@ -58,9 +67,20 @@ public class InstructionExecutor2 extends InstructionExecutor {
                 throw new NotImplException();
         }
         bits.clearOCA();
-        bits.setData(v1, v2, result, MUL, width, SZP);
-        bits.of.set(half != 0);
-        bits.cf.set(half != 0);
+        bits.setData(v1, v2, result, code, width, SZP);
+        switch (code) {
+            case MUL:
+                bits.of.set(half != 0);
+                bits.cf.set(half != 0);
+                break;
+            case IMUL:
+                half = NumberUtils.asSigned(result, width);
+                bits.of.set(half != result);
+                bits.cf.set(half != result);
+                break;
+            default:
+                throw new NotImplException();
+        }
         return result;
     }
 
@@ -323,16 +343,19 @@ public class InstructionExecutor2 extends InstructionExecutor {
                 and_(mrs.getValMemory(pc), __v1);
                 break;
             case MUL:
-                mul_();
+                mul_(oper);
+                break;
+            case IMUL:
+                mul_(oper);
                 break;
             case DIV:
                 div_();
                 break;
             case NEG:
-                long v1=mrs.getValMemory(pc);
-                long v2=-NumberUtils.asSigned(v1,getOpWidth());
-                mrs.setValMemory(pc,v2);
-                bits.setData(v1,getOpcode(),v2,oper,getOpWidth(),OSZAPC);
+                long v1 = mrs.getValMemory(pc);
+                long v2 = -NumberUtils.asSigned(v1, getOpWidth());
+                mrs.setValMemory(pc, v2);
+                bits.setData(v1, getOpcode(), v2, oper, getOpWidth(), OSZAPC);
                 break;
             default:
                 throw new NotImplException();

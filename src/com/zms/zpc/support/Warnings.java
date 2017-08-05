@@ -33,7 +33,7 @@ public class Warnings {
         is.executeIF_(true);
         is.executeDF_(true);
         is.executeLoop(2);
-        System.out.println(is.mul_());
+        System.out.println(is.mul_(1));
         System.out.println(is.div_());
         Segment seg = (Segment) pc.cpu.regs.getReg("DS");
         seg.setValue16(12, false);
