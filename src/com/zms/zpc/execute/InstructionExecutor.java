@@ -403,6 +403,13 @@ public abstract class InstructionExecutor extends Instruction {
         executor.ins = Ret;
     }
 
+    public void executeRetFar() {
+        int width = getOpWidth(executor.getBits());
+        Regs regs = pc.cpu.regs;
+        regs.rip.getRegWithWidth(width).setValue(pop_(width));
+        regs.cs.setValue(pop_(width));
+    }
+
     public void executeLEA() {
         int opWidth = getOpWidth();
         int addressWidth = getAddressWidth(executor.getBits());

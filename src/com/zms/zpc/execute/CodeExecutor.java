@@ -1455,6 +1455,12 @@ public class CodeExecutor extends BaseObj {
                 }
                 break;
 
+            case 0xcb:
+                //RETF		void				[	cb]					8086
+                instruction.executeRetFar();
+                jump = true;
+                break;
+
             case 0xcc:
                 //INT03		void				[	cc]					8086,ND
                 //INT3		void				[	cc]					8086
