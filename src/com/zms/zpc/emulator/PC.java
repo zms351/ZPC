@@ -279,7 +279,7 @@ public class PC extends BaseObj implements Runnable {
         } catch (Throwable t) {
             t.printStackTrace();
         } finally {
-            System.out.println(Thread.currentThread().getName() + " exited!");
+            DummyDebugger.getInstance().onMessage(WARN,Thread.currentThread().getName() + " exited!\n");
         }
     }
 

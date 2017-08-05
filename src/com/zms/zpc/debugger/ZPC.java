@@ -2,6 +2,7 @@ package com.zms.zpc.debugger;
 
 import com.zms.zpc.debugger.util.*;
 import com.zms.zpc.emulator.*;
+import com.zms.zpc.emulator.debug.DummyDebugger;
 import com.zms.zpc.support.*;
 
 import javax.swing.*;
@@ -9,6 +10,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.lang.reflect.Constructor;
 import java.util.*;
+
+import static com.zms.zpc.support.Constants.WARN;
 
 /**
  * Created by 张小美 on 17/五月/24.
@@ -455,7 +458,7 @@ public class ZPC extends JFrame implements ActionListener, Runnable {
         } catch (Throwable t) {
             t.printStackTrace();
         } finally {
-            System.out.println(Thread.currentThread().getName() + " exited!");
+            DummyDebugger.getInstance().onMessage(WARN,Thread.currentThread().getName() + " exited!\n");
         }
     }
 

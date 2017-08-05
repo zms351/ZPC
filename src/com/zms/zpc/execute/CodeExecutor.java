@@ -21,7 +21,7 @@ public class CodeExecutor extends BaseObj {
         previewBuffer = new byte[128];
         instruction = new InstructionExecutor2();
         instruction.executor = this;
-        poses=new long[5];
+        poses = new long[5];
     }
 
     protected void pre(PC pc) {
@@ -1125,7 +1125,7 @@ public class CodeExecutor extends BaseObj {
                 //XCHG		reg8,reg8			[rm:	86 /r]					8086
                 //XCHG		mem,reg8			[mr:	hlenl 86 /r]				8086,SM,LOCK
                 //XCHG		reg8,reg8			[mr:	86 /r]					8086
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0x87:
                 //XCHG		reg16,mem			[rm:	hlenl o16 87 /r]			8086,SM,LOCK
                 //XCHG		reg16,reg16			[rm:	o16 87 /r]				8086
@@ -1329,7 +1329,7 @@ public class CodeExecutor extends BaseObj {
 
             case 0xae:
                 //SCASB		void				[	repe ae]				8086
-                mrs.reg8=true;
+                mrs.reg8 = true;
             case 0xaf:
                 //SCASD		void				[	repe o32 af]				386
                 //SCASQ		void				[	repe o64 af]				X64
@@ -1609,7 +1609,7 @@ public class CodeExecutor extends BaseObj {
                 //JCXZ		imm				[i:	a16 e3 rel8]				8086,NOLONG
                 //JECXZ		imm				[i:	a32 e3 rel8]				386
                 //JRCXZ		imm				[i:	a64 e3 rel8]				X64
-                jump=instruction.executeJcc();
+                jump = instruction.executeJcc();
                 break;
 
             case 0xe4:
@@ -1784,7 +1784,7 @@ public class CodeExecutor extends BaseObj {
                         //CALL		mem16|far			[m:	o16 ff /3]				8086
                         //CALL		mem32|far			[m:	o32 ff /3]				386
                         //CALL		mem64|far			[m:	o64 ff /3]				X64
-                        jump=instruction.executeCallFar();
+                        jump = instruction.executeCallFar();
                         break;
 
                     case 4:
@@ -1831,9 +1831,9 @@ public class CodeExecutor extends BaseObj {
             pc.getDebugger().onMessage(DEBUG, "rep %H %H\n", pre, instruction.getOpcode());
         }
         {
-            int n=poses.length;
+            int n = poses.length;
             System.arraycopy(poses, 1, poses, 0, n - 1);
-            poses[n-1]=instruction.getStartPos();
+            poses[n - 1] = instruction.getStartPos();
         }
         checkIR(false);
         return 0;
@@ -1844,15 +1844,15 @@ public class CodeExecutor extends BaseObj {
     }
 
     public void adjustDecompilePos(CodeStream input) {
-        int n=poses.length;
-        long pos=input.getPos();
+        int n = poses.length;
+        long pos = input.getPos();
         int index = -1;
         for (int i = n - 1; i >= 0; i--) {
-            if (poses[i] < pos && (poses[i]+48)>pos) {
-                index=i;
+            if (poses[i] < pos && (poses[i] + 48) > pos) {
+                index = i;
             }
         }
-        if(index>=0) {
+        if (index >= 0) {
             input.setPos(poses[index]);
         }
     }
@@ -1879,7 +1879,7 @@ public class CodeExecutor extends BaseObj {
     public void checkIR(boolean hlt) {
         try {
             if (hlt) {
-                Thread.sleep(3600);
+                Thread.sleep(1);
             }
         } catch (InterruptedException e) {
             throw new NotImplException(e);

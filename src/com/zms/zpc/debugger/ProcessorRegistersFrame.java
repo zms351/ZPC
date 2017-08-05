@@ -1,6 +1,7 @@
 package com.zms.zpc.debugger;
 
 import com.zms.zpc.debugger.util.*;
+import com.zms.zpc.emulator.debug.DummyDebugger;
 import com.zms.zpc.emulator.reg.BaseReg;
 import com.zms.zpc.support.*;
 
@@ -8,6 +9,8 @@ import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.util.Vector;
+
+import static com.zms.zpc.support.Constants.WARN;
 
 /**
  * Created by 张小美 on 17/五月/25.
@@ -148,7 +151,7 @@ public class ProcessorRegistersFrame extends UtilityFrame implements Runnable {
         } catch (Throwable t) {
             t.printStackTrace();
         } finally {
-            System.out.println(Thread.currentThread().getName() + " exited!");
+            DummyDebugger.getInstance().onMessage(WARN,Thread.currentThread().getName() + " exited!\n");
         }
     }
 
