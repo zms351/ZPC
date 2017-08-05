@@ -1728,9 +1728,19 @@ public class CodeExecutor extends BaseObj {
                 instruction.executeIF_(false);
                 break;
 
+            case 0xfb:
+                //STI		void				[	fb]					8086
+                instruction.executeIF_(true);
+                break;
+
             case 0xfc:
                 //CLD		void				[	fc]					8086
                 instruction.executeDF_(false);
+                break;
+
+            case 0xfd:
+                //STD		void				[	fd]					8086
+                instruction.executeDF_(true);
                 break;
 
             case 0xfe:
