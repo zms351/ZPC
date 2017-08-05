@@ -1327,6 +1327,17 @@ public class CodeExecutor extends BaseObj {
                 instruction.executeLODS();
                 break;
 
+            case 0xae:
+                //SCASB		void				[	repe ae]				8086
+                mrs.reg8=true;
+            case 0xaf:
+                //SCASD		void				[	repe o32 af]				386
+                //SCASQ		void				[	repe o64 af]				X64
+                //SCASW		void				[	repe o16 af]				8086
+
+                instruction.executeScas();
+                break;
+
             case 0xb0:
             case 0xb1:
             case 0xb2:

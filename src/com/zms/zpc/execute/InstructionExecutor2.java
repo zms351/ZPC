@@ -1,7 +1,7 @@
 package com.zms.zpc.execute;
 
 import com.zms.zpc.emulator.processor.Regs;
-import com.zms.zpc.emulator.reg.BaseReg;
+import com.zms.zpc.emulator.reg.*;
 import com.zms.zpc.support.*;
 
 /**
@@ -358,7 +358,7 @@ public class InstructionExecutor2 extends InstructionExecutor {
                 bits.setData(v1, getOpcode(), v2, oper, getOpWidth(), OSZAPC);
                 break;
             case NOT:
-                mrs.setValMemory(pc,~mrs.getValMemory(pc));
+                mrs.setValMemory(pc, ~mrs.getValMemory(pc));
                 break;
             default:
                 throw new NotImplException();
@@ -426,6 +426,53 @@ public class InstructionExecutor2 extends InstructionExecutor {
         long v = getSHRLD(cl, true);
         if (__v3 == 1) {
             mrs.setValMemory(pc, v);
+        }
+    }
+
+    public void executeScas() {
+        Regs regs = pc.cpu.regs;
+        Segment seg1 = regs.es;
+        int addressWidth = getAddressWidth(executor.getBits());
+        BaseReg off1 = regs.di.getRegWithWidth(addressWidth);
+        long address1 = seg1.getAddress(off1);
+
+        int opWidth = getOpWidth();
+        int n = opWidth / 8;
+        assert n * 8 == opWidth;
+        boolean df = bits.df.get();
+        BaseReg reg = regs.ax.getRegWithWidth(opWidth);
+
+        long v=0;
+        long v2 = reg.getValue();
+        if (isHasf3() || isHasf2()) {
+            BaseReg cr = regs.cx.getRegWithWidth(getAddressWidth(executor.getBits()));
+            long c = cr.getValue();
+            int k = 0;
+            while (c != 0) {
+                v = mrs.memoryRead(pc, address1, opWidth);
+                address1 = df ? address1 - n : address1 + n;
+                c = c - 1;
+                k++;
+                if (isHasf3()) {
+                    if (v == v2) {
+                        break;
+                    }
+                }
+                if (isHasf2()) {
+                    if (v != v2) {
+                        break;
+                    }
+                }
+            }
+            cr.setValue(c);
+            off1.setValue(df ? (off1.getValue() - n * k) : (off1.getValue() + n * k));
+            if(k>0) {
+                cmp_(v2,v);
+            }
+        } else {
+            v = mrs.memoryRead(pc, address1, opWidth);
+            cmp_(v2, v);
+            off1.setValue(df ? (off1.getValue() - n) : (off1.getValue() + n));
         }
     }
 
