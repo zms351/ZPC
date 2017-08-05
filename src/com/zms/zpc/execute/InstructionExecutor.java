@@ -55,32 +55,38 @@ public abstract class InstructionExecutor extends Instruction {
     }
 
     public boolean testCondition(int code) {
-        code = code & 0xf;
         switch (code) {
-            case 0x2:
-                return bits.cf();
-            case 0x3:
-                return !bits.cf();
-            case 0x4:
-                return bits.zf();
-            case 0x5:
-                return !bits.zf();
-            case 0x6:
-                return bits.cf() || bits.zf();
-            case 0x7:
-                return (!bits.cf()) && (!bits.zf());
-            case 0x8:
-                return bits.sf();
-            case 0xc:
-                return bits.sf()!=bits.of();
-            case 0xd:
-                return bits.sf()==bits.of();
-            case 0xe:
-                return bits.zf() || (bits.sf() != bits.of());
-            case 0xf:
-                return !bits.zf() && bits.sf() == bits.of();
+            case 0xe3:
+                BaseReg reg = pc.cpu.regs.cx.getRegWithWidth(getOpWidth());
+                return reg.getValue() == 0;
             default:
-                throw new NotImplException();
+                code = code & 0xf;
+                switch (code) {
+                    case 0x2:
+                        return bits.cf();
+                    case 0x3:
+                        return !bits.cf();
+                    case 0x4:
+                        return bits.zf();
+                    case 0x5:
+                        return !bits.zf();
+                    case 0x6:
+                        return bits.cf() || bits.zf();
+                    case 0x7:
+                        return (!bits.cf()) && (!bits.zf());
+                    case 0x8:
+                        return bits.sf();
+                    case 0xc:
+                        return bits.sf() != bits.of();
+                    case 0xd:
+                        return bits.sf() == bits.of();
+                    case 0xe:
+                        return bits.zf() || (bits.sf() != bits.of());
+                    case 0xf:
+                        return !bits.zf() && bits.sf() == bits.of();
+                    default:
+                        throw new NotImplException();
+                }
         }
     }
 
@@ -358,17 +364,17 @@ public abstract class InstructionExecutor extends Instruction {
     }
 
     public boolean executeCallFar() {
-        assert pc.cpu.getMode()==CPUMode.Real;
-        int width=getOpWidth();
+        assert pc.cpu.getMode() == CPUMode.Real;
+        int width = getOpWidth();
         long address = mrs.getMemoryAddress(pc);
         executor.reLoc(input);
         Regs regs = pc.cpu.regs;
-        push_(regs.cs.getValue(),width);
-        push_(regs.rip.getValue(),width);
-        regs.rip.getRegWithWidth(width).setValue(mrs.memoryRead(pc,address,width));
-        int n=width/8;
-        assert n*8==width;
-        regs.cs.setValue(16,mrs.memoryRead(pc,address+n,16));
+        push_(regs.cs.getValue(), width);
+        push_(regs.rip.getValue(), width);
+        regs.rip.getRegWithWidth(width).setValue(mrs.memoryRead(pc, address, width));
+        int n = width / 8;
+        assert n * 8 == width;
+        regs.cs.setValue(16, mrs.memoryRead(pc, address + n, 16));
         return true;
     }
 
@@ -683,30 +689,30 @@ public abstract class InstructionExecutor extends Instruction {
     }
 
     public void executePushf() {
-        long val=pc.cpu.regs.getFlag();
-        push_(val,getOpWidth());
+        long val = pc.cpu.regs.getFlag();
+        push_(val, getOpWidth());
     }
 
     public void executePopf() {
-        int width=getOpWidth();
-        long v=pop_(width);
-        pc.cpu.regs.setFlag(v,width);
+        int width = getOpWidth();
+        long v = pop_(width);
+        pc.cpu.regs.setFlag(v, width);
     }
 
     public void executeXchg1() {
-        int width=getOpWidth();
+        int width = getOpWidth();
         int r = getOpcode() - 0x90;
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));
-        BaseReg a=pc.cpu.regs.ax.getRegWithWidth(width);
-        long v=reg.getValue();
+        BaseReg a = pc.cpu.regs.ax.getRegWithWidth(width);
+        long v = reg.getValue();
         reg.setValue(a.getValue());
         a.setValue(v);
     }
 
     public void executeXchg2() {
-        long v=mrs.getValReg(pc);
-        mrs.setValReg(pc,mrs.getValMemory(pc));
-        mrs.setValMemory(pc,v);
+        long v = mrs.getValReg(pc);
+        mrs.setValReg(pc, mrs.getValMemory(pc));
+        mrs.setValMemory(pc, v);
     }
 
 }

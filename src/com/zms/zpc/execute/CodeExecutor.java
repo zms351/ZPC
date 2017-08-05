@@ -1605,6 +1605,13 @@ public class CodeExecutor extends BaseObj {
                 jump = instruction.executeLoop(1);
                 break;
 
+            case 0xe3:
+                //JCXZ		imm				[i:	a16 e3 rel8]				8086,NOLONG
+                //JECXZ		imm				[i:	a32 e3 rel8]				386
+                //JRCXZ		imm				[i:	a64 e3 rel8]				X64
+                jump=instruction.executeJcc();
+                break;
+
             case 0xe4:
                 //IN		reg_al,imm			[-i:	e4 ib,u]				8086,SB
             case 0xec:
