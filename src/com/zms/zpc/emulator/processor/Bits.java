@@ -182,7 +182,15 @@ public class Bits extends BaseObj {
             case SUB:
                 return (result & (Pows[opWidth] - 1)) != result;
             case SHL:
+                if (op2 <= 0) {
+                    return op2<-100;
+                }
                 return ((op1 >> (opWidth - op2)) & 0x1) != 0;
+            case SHR:
+                if (op2 <= 0) {
+                    return op2<-100;
+                }
+                return ((op1 >> (op2 - 1)) & 0x1) != 0;
         }
         throw new NotImplException();
     }

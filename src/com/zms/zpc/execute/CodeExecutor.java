@@ -1120,6 +1120,29 @@ public class CodeExecutor extends BaseObj {
                 instruction.executeCal1(TEST, false);
                 break;
 
+            case 0x86:
+                //XCHG		reg8,mem			[rm:	hlenl 86 /r]				8086,SM,LOCK
+                //XCHG		reg8,reg8			[rm:	86 /r]					8086
+                //XCHG		mem,reg8			[mr:	hlenl 86 /r]				8086,SM,LOCK
+                //XCHG		reg8,reg8			[mr:	86 /r]					8086
+                mrs.reg8=true;
+            case 0x87:
+                //XCHG		reg16,mem			[rm:	hlenl o16 87 /r]			8086,SM,LOCK
+                //XCHG		reg16,reg16			[rm:	o16 87 /r]				8086
+                //XCHG		reg32,mem			[rm:	hlenl o32 87 /r]			386,SM,LOCK
+                //XCHG		reg32,reg32			[rm:	o32 87 /r]				386
+                //XCHG		reg64,mem			[rm:	hlenl o64 87 /r]			X64,SM,LOCK
+                //XCHG		reg64,reg64			[rm:	o64 87 /r]				X64
+                //XCHG		mem,reg16			[mr:	hlenl o16 87 /r]			8086,SM,LOCK
+                //XCHG		reg16,reg16			[mr:	o16 87 /r]				8086
+                //XCHG		mem,reg32			[mr:	hlenl o32 87 /r]			386,SM,LOCK
+                //XCHG		reg32,reg32			[mr:	o32 87 /r]				386
+                //XCHG		mem,reg64			[mr:	hlenl o64 87 /r]			X64,SM,LOCK
+                //XCHG		reg64,reg64			[mr:	o64 87 /r]				X64
+                instruction.parse2(bits);
+                instruction.executeXchg2();
+                break;
+
             case 0x88:
                 //MOV		mem,reg8			[mr:	hlexr 88 /r]				8086,SM
                 //MOV		reg8,reg8			[mr:	88 /r]					8086
@@ -1204,6 +1227,23 @@ public class CodeExecutor extends BaseObj {
 
             case 0x90:
                 //NOP		void				[	norexb nof3 90]				8086
+                break;
+
+            case 0x91:
+            case 0x92:
+            case 0x93:
+            case 0x94:
+            case 0x95:
+            case 0x96:
+            case 0x97:
+                //XCHG		reg_ax,reg16			[-r:	o16 90+r]				8086
+                //XCHG		reg_eax,reg32na			[-r:	o32 90+r]				386
+                //XCHG		reg_rax,reg64			[-r:	o64 90+r]				X64
+                //XCHG		reg16,reg_ax			[r-:	o16 90+r]				8086
+                //XCHG		reg32na,reg_eax			[r-:	o32 90+r]				386
+                //XCHG		reg64,reg_rax			[r-:	o64 90+r]				X64
+                //XCHG		reg_eax,reg_eax			[--:	o32 90]					386,NOLONG
+                instruction.executeXchg1();
                 break;
 
             case 0x9c:

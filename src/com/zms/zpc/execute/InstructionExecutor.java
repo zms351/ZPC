@@ -680,4 +680,20 @@ public abstract class InstructionExecutor extends Instruction {
         push_(val,getOpWidth());
     }
 
+    public void executeXchg1() {
+        int width=getOpWidth();
+        int r = getOpcode() - 0x90;
+        BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), r));
+        BaseReg a=pc.cpu.regs.ax.getRegWithWidth(width);
+        long v=reg.getValue();
+        reg.setValue(a.getValue());
+        a.setValue(v);
+    }
+
+    public void executeXchg2() {
+        long v=mrs.getValReg(pc);
+        mrs.setValReg(pc,mrs.getValMemory(pc));
+        mrs.setValMemory(pc,v);
+    }
+
 }
