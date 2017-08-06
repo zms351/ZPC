@@ -5,6 +5,8 @@ import com.zms.zpc.emulator.board.helper.BasePCIDevice;
 import com.zms.zpc.emulator.debug.DummyDebugger;
 import com.zms.zpc.support.NotImplException;
 
+import java.io.*;
+
 /**
  * Created by 张小美 on 17/八月/4.
  * Copyright 2002-2016
@@ -92,6 +94,17 @@ public abstract class VGACard extends BasePCIDevice {
     private static final int CR_INDEX_CRTC_MODE_CONTROL = 0x17;
     private static final int CR_INDEX_LINE_COMPARE = 0x18;
 
+    private final GraphicsUpdater VGA_DRAW_LINE2;
+    private final GraphicsUpdater VGA_DRAW_LINE2D2;
+    private final GraphicsUpdater VGA_DRAW_LINE4;
+    private final GraphicsUpdater VGA_DRAW_LINE4D2;
+    private final GraphicsUpdater VGA_DRAW_LINE8D2;
+    private final GraphicsUpdater VGA_DRAW_LINE8;
+    private final GraphicsUpdater VGA_DRAW_LINE15;
+    private final GraphicsUpdater VGA_DRAW_LINE16;
+    private final GraphicsUpdater VGA_DRAW_LINE24;
+    private final GraphicsUpdater VGA_DRAW_LINE32;
+
     private int latch;
     private int sequencerRegisterIndex, graphicsRegisterIndex, attributeRegisterIndex, crtRegisterIndex;
     private int[] sequencerRegister, graphicsRegister, attributeRegister, crtRegister;
@@ -131,6 +144,8 @@ public abstract class VGACard extends BasePCIDevice {
     private boolean memoryRegistered;
 
     private boolean updatingScreen;
+
+    private VGARAMIORegion ioRegion;
 
     private static final int[] sequencerRegisterMask = new int[]{
             0x03, //~0xfc,
@@ -225,8 +240,55 @@ public abstract class VGACard extends BasePCIDevice {
             0xffffffff, 0xffffffff,
             0xffffffff, 0xffffffff};
 
+    private static final int[] expand4to8 = new int[16];
+
+    static {
+        for (int i = 0; i < expand4to8.length; i++) {
+            int v = 0;
+            for (int j = 0; j < 4; j++) {
+                int b = ((i >>> j) & 1);
+                v |= b << (2 * j);
+                v |= b << (2 * j + 1);
+            }
+            expand4to8[i] = v;
+        }
+    }
+
+    private static final int[] expand2 = new int[256];
+
+    static {
+        for (int i = 0; i < expand2.length; i++) {
+            int v = 0;
+            for (int j = 0; j < 4; j++)
+                v |= ((i >>> (2 * j)) & 3) << (j * 4);
+            expand2[i] = v;
+        }
+    }
+
+    private static final int[] expand4 = new int[256];
+
+    static {
+        for (int i = 0; i < expand4.length; i++) {
+            int v = 0;
+            for (int j = 0; j < 8; j++)
+                v |= ((i >>> j) & 1) << (j * 4);
+            expand4[i] = v;
+        }
+    }
+
     public VGACard(MotherBoard mb) {
         super(mb.pciBus);
+
+        VGA_DRAW_LINE2 = new DrawLine2();
+        VGA_DRAW_LINE2D2 = new DrawLine2d2();
+        VGA_DRAW_LINE4 = new DrawLine4();
+        VGA_DRAW_LINE4D2 = new DrawLine4d2();
+        VGA_DRAW_LINE8D2 = new DrawLine8d2();
+        VGA_DRAW_LINE8 = new DrawLine8();
+        VGA_DRAW_LINE15 = new DrawLine15();
+        VGA_DRAW_LINE16 = new DrawLine16();
+        VGA_DRAW_LINE24 = new DrawLine24();
+        VGA_DRAW_LINE32 = new DrawLine32();
 
         lastPalette = new int[256];
         sequencerRegister = new int[256];
@@ -511,7 +573,7 @@ public abstract class VGACard extends BasePCIDevice {
                 }
                 break;
                 default:
-                    DummyDebugger.getInstance().onMessage(WARN,"Invalid VBE write mode: vbeIndex=" + vbeIndex+"\n");
+                    DummyDebugger.getInstance().onMessage(WARN, "Invalid VBE write mode: vbeIndex=" + vbeIndex + "\n");
                     break;
             }
         }
@@ -700,6 +762,9 @@ public abstract class VGACard extends BasePCIDevice {
 
     @Override
     public void reset() {
+        if(ioRegion==null) {
+            ioRegion = new VGARAMIORegion();
+        }
     }
 
     private final void internalReset() {
@@ -738,6 +803,1122 @@ public abstract class VGACard extends BasePCIDevice {
         crtRegister = new int[256];
 
         graphicMode = -1;
+    }
+
+    public void updateDisplay() {
+        // note this causes NON-deterministic execution because of thread scheduling
+        updatingScreen = true;
+
+        boolean fullUpdate = false;
+        int detGraphicMode;
+        if ((attributeRegisterIndex & 0x20) == 0)
+            detGraphicMode = GMODE_BLANK;
+        else
+            detGraphicMode = graphicsRegister[GR_INDEX_MISC] & 1;
+
+        if (detGraphicMode != this.graphicMode) {
+            this.graphicMode = detGraphicMode;
+            fullUpdate = true;
+        }
+
+        switch (graphicMode) {
+            case GMODE_TEXT:
+                drawText(fullUpdate);
+                break;
+            case GMODE_GRAPH:
+                drawGraphic(fullUpdate);
+                break;
+            case GMODE_BLANK:
+            default:
+                drawBlank(fullUpdate);
+                break;
+        }
+
+        updatingScreen = false;
+    }
+
+    private void drawGraphic(boolean fullUpdate) {
+        boolean temp = updateBasicParameters();
+        fullUpdate |= temp;
+
+        int width = (crtRegister[CR_INDEX_HORZ_DISPLAY_END] + 1) * 8;
+        int height = (crtRegister[CR_INDEX_VERT_DISPLAY_END] | ((crtRegister[CR_INDEX_OVERFLOW] & 0x02) << 7) | ((crtRegister[CR_INDEX_OVERFLOW] & 0x40) << 3)) + 1;
+
+        int dispWidth = width;
+        int shiftControlBuffer = (graphicsRegister[GR_INDEX_GRAPHICS_MODE] >>> 5) & 3;
+        int doubleScanBuffer = crtRegister[CR_INDEX_MAX_SCANLINE] >>> 7;
+
+        int multiScan;
+        if (shiftControlBuffer != 1)
+            multiScan = (((crtRegister[CR_INDEX_MAX_SCANLINE] & 0x1f) + 1) << doubleScanBuffer) - 1;
+        else {
+                /* in CGA modes, multi_scan is ignored */
+                /* XXX: is it correct ? */
+            multiScan = doubleScanBuffer;
+        }
+
+        if (shiftControlBuffer != shiftControl || doubleScanBuffer != doubleScan) {
+            fullUpdate = true;
+            this.shiftControl = shiftControlBuffer;
+            this.doubleScan = doubleScanBuffer;
+        }
+
+        GraphicsUpdater graphicUpdater = null;
+        if (shiftControl == 0) {
+            temp = updatePalette16();
+            fullUpdate |= temp;
+            if ((sequencerRegister[SR_INDEX_CLOCKING_MODE] & 8) != 0) {
+                graphicUpdater = VGA_DRAW_LINE4D2;
+                dispWidth <<= 1;
+            } else
+                graphicUpdater = VGA_DRAW_LINE4;
+        } else if (shiftControl == 1) {
+            temp = updatePalette16();
+            fullUpdate |= temp;
+            if ((sequencerRegister[SR_INDEX_CLOCKING_MODE] & 8) != 0) {
+                graphicUpdater = VGA_DRAW_LINE2D2;
+                dispWidth <<= 1;
+            } else
+                graphicUpdater = VGA_DRAW_LINE2;
+        } else {
+            int bpp = 0;
+            if ((vbeRegs[VBE_DISPI_INDEX_ENABLE] & VBE_DISPI_ENABLED) != 0)
+                bpp = vbeRegs[VBE_DISPI_INDEX_BPP];
+
+            switch (bpp) {
+                default:
+                case 0:
+                    temp = updatePalette256();
+                    fullUpdate |= temp;
+                    graphicUpdater = VGA_DRAW_LINE8D2;
+                    break;
+                case 8:
+                    temp = updatePalette256();
+                    fullUpdate |= temp;
+                    graphicUpdater = VGA_DRAW_LINE8;
+                    break;
+                case 15:
+                    graphicUpdater = VGA_DRAW_LINE15;
+                    break;
+                case 16:
+                    graphicUpdater = VGA_DRAW_LINE16;
+                    break;
+                case 24:
+                    graphicUpdater = VGA_DRAW_LINE24;
+                    break;
+                case 32:
+                    graphicUpdater = VGA_DRAW_LINE32;
+                    break;
+            }
+        }
+
+        if ((dispWidth != lastWidth) || (height != lastHeight)) {
+            fullUpdate = true;
+            lastScreenWidth = lastWidth = dispWidth;
+            lastScreenHeight = lastHeight = height;
+            resizeDisplay(lastScreenWidth, lastScreenHeight);
+        }
+
+        graphicUpdater.updateDisplay(width, height, dispWidth, fullUpdate, multiScan);
+    }
+
+    private void drawText(boolean fullUpdate) {
+        boolean temp = updatePalette16();
+        fullUpdate |= temp;
+        int[] palette = lastPalette;
+
+            /* compute font data address (in plane 2) */
+        int v = this.sequencerRegister[SR_INDEX_CHAR_MAP_SELECT];
+
+        int offset = (((v >>> 4) & 1) | ((v << 1) & 6)) * 8192 * 4 + 2;
+        if (offset != this.fontOffset[0]) {
+            this.fontOffset[0] = offset;
+            fullUpdate = true;
+        }
+
+
+        offset = (((v >>> 5) & 1) | ((v >>> 1) & 6)) * 8192 * 4 + 2;
+        if (offset != this.fontOffset[1]) {
+            this.fontOffset[1] = offset;
+            fullUpdate = true;
+        }
+
+        if ((this.planeUpdated & (1 << 2)) != 0) {
+                /* if the plane 2 was modified since the last display, it
+                  indicates the font may have been modified */
+            this.planeUpdated = 0;
+            fullUpdate = true;
+        }
+
+        temp = updateBasicParameters();
+        fullUpdate |= temp;
+
+        int srcIndex = this.startAddress * 4;
+
+            /* total width and height */
+        int charHeight = (crtRegister[CR_INDEX_MAX_SCANLINE] & 0x1f) + 1;
+        int charWidth = 8;
+        if ((sequencerRegister[SR_INDEX_CLOCKING_MODE] & 0x01) == 0)
+            charWidth = 9;
+        if ((sequencerRegister[SR_INDEX_CLOCKING_MODE] & 0x08) != 0)
+            charWidth = 16; /* NOTE: no 18 pixel wide */
+
+        int width = crtRegister[CR_INDEX_HORZ_DISPLAY_END] + 1;
+        int height;
+        if (crtRegister[CR_INDEX_VERT_TOTAL] == 100) {
+                /* ugly hack for CGA 160x100x16 */
+            height = 100;
+        } else {
+            height = crtRegister[CR_INDEX_VERT_DISPLAY_END] | ((crtRegister[CR_INDEX_OVERFLOW] & 0x02) << 7) | ((crtRegister[CR_INDEX_OVERFLOW] & 0x40) << 3);
+            height = (height + 1) / charHeight;
+        }
+
+        if ((height * width) > CH_ATTR_SIZE) {
+                /* better than nothing: exit if transient size is too big */
+            return;
+        }
+
+        if ((width != this.lastWidth) || (height != this.lastHeight) || (charWidth != this.lastCW) || (charHeight != this.lastCH)) {
+            this.lastScreenWidth = width * charWidth;
+            this.lastScreenHeight = height * charHeight;
+            resizeDisplay(this.lastScreenWidth, this.lastScreenHeight);
+            this.lastWidth = width;
+            this.lastHeight = height;
+            this.lastCH = charHeight;
+            this.lastCW = charWidth;
+            fullUpdate = true;
+        }
+
+        int curCursorOffset = ((crtRegister[CR_INDEX_CURSOR_LOC_HIGH] << 8) | crtRegister[CR_INDEX_CURSOR_LOC_LOW]) - this.startAddress;
+
+        if ((curCursorOffset != this.cursorOffset) || (crtRegister[CR_INDEX_CURSOR_START] != this.cursorStart) || (crtRegister[CR_INDEX_CURSOR_END] != this.cursorEnd)) {
+                /* if the cursor position changed, we updated the old and new
+                  chars */
+            if ((this.cursorOffset < CH_ATTR_SIZE) && (this.cursorOffset >= 0))
+                this.lastChar[this.cursorOffset] = -1;
+            if ((curCursorOffset < CH_ATTR_SIZE) && (curCursorOffset >= 0))
+                this.lastChar[curCursorOffset] = -1;
+
+            this.cursorOffset = curCursorOffset;
+            this.cursorStart = crtRegister[CR_INDEX_CURSOR_START];
+            this.cursorEnd = crtRegister[CR_INDEX_CURSOR_END];
+        }
+
+        int cursorIndex = (this.startAddress + this.cursorOffset) * 4;
+        int lastCharOffset = 0;
+
+        switch (charWidth) {
+            case 8:
+                for (int charY = 0; charY < height; charY++) {
+                    int srcOffset = srcIndex;
+                    for (int charX = 0; charX < width; charX++) {
+                        int charShort = 0xffff & ioRegion.getWord(srcOffset);
+                        if (fullUpdate || (charShort != this.lastChar[lastCharOffset])) {
+                            this.lastChar[lastCharOffset] = charShort;
+
+                            int character = 0xff & charShort;
+                            int characterAttribute = charShort >>> 8;
+
+                            int glyphOffset = fontOffset[(characterAttribute >>> 3) & 1] + 32 * 4 * character;
+                            int backgroundColor = palette[characterAttribute >>> 4];
+                            int foregroundColor = palette[characterAttribute & 0xf];
+
+                            drawGlyph8(getDisplayBuffer(), charY * charHeight * lastScreenWidth + charX * 8,
+                                    lastScreenWidth, glyphOffset, charHeight, foregroundColor, backgroundColor);
+                            dirtyDisplayRegion(charX * 8, charY * charHeight, 8, charHeight);
+
+                            if ((srcOffset == cursorIndex) && ((crtRegister[CR_INDEX_CURSOR_START] & 0x20) == 0)) {
+                                int lineStart = crtRegister[CR_INDEX_CURSOR_START] & 0x1f;
+                                int lineLast = crtRegister[CR_INDEX_CURSOR_END] & 0x1f;
+                                    /* XXX: check that */
+                                if (lineLast > charHeight - 1)
+                                    lineLast = charHeight - 1;
+
+                                if ((lineLast >= lineStart) && (lineStart < charHeight)) {
+                                    int tempHeight = lineLast - lineStart + 1;
+                                    drawCursorGlyph8(getDisplayBuffer(), (charY * charHeight + lineStart) * lastScreenWidth + charX * 8,
+                                            lastScreenWidth, tempHeight, foregroundColor, backgroundColor);
+                                    dirtyDisplayRegion(charX * 8, charY * charHeight + lineStart, 8, tempHeight);
+                                }
+                            }
+                        }
+                        srcOffset += 4;
+                        lastCharOffset++;
+                    }
+                    srcIndex += lineOffset;
+                }
+                return;
+            case 9:
+                for (int charY = 0; charY < height; charY++) {
+                    int srcOffset = srcIndex;
+                    for (int charX = 0; charX < width; charX++) {
+                        int charShort = 0xffff & ioRegion.getWord(srcOffset);
+                        if (fullUpdate || (charShort != this.lastChar[lastCharOffset])) {
+                            this.lastChar[lastCharOffset] = charShort;
+
+                            int character = 0xff & charShort;
+                            int characterAttribute = charShort >>> 8;
+
+                            int glyphOffset = fontOffset[(characterAttribute >>> 3) & 1] + 32 * 4 * character;
+                            int backgroundColor = palette[characterAttribute >>> 4];
+                            int foregroundColor = palette[characterAttribute & 0xf];
+
+                            boolean dup9 = ((character >= 0xb0) && (character <= 0xdf) && ((attributeRegister[AR_INDEX_ATTR_MODE_CONTROL] & 0x04) != 0));
+                            drawGlyph9(getDisplayBuffer(), charY * charHeight * lastScreenWidth + charX * 9, lastScreenWidth,
+                                    glyphOffset, charHeight, foregroundColor, backgroundColor, dup9);
+                            dirtyDisplayRegion(charX * 9, charY * charHeight, 9, charHeight);
+
+                            if ((srcOffset == cursorIndex) && ((crtRegister[CR_INDEX_CURSOR_START] & 0x20) == 0)) {
+                                int lineStart = crtRegister[CR_INDEX_CURSOR_START] & 0x1f;
+                                int lineLast = crtRegister[CR_INDEX_CURSOR_END] & 0x1f;
+                                    /* XXX: check that */
+                                if (lineLast > charHeight - 1)
+                                    lineLast = charHeight - 1;
+
+                                if ((lineLast >= lineStart) && (lineStart < charHeight)) {
+                                    int tempHeight = lineLast - lineStart + 1;
+                                    drawCursorGlyph9(getDisplayBuffer(), (charY * charHeight + lineStart) * lastScreenWidth + charX * 9,
+                                            lastScreenWidth, tempHeight, foregroundColor, backgroundColor);
+                                    dirtyDisplayRegion(charX * 9, charY * charHeight + lineStart, 9, tempHeight);
+                                }
+                            }
+                        }
+                        srcOffset += 4;
+                        lastCharOffset++;
+                    }
+                    srcIndex += lineOffset;
+                }
+                return;
+            case 16:
+                for (int charY = 0; charY < height; charY++) {
+                    int srcOffset = srcIndex;
+                    for (int charX = 0; charX < width; charX++) {
+                        int charShort = 0xffff & ioRegion.getWord(srcOffset);
+                        if (fullUpdate || (charShort != this.lastChar[lastCharOffset])) {
+                            this.lastChar[lastCharOffset] = charShort;
+
+                            int character = 0xff & charShort;
+                            int characterAttribute = charShort >>> 8;
+
+                            int glyphOffset = fontOffset[(characterAttribute >>> 3) & 1] + 32 * 4 * character;
+                            int backgroundColor = palette[characterAttribute >>> 4];
+                            int foregroundColor = palette[characterAttribute & 0xf];
+
+                            drawGlyph16(getDisplayBuffer(), charY * charHeight * lastScreenWidth + charX * 16,
+                                    lastScreenWidth, glyphOffset, charHeight, foregroundColor, backgroundColor);
+                            dirtyDisplayRegion(charX * 16, charY * charHeight, 16, charHeight);
+
+                            if ((srcOffset == cursorIndex) && ((crtRegister[CR_INDEX_CURSOR_START] & 0x20) == 0)) {
+                                int lineStart = crtRegister[CR_INDEX_CURSOR_START] & 0x1f;
+                                int lineLast = crtRegister[CR_INDEX_CURSOR_END] & 0x1f;
+                                    /* XXX: check that */
+                                if (lineLast > charHeight - 1)
+                                    lineLast = charHeight - 1;
+
+                                if ((lineLast >= lineStart) && (lineStart < charHeight)) {
+                                    int tempHeight = lineLast - lineStart + 1;
+                                    drawCursorGlyph16(getDisplayBuffer(), (charY * charHeight + lineStart) * lastScreenWidth + charX * 16,
+                                            lastScreenWidth, tempHeight, foregroundColor, backgroundColor);
+                                    dirtyDisplayRegion(charX * 16, charY * charHeight + lineStart, 16, tempHeight);
+                                }
+                            }
+                        }
+                        srcOffset += 4;
+                        lastCharOffset++;
+                    }
+                    srcIndex += lineOffset;
+                }
+                return;
+            default:
+                mb.pc.getDebugger().onMessage(WARN, "Unknown character width %d\n", charWidth);
+                return;
+        }
+    }
+
+    private final void drawGlyph8(int[] buffer, int startOffset, int scanSize, int glyphOffset, int charHeight, int foregroundColor, int backgroundColor) {
+        int xorColor = backgroundColor ^ foregroundColor;
+        scanSize -= 8;
+
+        do {
+            int fontData = ioRegion.getByte(glyphOffset);
+            for (int i = 7; i >= 0; i--) {
+                int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
+                buffer[startOffset++] = pixel;
+            }
+            glyphOffset += 4;
+            startOffset += scanSize;
+        } while (--charHeight != 0);
+    }
+
+    private final void drawBlank(boolean fullUpdate) {
+        if (!fullUpdate)
+            return;
+        if ((lastScreenWidth <= 0) || (lastScreenHeight <= 0))
+            return;
+
+        int[] rawBytes = getDisplayBuffer();
+        int black = rgbToPixel(0, 0, 0);
+        for (int i = rawBytes.length - 1; i >= 0; i--) {
+            rawBytes[i] = black;
+        }
+
+        dirtyDisplayRegion(0, 0, lastScreenWidth, lastScreenHeight);
+    }
+
+    public abstract void resizeDisplay(int w, int h);
+
+    protected abstract int[] getDisplayBuffer();
+
+    protected abstract int rgbToPixel(int r, int g, int b);
+
+    protected abstract void dirtyDisplayRegion(int x, int y, int w, int h);
+
+    public String toString() {
+        return "VGA Card [Mode: " + lastScreenWidth + " x " + lastScreenHeight + "]";
+    }
+
+    private final void drawCursorGlyph8(int[] buffer, int startOffset, int scanSize, int charHeight, int foregroundColor, int backgroundColor) {
+        int xorColor = backgroundColor ^ foregroundColor;
+        int glyphOffset = 0;
+        scanSize -= 8;
+
+        do {
+            int fontData = cursorGlyph[glyphOffset];
+            for (int i = 7; i >= 0; i--) {
+                int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
+                buffer[startOffset++] = pixel;
+            }
+            glyphOffset += 4;
+            startOffset += scanSize;
+        }
+        while (--charHeight != 0);
+    }
+
+    private final void drawGlyph16(int[] buffer, int startOffset, int scanSize, int glyphOffset, int charHeight, int foregroundColor, int backgroundColor) {
+        int xorColor = backgroundColor ^ foregroundColor;
+        scanSize -= 16;
+
+        do {
+            int rawData = ioRegion.getByte(glyphOffset);
+            int fontData = expand4to8[(rawData >>> 4) & 0x0f];
+            for (int i = 7; i >= 0; i--) {
+                int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
+                buffer[startOffset++] = pixel;
+            }
+            fontData = expand4to8[rawData & 0x0f];
+            for (int i = 7; i >= 0; i--) {
+                int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
+                buffer[startOffset++] = pixel;
+            }
+            glyphOffset += 4;
+            startOffset += scanSize;
+        } while (--charHeight != 0);
+    }
+
+    private final void drawCursorGlyph16(int[] buffer, int startOffset, int scanSize, int charHeight, int foregroundColor, int backgroundColor) {
+        int glyphOffset = 0;
+        int xorColor = backgroundColor ^ foregroundColor;
+        scanSize -= 16;
+
+        do {
+            int rawData = cursorGlyph[glyphOffset];
+            int fontData = expand4to8[(rawData >>> 4) & 0x0f];
+            for (int i = 7; i >= 0; i--) {
+                int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
+                buffer[startOffset++] = pixel;
+            }
+            fontData = expand4to8[rawData & 0x0f];
+            for (int i = 7; i >= 0; i--) {
+                int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
+                buffer[startOffset++] = pixel;
+            }
+            glyphOffset += 4;
+            startOffset += scanSize;
+        }
+        while (--charHeight != 0);
+    }
+
+    private final void drawCursorGlyph9(int[] buffer, int startOffset, int scanSize, int charHeight, int foregroundColor, int backgroundColor) {
+        int glyphOffset = 0;
+        int xorColor = backgroundColor ^ foregroundColor;
+        scanSize -= 9;
+
+        do {
+            int fontData = cursorGlyph[glyphOffset];
+            for (int i = 7; i >= 0; i--) {
+                int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
+                buffer[startOffset++] = pixel;
+            }
+            buffer[startOffset++] = buffer[startOffset - 2];
+            glyphOffset++;
+            startOffset += scanSize;
+        } while (--charHeight != 0);
+    }
+
+    private final void drawGlyph9(int[] buffer, int startOffset, int scanSize, int glyphOffset, int charHeight, int foregroundColor, int backgroundColor, boolean dup9) {
+        int xorColor = backgroundColor ^ foregroundColor;
+        scanSize -= 9;
+
+        if (dup9) {
+            do {
+                int fontData = ioRegion.getByte(glyphOffset);
+
+                for (int i = 7; i >= 0; i--) {
+                    int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
+                    buffer[startOffset++] = pixel;
+                }
+
+                buffer[startOffset++] = buffer[startOffset - 2];
+
+                glyphOffset += 4;
+                startOffset += scanSize;
+            } while (--charHeight != 0);
+        } else {
+            do {
+                int fontData = ioRegion.getByte(glyphOffset);
+
+                for (int i = 7; i >= 0; i--) {
+                    int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
+                    buffer[startOffset++] = pixel;
+                }
+
+                buffer[startOffset++] = backgroundColor;
+
+                glyphOffset += 4;
+                startOffset += scanSize;
+            } while (--charHeight != 0);
+        }
+    }
+
+    private final boolean updatePalette16() {
+        boolean fullUpdate = false;
+        int[] palette = lastPalette;
+
+        for (int colorIndex = AR_INDEX_PALLETE_MIN; colorIndex <= AR_INDEX_PALLETE_MAX; colorIndex++) {
+            int v = attributeRegister[colorIndex];
+            if ((attributeRegister[AR_INDEX_ATTR_MODE_CONTROL] & 0x80) != 0)
+                v = ((attributeRegister[AR_INDEX_COLOR_SELECT] & 0xf) << 4) | (v & 0xf);
+            else
+                v = ((attributeRegister[AR_INDEX_COLOR_SELECT] & 0xc) << 4) | (v & 0x3f);
+
+            v *= 3;
+            int col = rgbToPixel(c6to8(this.palette[v]),
+                    c6to8(this.palette[v + 1]),
+                    c6to8(this.palette[v + 2]));
+            if (col != palette[colorIndex]) {
+                fullUpdate = true;
+                palette[colorIndex] = col;
+            }
+        }
+        return fullUpdate;
+    }
+
+    private final boolean updatePalette256() {
+        boolean fullUpdate = false;
+        int[] palette = lastPalette;
+
+        for (int i = 0, v = 0; i < 256; i++, v += 3) {
+            int col = rgbToPixel(c6to8(this.palette[v]),
+                    c6to8(this.palette[v + 1]),
+                    c6to8(this.palette[v + 2]));
+            if (col != palette[i]) {
+                fullUpdate = true;
+                palette[i] = col;
+            }
+        }
+        return fullUpdate;
+    }
+
+    private final boolean updateBasicParameters() {
+        int curStartAddress, curLineOffset;
+        if ((vbeRegs[VBE_DISPI_INDEX_ENABLE] & VBE_DISPI_ENABLED) != 0) {
+            curLineOffset = this.vbeLineOffset;
+            curStartAddress = this.vbeStartAddress;
+        } else {
+                /* compute curLineOffset in bytes */
+            curLineOffset = crtRegister[CR_INDEX_OFFSET];
+            curLineOffset <<= 3;
+
+                /* starting address */
+            curStartAddress = crtRegister[CR_INDEX_START_ADDR_LOW] | (crtRegister[CR_INDEX_START_ADDR_HIGH] << 8);
+        }
+
+            /* line compare */
+        int curLineCompare = crtRegister[CR_INDEX_LINE_COMPARE] | ((crtRegister[CR_INDEX_OVERFLOW] & 0x10) << 4) | ((crtRegister[CR_INDEX_MAX_SCANLINE] & 0x40) << 3);
+
+        if ((curLineOffset != this.lineOffset) || (curStartAddress != this.startAddress) || (curLineCompare != this.lineCompare)) {
+            this.lineOffset = curLineOffset;
+            this.startAddress = curStartAddress;
+            this.lineCompare = curLineCompare;
+            return true;
+        }
+
+        return false;
+    }
+
+    abstract class GraphicsUpdater {
+
+        abstract int byteWidth(int width);
+
+        abstract void drawLine(int offset, int width, int y, int dispWidth);
+
+        void updateDisplay(int width, int height, int dispWidth, boolean fullUpdate, int multiScan) {
+            int multiRun = multiScan;
+            int addr1 = 4 * startAddress;
+            //int lineSize = width; // get the line size from the display device??
+
+            // if the "cursor_invalidate" function pointer is not null, then call it here.
+            //if (s->cursor_invalidate)
+            //s->cursor_invalidate(s);
+
+            int y1 = 0;
+            boolean addrMunge1 = (crtRegister[CR_INDEX_CRTC_MODE_CONTROL] & 1) == 0;
+            boolean addrMunge2 = (crtRegister[CR_INDEX_CRTC_MODE_CONTROL] & 2) == 0;
+            boolean addrMunge = addrMunge1 || addrMunge2;
+            int mask = (crtRegister[CR_INDEX_CRTC_MODE_CONTROL] & 3) ^ 3;
+
+            int pageMin = Integer.MAX_VALUE;
+            int pageMax = Integer.MIN_VALUE;
+
+            for (int y = 0; y < height; y++) {
+                int addr = addr1;
+
+                if (addrMunge) {
+                    if (addrMunge1) {
+                            /* CGA compatibility handling */
+                        int shift = 14 + ((crtRegister[CR_INDEX_CRTC_MODE_CONTROL] >>> 6) & 1);
+                        addr = (addr & ~(1 << shift)) | ((y1 & 1) << shift);
+                    }
+
+                    if (addrMunge2)
+                        addr = (addr & ~0x8000) | ((y1 & 2) << 14);
+                }
+
+                int pageStart = addr >>> PAGE_SHIFT;
+                int pageEnd = (addr + byteWidth(width) - 1) >>> PAGE_SHIFT;
+                for (int i = pageStart; i <= pageEnd; i++) {
+                    if (fullUpdate || ioRegion.pageIsDirty(i)) {
+                        pageMin = Math.min(pageMin, pageStart);
+                        pageMax = Math.max(pageMax, pageEnd);
+                        drawLine(addr, width, y, dispWidth);
+                        // if the "cursor_draw_line" function pointer is not null, then call it here.
+                        //if (s->cursor_draw_line)
+                        //   s->cursor_draw_line(s, d, y);
+                        break;
+                    }
+                }
+
+                if (multiRun == 0) {
+                    if ((y1 & mask) == mask)
+                        addr1 += lineOffset;
+                    y1++;
+                    multiRun = multiScan;
+                } else
+                    multiRun--;
+
+                    /* line compare acts on the displayed lines */
+                if (y == lineCompare)
+                    addr1 = 0;
+            }
+
+            for (int i = pageMin; i <= pageMax; i++)
+                ioRegion.cleanPage(i);
+        }
+    }
+
+    class DrawLine2 extends GraphicsUpdater {
+        int byteWidth(int width) {
+            return (width / 2);
+        }
+
+        void drawLine(int offset, int width, int y, int dispWidth) {
+            int[] dest = getDisplayBuffer();
+            int index = y * dispWidth;
+
+            int[] palette = lastPalette;
+            int planeMask = mask16[attributeRegister[AR_INDEX_COLOR_PLANE_ENABLE] & 0xf];
+            width >>>= 3;
+
+            do {
+                int data = ioRegion.getDoubleWord(offset);
+                data &= planeMask;
+
+                int v = expand2[data & 0xff];
+                v |= expand2[(data >>> 16) & 0xff] << 2;
+                dest[index++] = palette[v >>> 12];
+                dest[index++] = palette[(v >>> 8) & 0xf];
+                dest[index++] = palette[(v >>> 4) & 0xf];
+                dest[index++] = palette[(v >>> 0) & 0xf];
+
+                v = expand2[(data >>> 8) & 0xff];
+                v |= expand2[(data >>> 24) & 0xff] << 2;
+                dest[index++] = palette[v >>> 12];
+                dest[index++] = palette[(v >>> 8) & 0xf];
+                dest[index++] = palette[(v >>> 4) & 0xf];
+                dest[index++] = palette[(v >>> 0) & 0xf];
+                offset += 4;
+            } while (--width != 0);
+
+            dirtyDisplayRegion(0, y, dispWidth, 1);
+        }
+    }
+
+    class DrawLine2d2 extends GraphicsUpdater {
+        int byteWidth(int width) {
+            return (width / 2);
+        }
+
+        void drawLine(int offset, int width, int y, int dispWidth) {
+            int[] dest = getDisplayBuffer();
+            int index = y * dispWidth;
+
+            int[] palette = lastPalette;
+            int planeMask = mask16[attributeRegister[AR_INDEX_COLOR_PLANE_ENABLE] & 0xf];
+            width >>>= 3;
+
+            do {
+                int data = ioRegion.getDoubleWord(offset);
+                data &= planeMask;
+
+                int v = expand2[data & 0xff];
+                v |= expand2[(data >>> 16) & 0xff] << 2;
+                dest[index++] = dest[index++] = palette[v >>> 12];
+                dest[index++] = dest[index++] = palette[(v >>> 8) & 0xf];
+                dest[index++] = dest[index++] = palette[(v >>> 4) & 0xf];
+                dest[index++] = dest[index++] = palette[(v >>> 0) & 0xf];
+
+                v = expand2[(data >>> 8) & 0xff];
+                v |= expand2[(data >>> 24) & 0xff] << 2;
+                dest[index++] = dest[index++] = palette[v >>> 12];
+                dest[index++] = dest[index++] = palette[(v >>> 8) & 0xf];
+                dest[index++] = dest[index++] = palette[(v >>> 4) & 0xf];
+                dest[index++] = dest[index++] = palette[(v >>> 0) & 0xf];
+                offset += 4;
+            } while (--width != 0);
+
+            dirtyDisplayRegion(0, y, dispWidth, 1);
+        }
+    }
+
+    class DrawLine4 extends GraphicsUpdater {
+        int byteWidth(int width) {
+            return (width / 2);
+        }
+
+        void drawLine(int offset, int width, int y, int dispWidth) {
+            int[] dest = getDisplayBuffer();
+            int index = y * dispWidth;
+
+            int[] palette = lastPalette;
+            int planeMask = mask16[attributeRegister[AR_INDEX_COLOR_PLANE_ENABLE] & 0xf];
+            width >>>= 3;
+
+            do {
+                int data = ioRegion.getDoubleWord(offset) & planeMask;
+
+                int v = expand4[data & 0xff];
+                data >>>= 8;
+                v |= expand4[data & 0xff] << 1;
+                data >>>= 8;
+                v |= expand4[data & 0xff] << 2;
+                data >>>= 8;
+                v |= expand4[data & 0xff] << 3;
+
+                dest[index++] = palette[v >>> 28];
+                dest[index++] = palette[(v >>> 24) & 0xF];
+                dest[index++] = palette[(v >>> 20) & 0xF];
+                dest[index++] = palette[(v >>> 16) & 0xF];
+                dest[index++] = palette[(v >>> 12) & 0xF];
+                dest[index++] = palette[(v >>> 8) & 0xF];
+                dest[index++] = palette[(v >>> 4) & 0xF];
+                dest[index++] = palette[(v >>> 0) & 0xF];
+                offset += 4;
+            } while (--width != 0);
+
+            dirtyDisplayRegion(0, y, dispWidth, 1);
+        }
+    }
+
+    class DrawLine4d2 extends GraphicsUpdater {
+        int byteWidth(int width) {
+            return (width / 2);
+        }
+
+        void drawLine(int offset, int width, int y, int dispWidth) {
+            int[] dest = getDisplayBuffer();
+            int index = y * dispWidth;
+
+            int[] palette = lastPalette;
+            int planeMask = mask16[attributeRegister[AR_INDEX_COLOR_PLANE_ENABLE] & 0xf];
+            width >>>= 3;
+
+            do {
+                int data = ioRegion.getDoubleWord(offset);
+                data &= planeMask;
+
+                int v = expand4[data & 0xff];
+                v |= expand4[(data >>> 8) & 0xff] << 1;
+                v |= expand4[(data >>> 16) & 0xff] << 2;
+                v |= expand4[(data >>> 24) & 0xff] << 3;
+
+                dest[index++] = dest[index++] = palette[v >>> 28];
+                dest[index++] = dest[index++] = palette[(v >>> 24) & 0xF];
+                dest[index++] = dest[index++] = palette[(v >>> 20) & 0xF];
+                dest[index++] = dest[index++] = palette[(v >>> 16) & 0xF];
+                dest[index++] = dest[index++] = palette[(v >>> 12) & 0xF];
+                dest[index++] = dest[index++] = palette[(v >>> 8) & 0xF];
+                dest[index++] = dest[index++] = palette[(v >>> 4) & 0xF];
+                dest[index++] = dest[index++] = palette[(v >>> 0) & 0xF];
+                offset += 4;
+            } while (--width != 0);
+
+            dirtyDisplayRegion(0, y, dispWidth, 1);
+        }
+    }
+
+    class DrawLine8d2 extends GraphicsUpdater {
+        int byteWidth(int width) {
+            return (width / 2);
+        }
+
+        void drawLine(int offset, int width, int y, int dispWidth) {
+            int[] dest = getDisplayBuffer();
+            int index = y * dispWidth;
+
+            int[] palette = lastPalette;
+            width >>>= 1;
+
+            do {
+                int val = palette[0xFF & ioRegion.getByte(offset++)];
+                dest[index++] = val;
+                dest[index++] = val;
+                width--;
+            }
+            while (width != 0);
+
+            dirtyDisplayRegion(0, y, dispWidth, 1);
+        }
+    }
+
+    class DrawLine8 extends GraphicsUpdater {
+        int byteWidth(int width) {
+            return width;
+        }
+
+        void drawLine(int offset, int width, int y, int dispWidth) {
+            int[] dest = getDisplayBuffer();
+            int index = y * dispWidth;
+
+            int[] palette = lastPalette;
+            do {
+                dest[index] = palette[0xFF & ioRegion.getByte(offset++)];
+                index++;
+                width--;
+            }
+            while (width != 0);
+
+            dirtyDisplayRegion(0, y, dispWidth, 1);
+        }
+    }
+
+    class DrawLine15 extends GraphicsUpdater {
+        int byteWidth(int width) {
+            return width * 2;
+        }
+
+        void drawLine(int offset, int width, int y, int dispWidth) {
+            int[] dest = getDisplayBuffer();
+
+            int i = y * dispWidth;
+            do {
+                int v = 0xffff & ioRegion.getWord(offset);
+                int r = (v >>> 7) & 0xf8;
+                int g = (v >>> 2) & 0xf8;
+                int b = (v << 3) & 0xf8;
+                dest[i] = rgbToPixel(r, g, b);
+                offset += 2;
+                i++;
+            } while (--width != 0);
+
+            dirtyDisplayRegion(0, y, dispWidth, 1);
+        }
+    }
+
+    class DrawLine16 extends GraphicsUpdater {
+        int byteWidth(int width) {
+            return width * 2;
+        }
+
+        void drawLine(int offset, int width, int y, int dispWidth) {
+            int[] dest = getDisplayBuffer();
+
+            int i = y * dispWidth;
+            do {
+                int v = 0xffff & ioRegion.getWord(offset);
+                int r = (v >>> 8) & 0xf8;
+                int g = (v >>> 3) & 0xfc;
+                int b = (v << 3) & 0xf8;
+                dest[i] = rgbToPixel(r, g, b);
+                offset += 2;
+                i++;
+            } while (--width != 0);
+
+            dirtyDisplayRegion(0, y, dispWidth, 1);
+        }
+    }
+
+    class DrawLine24 extends GraphicsUpdater {
+        int byteWidth(int width) {
+            return width * 3;
+        }
+
+        void drawLine(int offset, int width, int y, int dispWidth) {
+            int[] dest = getDisplayBuffer();
+
+            int i = y * dispWidth;
+            do {
+                int b = 0xFF & ioRegion.getByte(offset++);
+                int g = 0xFF & ioRegion.getByte(offset++);
+                int r = 0xFF & ioRegion.getByte(offset++);
+
+                dest[i++] = rgbToPixel(r, g, b);
+            } while (--width != 0);
+
+            dirtyDisplayRegion(0, y, dispWidth, 1);
+        }
+    }
+
+    class DrawLine32 extends GraphicsUpdater {
+        int byteWidth(int width) {
+            return width * 4;
+        }
+
+        void drawLine(int offset, int width, int y, int dispWidth) {
+            int[] dest = getDisplayBuffer();
+
+            int i = y * dispWidth;
+            do {
+                int b = 0xff & ioRegion.getByte(offset++);
+                int g = 0xff & ioRegion.getByte(offset++);
+                int r = 0xff & ioRegion.getByte(offset++);
+                offset++;
+
+                dest[i++] = rgbToPixel(r, g, b);
+            } while (--width != 0);
+
+            dirtyDisplayRegion(0, y, dispWidth, 1);
+        }
+    }
+
+    private static final int c6to8(int v) {
+        v &= 0x3f;
+        int b = v & 1;
+        return (v << 2) | (b << 1) | b;
+    }
+
+    public static class VGARAMIORegion implements IORegion {
+        private byte[] buffer;
+        private int startAddress;
+        private boolean[] dirtyPages;
+
+        public VGARAMIORegion() {
+            // 	    buffer = new byte[VGA_RAM_SIZE];
+            buffer = new byte[INIT_VGA_RAM_SIZE];
+            dirtyPages = new boolean[(VGA_RAM_SIZE >>> PAGE_SHIFT) + 1];
+            for (int i = 0; i < dirtyPages.length; i++)
+                dirtyPages[i] = false;
+
+            startAddress = -1;
+        }
+
+        public void dumpState(DataOutput output) throws IOException {
+            output.writeInt(startAddress);
+            output.writeInt(buffer.length);
+            output.write(buffer);
+            output.writeInt(dirtyPages.length);
+            for (int i = 0; i < dirtyPages.length; i++)
+                output.writeBoolean(dirtyPages[i]);
+        }
+
+        public void loadState(DataInput input) throws IOException {
+            startAddress = input.readInt();
+            int len = input.readInt();
+            buffer = new byte[len];
+            input.readFully(buffer, 0, len);
+            len = input.readInt();
+            dirtyPages = new boolean[len];
+            for (int i = 0; i < len; i++)
+                dirtyPages[i] = input.readBoolean();
+        }
+
+        private void increaseVGARAMSize(int offset) {
+            if ((offset < 0) || (offset >= VGA_RAM_SIZE))
+                throw new ArrayIndexOutOfBoundsException("tried to access outside of memory bounds");
+
+            int newSize = buffer.length;
+            while (newSize <= offset)
+                newSize = newSize << 1;
+
+            if (newSize > VGA_RAM_SIZE)
+                newSize = VGA_RAM_SIZE;
+
+            byte[] newBuf = new byte[newSize];
+            System.arraycopy(buffer, 0, newBuf, 0, buffer.length);
+            buffer = newBuf;
+        }
+
+        public void copyContentsIntoArray(int address, byte[] buf, int off, int len) {
+            System.arraycopy(buffer, address, buf, off, len);
+        }
+
+        public void copyArrayIntoContents(int address, byte[] buf, int off, int len) {
+            System.arraycopy(buf, off, buffer, address, len);
+        }
+
+        public void clear() {
+            for (int i = 0; i < buffer.length; i++)
+                buffer[i] = 0;
+
+            for (int i = 0; i < dirtyPages.length; i++)
+                dirtyPages[i] = false;
+        }
+
+        public void clear(int start, int length) {
+            int limit = start + length;
+            if (limit > getSize()) throw new ArrayIndexOutOfBoundsException("Attempt to clear outside of memory bounds");
+            try {
+                for (int i = start; i < limit; i++)
+                    buffer[i] = 0;
+            } catch (ArrayIndexOutOfBoundsException e) {
+            }
+
+            int pageStart = start >>> PAGE_SHIFT;
+            int pageLimit = (limit - 1) >>> PAGE_SHIFT;
+            for (int i = pageStart; i <= pageLimit; i++)
+                dirtyPages[i] = true;
+        }
+
+        public boolean pageIsDirty(int i) {
+            return dirtyPages[i];
+        }
+
+        public void cleanPage(int i) {
+            dirtyPages[i] = false;
+        }
+
+        //IORegion Methods
+        public int getAddress() {
+            return startAddress;
+        }
+
+        public long getSize() {
+            return VGA_RAM_SIZE;
+        }
+
+        public int getType() {
+            return PCI_ADDRESS_SPACE_MEM_PREFETCH;
+        }
+
+        public int getRegionNumber() {
+            return 0;
+        }
+
+        public void setAddress(int address) {
+            this.startAddress = address;
+        }
+
+        public void setByte(int offset, byte data) {
+            try {
+                dirtyPages[offset >>> PAGE_SHIFT] = true;
+                buffer[offset] = data;
+            } catch (ArrayIndexOutOfBoundsException e) {
+                increaseVGARAMSize(offset);
+                setByte(offset, data);
+            }
+        }
+
+        public byte getByte(int offset) {
+            try {
+                return buffer[offset];
+            } catch (ArrayIndexOutOfBoundsException e) {
+                increaseVGARAMSize(offset);
+                return getByte(offset);
+            }
+        }
+
+        public void setWord(int offset, short data) {
+            try {
+                buffer[offset] = (byte) data;
+                dirtyPages[offset >>> PAGE_SHIFT] = true;
+                offset++;
+                buffer[offset] = (byte) (data >> 8);
+                dirtyPages[offset >>> PAGE_SHIFT] = true;
+            } catch (ArrayIndexOutOfBoundsException e) {
+                increaseVGARAMSize(offset);
+                setWord(offset, data);
+            }
+        }
+
+        public short getWord(int offset) {
+            try {
+                int result = 0xFF & buffer[offset];
+                offset++;
+                result |= buffer[offset] << 8;
+                return (short) result;
+            } catch (ArrayIndexOutOfBoundsException e) {
+                increaseVGARAMSize(offset);
+                return getWord(offset);
+            }
+        }
+
+        public void setDoubleWord(int offset, int data) {
+            try {
+                dirtyPages[offset >>> PAGE_SHIFT] = true;
+                buffer[offset] = (byte) data;
+                offset++;
+                data >>= 8;
+                buffer[offset] = (byte) (data);
+                offset++;
+                data >>= 8;
+                buffer[offset] = (byte) (data);
+                offset++;
+                data >>= 8;
+                buffer[offset] = (byte) (data);
+                dirtyPages[offset >>> PAGE_SHIFT] = true;
+            } catch (ArrayIndexOutOfBoundsException e) {
+                increaseVGARAMSize(offset);
+                setDoubleWord(offset, data);
+            }
+        }
+
+        public int getDoubleWord(int offset) {
+            try {
+                int result = 0xFF & buffer[offset];
+                offset++;
+                result |= (0xFF & buffer[offset]) << 8;
+                offset++;
+                result |= (0xFF & buffer[offset]) << 16;
+                offset++;
+                result |= (buffer[offset]) << 24;
+                return result;
+            } catch (ArrayIndexOutOfBoundsException e) {
+                increaseVGARAMSize(offset);
+                return getDoubleWord(offset);
+            }
+        }
+
+        public String toString() {
+            return "VGA RAM ByteArray[" + getSize() + "]";
+        }
+
+        public boolean isAllocated() {
+            return true;
+        }
+
+        public void loadInitialContents(int address, byte[] buf, int off, int len) {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
     }
 
 }

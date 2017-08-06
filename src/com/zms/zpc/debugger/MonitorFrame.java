@@ -83,6 +83,7 @@ public class MonitorFrame extends UtilityFrame implements Runnable, ComponentLis
                         break;
                     default:
                         Thread.sleep(20);
+                        break;
                 }
             }
         } catch (Throwable e) {
