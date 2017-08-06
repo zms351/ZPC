@@ -3,10 +3,10 @@ package com.zms.zpc.emulator.board.pci;
 import com.zms.zpc.emulator.board.MotherBoard;
 import com.zms.zpc.emulator.board.helper.BasePCIDevice;
 import com.zms.zpc.emulator.debug.DummyDebugger;
+import com.zms.zpc.emulator.memory.RAM;
 import com.zms.zpc.support.NotImplException;
 
 import java.awt.*;
-import java.io.*;
 
 /**
  * Created by 张小美 on 17/八月/4.
@@ -278,7 +278,7 @@ public abstract class VGACard extends BasePCIDevice {
 
     private boolean updatingScreen;
 
-    private VGARAMIORegion ioRegion;
+    protected VGARAMIORegion ioRegion;
 
     private VGALowMemoryRegion lowIORegion;
 
@@ -302,7 +302,6 @@ public abstract class VGACard extends BasePCIDevice {
         this.init();
 
         this.internalReset();
-
     }
 
     public String getText() {
@@ -311,7 +310,7 @@ public abstract class VGACard extends BasePCIDevice {
             StringBuilder row = new StringBuilder();
             for (int j = 0; j < 80; j++)
                 row.append((char) lastChar[j + 80 * i]);
-            b.append(row.toString().trim() + "\n");
+            b.append(row.toString().trim()).append("\n");
         }
         return b.toString();
     }
@@ -794,6 +793,7 @@ public abstract class VGACard extends BasePCIDevice {
             fontOffset = new int[2];
 
             ioRegion = new VGARAMIORegion();
+            ioRegion.install(mb.pc.memory,0xe0000);
             lowIORegion = new VGALowMemoryRegion();
 
             vbeRegs = new int[VBE_DISPI_INDEX_NB + 1];
@@ -1114,13 +1114,92 @@ public abstract class VGACard extends BasePCIDevice {
         }
     }
 
-    public static class VGARAMIORegion implements IORegion {
-        private byte[] buffer;
+    public static abstract class MapVGARAMIORegion implements IORegion {
+
+        protected int bufferSize;
+
+        private RAM memory;
+        private long pos;
+
+        public void install(RAM memory,long pos) {
+            this.memory=memory;
+            this.pos=pos;
+        }
+
+        public MapVGARAMIORegion(int bufferSize) {
+            this.bufferSize = bufferSize;
+        }
+
+        public int getDoubleWord(int offset) {
+            ensure(offset + 3);
+            return (int) memory.read(0, pos + offset, 32);
+        }
+
+        public void setDoubleWord(int offset, int data) {
+            ensure(offset + 3);
+            memory.write(0, pos + offset, data, 32);
+        }
+
+        public short getWord(int offset) {
+            ensure(offset + 1);
+            return (short) memory.read(0, pos + offset, 16);
+        }
+
+        public void setWord(int offset, short data) {
+            ensure(offset + 1);
+            memory.write(0, pos + offset, data, 16);
+        }
+
+        public byte getByte(int offset) {
+            ensure(offset);
+            return (byte) memory.read(0, pos + offset, 8);
+        }
+
+        public void setByte(int offset, byte data) {
+            ensure(offset);
+            memory.write(0, pos + offset, data, 8);
+        }
+
+        public void clear0(int start, int end) {
+            ensure(end - 1);
+            for (int i = start; i < end; i++) {
+                memory.write(0, pos + i, 0, 8);
+            }
+        }
+
+        public void copyContentsIntoArray(int address, byte[] buf, int off, int len) {
+            ensure(address + len - 1);
+            memory.read(0, pos + address, buf, off, len);
+        }
+
+        public void copyArrayIntoContents(int address, byte[] buf, int off, int len) {
+            ensure(address + len - 1);
+            memory.write(0, pos + address, buf, off, len);
+        }
+
+        public void ensure(int offset) {
+            if ((offset < 0) || (offset >= VGA_RAM_SIZE))
+                throw new ArrayIndexOutOfBoundsException("tried to access outside of memory bounds");
+
+            int newSize = bufferSize;
+            while (newSize <= offset)
+                newSize = newSize << 1;
+
+            if (newSize > VGA_RAM_SIZE)
+                newSize = VGA_RAM_SIZE;
+
+            bufferSize = newSize;
+        }
+
+    }
+
+    public static class VGARAMIORegion extends MapVGARAMIORegion {
+
         private int startAddress;
         private boolean[] dirtyPages;
 
         public VGARAMIORegion() {
-            buffer = new byte[INIT_VGA_RAM_SIZE];
+            super(INIT_VGA_RAM_SIZE);
             dirtyPages = new boolean[(VGA_RAM_SIZE >>> PAGE_SHIFT) + 1];
             for (int i = 0; i < dirtyPages.length; i++)
                 dirtyPages[i] = false;
@@ -1128,42 +1207,8 @@ public abstract class VGACard extends BasePCIDevice {
             startAddress = -1;
         }
 
-        public void dumpState(DataOutput output) throws IOException {
-            output.writeInt(startAddress);
-            output.writeInt(buffer.length);
-            output.write(buffer);
-            output.writeInt(dirtyPages.length);
-            for (int i = 0; i < dirtyPages.length; i++)
-                output.writeBoolean(dirtyPages[i]);
-        }
-
-        private void increaseVGARAMSize(int offset) {
-            if ((offset < 0) || (offset >= VGA_RAM_SIZE))
-                throw new ArrayIndexOutOfBoundsException("tried to access outside of memory bounds");
-
-            int newSize = buffer.length;
-            while (newSize <= offset)
-                newSize = newSize << 1;
-
-            if (newSize > VGA_RAM_SIZE)
-                newSize = VGA_RAM_SIZE;
-
-            byte[] newBuf = new byte[newSize];
-            System.arraycopy(buffer, 0, newBuf, 0, buffer.length);
-            buffer = newBuf;
-        }
-
-        public void copyContentsIntoArray(int address, byte[] buf, int off, int len) {
-            System.arraycopy(buffer, address, buf, off, len);
-        }
-
-        public void copyArrayIntoContents(int address, byte[] buf, int off, int len) {
-            System.arraycopy(buf, off, buffer, address, len);
-        }
-
         public void clear() {
-            for (int i = 0; i < buffer.length; i++)
-                buffer[i] = 0;
+            clear0(0, bufferSize);
 
             for (int i = 0; i < dirtyPages.length; i++)
                 dirtyPages[i] = false;
@@ -1172,12 +1217,7 @@ public abstract class VGACard extends BasePCIDevice {
         public void clear(int start, int length) {
             int limit = start + length;
             if (limit > getSize()) throw new ArrayIndexOutOfBoundsException("Attempt to clear outside of memory bounds");
-            try {
-                for (int i = start; i < limit; i++)
-                    buffer[i] = 0;
-            } catch (ArrayIndexOutOfBoundsException e) {
-                e.printStackTrace();
-            }
+            clear0(start, limit);
 
             int pageStart = start >>> PAGE_SHIFT;
             int pageLimit = (limit - 1) >>> PAGE_SHIFT;
@@ -1215,83 +1255,20 @@ public abstract class VGACard extends BasePCIDevice {
         }
 
         public void setByte(int offset, byte data) {
-            try {
-                dirtyPages[offset >>> PAGE_SHIFT] = true;
-                buffer[offset] = data;
-            } catch (ArrayIndexOutOfBoundsException e) {
-                increaseVGARAMSize(offset);
-                setByte(offset, data);
-            }
-        }
-
-        public byte getByte(int offset) {
-            try {
-                return buffer[offset];
-            } catch (ArrayIndexOutOfBoundsException e) {
-                increaseVGARAMSize(offset);
-                return getByte(offset);
-            }
+            super.setByte(offset, data);
+            dirtyPages[offset >>> PAGE_SHIFT] = true;
         }
 
         public void setWord(int offset, short data) {
-            try {
-                buffer[offset] = (byte) data;
-                dirtyPages[offset >>> PAGE_SHIFT] = true;
-                offset++;
-                buffer[offset] = (byte) (data >> 8);
-                dirtyPages[offset >>> PAGE_SHIFT] = true;
-            } catch (ArrayIndexOutOfBoundsException e) {
-                increaseVGARAMSize(offset);
-                setWord(offset, data);
-            }
-        }
-
-        public short getWord(int offset) {
-            try {
-                int result = 0xFF & buffer[offset];
-                offset++;
-                result |= buffer[offset] << 8;
-                return (short) result;
-            } catch (ArrayIndexOutOfBoundsException e) {
-                increaseVGARAMSize(offset);
-                return getWord(offset);
-            }
+            super.setWord(offset, data);
+            dirtyPages[offset >>> PAGE_SHIFT] = true;
+            dirtyPages[(offset + 1) >>> PAGE_SHIFT] = true;
         }
 
         public void setDoubleWord(int offset, int data) {
-            try {
-                dirtyPages[offset >>> PAGE_SHIFT] = true;
-                buffer[offset] = (byte) data;
-                offset++;
-                data >>= 8;
-                buffer[offset] = (byte) (data);
-                offset++;
-                data >>= 8;
-                buffer[offset] = (byte) (data);
-                offset++;
-                data >>= 8;
-                buffer[offset] = (byte) (data);
-                dirtyPages[offset >>> PAGE_SHIFT] = true;
-            } catch (ArrayIndexOutOfBoundsException e) {
-                increaseVGARAMSize(offset);
-                setDoubleWord(offset, data);
-            }
-        }
-
-        public int getDoubleWord(int offset) {
-            try {
-                int result = 0xFF & buffer[offset];
-                offset++;
-                result |= (0xFF & buffer[offset]) << 8;
-                offset++;
-                result |= (0xFF & buffer[offset]) << 16;
-                offset++;
-                result |= (buffer[offset]) << 24;
-                return result;
-            } catch (ArrayIndexOutOfBoundsException e) {
-                increaseVGARAMSize(offset);
-                return getDoubleWord(offset);
-            }
+            super.setDoubleWord(offset, data);
+            dirtyPages[offset >>> PAGE_SHIFT] = true;
+            dirtyPages[(offset + 3) >>> PAGE_SHIFT] = true;
         }
 
         public String toString() {
@@ -1300,10 +1277,6 @@ public abstract class VGACard extends BasePCIDevice {
 
         public boolean isAllocated() {
             return true;
-        }
-
-        public void loadInitialContents(int address, byte[] buf, int off, int len) {
-            throw new UnsupportedOperationException("Not supported yet.");
         }
 
     }
