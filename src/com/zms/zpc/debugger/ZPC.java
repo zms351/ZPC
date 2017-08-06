@@ -459,6 +459,7 @@ public class ZPC extends JFrame implements ActionListener, Runnable {
         } catch (Throwable t) {
             t.printStackTrace();
         } finally {
+            pc.powerOff();
             DummyDebugger.getInstance().onMessage(WARN,Thread.currentThread().getName() + " exited!\n");
         }
     }
