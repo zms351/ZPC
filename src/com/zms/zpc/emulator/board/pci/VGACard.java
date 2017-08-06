@@ -5,6 +5,7 @@ import com.zms.zpc.emulator.board.helper.BasePCIDevice;
 import com.zms.zpc.emulator.debug.DummyDebugger;
 import com.zms.zpc.support.NotImplException;
 
+import java.awt.*;
 import java.io.*;
 
 /**
@@ -15,9 +16,48 @@ public abstract class VGACard extends BasePCIDevice {
 
     public MotherBoard mb;
 
+    private static final DummyDebugger LOGGING = DummyDebugger.getInstance();
+
+    //VGA_RAM_SIZE must be a power of two
     private static final int VGA_RAM_SIZE = 16 * 1024 * 1024;
     private static final int INIT_VGA_RAM_SIZE = 64 * 1024;
     private static final int PAGE_SHIFT = 12;
+
+    private static final int[] expand4 = new int[256];
+
+    static {
+        for (int i = 0; i < expand4.length; i++) {
+            int v = 0;
+            for (int j = 0; j < 8; j++)
+                v |= ((i >>> j) & 1) << (j * 4);
+            expand4[i] = v;
+        }
+    }
+
+    private static final int[] expand2 = new int[256];
+
+    static {
+        for (int i = 0; i < expand2.length; i++) {
+            int v = 0;
+            for (int j = 0; j < 4; j++)
+                v |= ((i >>> (2 * j)) & 3) << (j * 4);
+            expand2[i] = v;
+        }
+    }
+
+    private static final int[] expand4to8 = new int[16];
+
+    static {
+        for (int i = 0; i < expand4to8.length; i++) {
+            int v = 0;
+            for (int j = 0; j < 4; j++) {
+                int b = ((i >>> j) & 1);
+                v |= b << (2 * j);
+                v |= b << (2 * j + 1);
+            }
+            expand4to8[i] = v;
+        }
+    }
 
     private static final int MOR_COLOR_EMULATION = 0x01;
     private static final int ST01_V_RETRACE = 0x08;
@@ -93,59 +133,6 @@ public abstract class VGACard extends BasePCIDevice {
     private static final int CR_INDEX_OFFSET = 0x13;
     private static final int CR_INDEX_CRTC_MODE_CONTROL = 0x17;
     private static final int CR_INDEX_LINE_COMPARE = 0x18;
-
-    private final GraphicsUpdater VGA_DRAW_LINE2;
-    private final GraphicsUpdater VGA_DRAW_LINE2D2;
-    private final GraphicsUpdater VGA_DRAW_LINE4;
-    private final GraphicsUpdater VGA_DRAW_LINE4D2;
-    private final GraphicsUpdater VGA_DRAW_LINE8D2;
-    private final GraphicsUpdater VGA_DRAW_LINE8;
-    private final GraphicsUpdater VGA_DRAW_LINE15;
-    private final GraphicsUpdater VGA_DRAW_LINE16;
-    private final GraphicsUpdater VGA_DRAW_LINE24;
-    private final GraphicsUpdater VGA_DRAW_LINE32;
-
-    private int latch;
-    private int sequencerRegisterIndex, graphicsRegisterIndex, attributeRegisterIndex, crtRegisterIndex;
-    private int[] sequencerRegister, graphicsRegister, attributeRegister, crtRegister;
-
-    private boolean attributeRegisterFlipFlop;
-    private int miscellaneousOutputRegister;
-    private int featureControlRegister;
-    private int st00, st01; // status 0 and 1
-    private int dacReadIndex, dacWriteIndex, dacSubIndex, dacState;
-    private int shiftControl, doubleScan;
-    private int[] dacCache;
-    private int[] palette;
-    private int bankOffset;
-
-    private int vbeIndex;
-    private int[] vbeRegs;
-    private int vbeStartAddress;
-    private int vbeLineOffset;
-    private int vbeBankMask;
-
-    private int[] fontOffset;
-    private int graphicMode;
-    private int lineOffset;
-    private int lineCompare;
-    private int startAddress;
-    private int planeUpdated;
-    private int lastCW, lastCH;
-    private int lastWidth, lastHeight;
-    private int lastScreenWidth, lastScreenHeight;
-    private int cursorStart, cursorEnd;
-    private int cursorOffset;
-    private final int[] lastPalette;
-    private int[] lastChar;
-
-    private boolean ioportRegistered;
-    private boolean pciRegistered;
-    private boolean memoryRegistered;
-
-    private boolean updatingScreen;
-
-    private VGARAMIORegion ioRegion;
 
     private static final int[] sequencerRegisterMask = new int[]{
             0x03, //~0xfc,
@@ -240,41 +227,60 @@ public abstract class VGACard extends BasePCIDevice {
             0xffffffff, 0xffffffff,
             0xffffffff, 0xffffffff};
 
-    private static final int[] expand4to8 = new int[16];
+    private final GraphicsUpdater VGA_DRAW_LINE2;
+    private final GraphicsUpdater VGA_DRAW_LINE2D2;
+    private final GraphicsUpdater VGA_DRAW_LINE4;
+    private final GraphicsUpdater VGA_DRAW_LINE4D2;
+    private final GraphicsUpdater VGA_DRAW_LINE8D2;
+    private final GraphicsUpdater VGA_DRAW_LINE8;
+    private final GraphicsUpdater VGA_DRAW_LINE15;
+    private final GraphicsUpdater VGA_DRAW_LINE16;
+    private final GraphicsUpdater VGA_DRAW_LINE24;
+    private final GraphicsUpdater VGA_DRAW_LINE32;
 
-    static {
-        for (int i = 0; i < expand4to8.length; i++) {
-            int v = 0;
-            for (int j = 0; j < 4; j++) {
-                int b = ((i >>> j) & 1);
-                v |= b << (2 * j);
-                v |= b << (2 * j + 1);
-            }
-            expand4to8[i] = v;
-        }
-    }
+    private int latch;
+    private int sequencerRegisterIndex, graphicsRegisterIndex, attributeRegisterIndex, crtRegisterIndex;
+    private int[] sequencerRegister, graphicsRegister, attributeRegister, crtRegister;
 
-    private static final int[] expand2 = new int[256];
+    private boolean attributeRegisterFlipFlop;
+    private int miscellaneousOutputRegister;
+    private int featureControlRegister;
+    private int st00, st01; // status 0 and 1
+    private int dacReadIndex, dacWriteIndex, dacSubIndex, dacState;
+    private int shiftControl, doubleScan;
+    private int[] dacCache;
+    private int[] palette;
+    private int bankOffset;
 
-    static {
-        for (int i = 0; i < expand2.length; i++) {
-            int v = 0;
-            for (int j = 0; j < 4; j++)
-                v |= ((i >>> (2 * j)) & 3) << (j * 4);
-            expand2[i] = v;
-        }
-    }
+    private int vbeIndex;
+    private int[] vbeRegs;
+    private int vbeStartAddress;
+    private int vbeLineOffset;
+    private int vbeBankMask;
 
-    private static final int[] expand4 = new int[256];
+    private int[] fontOffset;
+    private int graphicMode;
+    private int lineOffset;
+    private int lineCompare;
+    private int startAddress;
+    private int planeUpdated;
+    private int lastCW, lastCH;
+    private int lastWidth, lastHeight;
+    private int lastScreenWidth, lastScreenHeight;
+    private int cursorStart, cursorEnd;
+    private int cursorOffset;
+    private final int[] lastPalette;
+    private int[] lastChar;
 
-    static {
-        for (int i = 0; i < expand4.length; i++) {
-            int v = 0;
-            for (int j = 0; j < 8; j++)
-                v |= ((i >>> j) & 1) << (j * 4);
-            expand4[i] = v;
-        }
-    }
+    private boolean ioportRegistered;
+    private boolean pciRegistered;
+    private boolean memoryRegistered;
+
+    private boolean updatingScreen;
+
+    private VGARAMIORegion ioRegion;
+
+    private VGALowMemoryRegion lowIORegion;
 
     public VGACard(MotherBoard mb) {
         super(mb.pciBus);
@@ -291,29 +297,109 @@ public abstract class VGACard extends BasePCIDevice {
         VGA_DRAW_LINE32 = new DrawLine32();
 
         lastPalette = new int[256];
-        sequencerRegister = new int[256];
-        graphicsRegister = new int[256];
-        attributeRegister = new int[256];
-        crtRegister = new int[256];
+        this.mb = mb;
 
-        dacCache = new int[3];
-        palette = new int[768];
-
-
-        vbeRegs = new int[VBE_DISPI_INDEX_NB + 1];
-
-        fontOffset = new int[2];
-        lastChar = new int[CH_ATTR_SIZE];
+        this.init();
 
         this.internalReset();
 
-        bankOffset = 0;
+    }
 
-        vbeRegs[VBE_DISPI_INDEX_ID] = VBE_DISPI_ID0;
-        vbeBankMask = ((VGA_RAM_SIZE >>> 16) - 1);
+    public String getText() {
+        StringBuilder b = new StringBuilder();
+        for (int i = 0; i < lastChar.length / 80; i++) {
+            StringBuilder row = new StringBuilder();
+            for (int j = 0; j < 80; j++)
+                row.append((char) lastChar[j + 80 * i]);
+            b.append(row.toString().trim() + "\n");
+        }
+        return b.toString();
+    }
 
-        this.mb = mb;
-        this.init();
+    public abstract void saveScreenshot();
+
+    public abstract void resizeDisplay(int w, int h);
+
+    protected abstract int[] getDisplayBuffer();
+
+    protected abstract int rgbToPixel(int r, int g, int b);
+
+    protected abstract void dirtyDisplayRegion(int x, int y, int w, int h);
+
+    public abstract Dimension getDisplaySize();
+
+    public void dirtyScreen() {
+        Dimension size = getDisplaySize();
+        dirtyDisplayRegion(0, 0, size.width, size.height);
+    }
+
+    public void setOriginalDisplaySize() {
+        resizeDisplay(lastScreenWidth, lastScreenHeight);
+    }
+
+    public IORegion[] getIORegions() {
+        return new IORegion[]{ioRegion};
+    }
+
+    public IORegion getIORegion(int index) {
+        if (index == 0)
+            return ioRegion;
+        else
+            return null;
+    }
+
+    //IODevice Methods
+    public void ioPortWrite8(int address, int data) {
+        //all byte accesses are vgaIOPort ones
+        vgaIOPortWriteByte(address, data);
+    }
+
+    public void ioPortWrite16(int address, int data) {
+        switch (address) {
+            case 0x1ce:
+            case 0xff80:
+                vbeIOPortWriteIndex(data);
+                break;
+            case 0x1cf:
+            case 0xff81:
+                vbeIOPortWriteData(data);
+                break;
+            default:
+                ioPortWrite8(address, 0xFF & data);
+                ioPortWrite8(address + 1, 0xFF & (data >>> 8));
+                break;
+        }
+    }
+
+    public void ioPortWrite32(int address, int data) {
+        ioPortWrite16(address, 0xFFFF & data);
+        ioPortWrite16(address + 2, data >>> 16);
+    }
+
+    public int ioPortRead8(int address) {
+        //all byte accesses are vgaIOPort ones
+        return vgaIOPortReadByte(address);
+    }
+
+    public int ioPortRead16(int address) {
+        switch (address) {
+            case 0x1ce:
+            case 0xff80:
+                return vbeIOPortReadIndex();
+            case 0x1cf:
+            case 0xff81:
+                return vbeIOPortReadData();
+            default:
+                int b0 = 0xFF & ioPortRead8(address);
+                int b1 = 0xFF & ioPortRead8(address + 1);
+                return b0 | (b1 << 8);
+        }
+    }
+
+    public int ioPortRead32(int address) {
+        int b0 = 0xFFFF & ioPortRead16(address);
+        int b1 = 0xFFFF & ioPortRead16(address + 2);
+        return b0 | (b1 << 16);
     }
 
     public int[] ioPorts = new int[]{0x3b4, 0x3b5, 0x3ba,
@@ -326,12 +412,6 @@ public abstract class VGACard extends BasePCIDevice {
     };
 
     public void init() {
-        setFuncNum(-1);
-        putConfig(PCI_CONFIG_VENDOR_ID, 0x1234, 16); // Dummy
-        putConfig(PCI_CONFIG_DEVICE_ID, 0x1111, 16);
-        putConfig(PCI_CONFIG_CLASS_DEVICE, 0x0300, 16); // VGA Controller
-        putConfig(PCI_CONFIG_HEADER, 0x00, 8); // header_type
-
         for (int port : ioPorts) {
             mb.ios.register(port, this);
         }
@@ -450,6 +530,71 @@ public abstract class VGACard extends BasePCIDevice {
         }
     }
 
+    private int vgaIOPortReadByte(int address) {
+        if ((address >= 0x3b0 && address <= 0x3bf && ((miscellaneousOutputRegister & MOR_COLOR_EMULATION) != 0)) ||
+                (address >= 0x3d0 && address <= 0x3df && ((miscellaneousOutputRegister & MOR_COLOR_EMULATION) == 0)))
+            return 0xff;
+
+        switch (address) {
+            case 0x3c0:
+                if (!attributeRegisterFlipFlop) {
+                    return attributeRegisterIndex;
+                } else {
+                    return 0;
+                }
+            case 0x3c1:
+                int index = attributeRegisterIndex & 0x1f;
+                if (index < 21) {
+                    return attributeRegister[index];
+                } else {
+                    return 0;
+                }
+            case 0x3c2:
+                return st00;
+            case 0x3c4:
+                return sequencerRegisterIndex;
+            case 0x3c5:
+                return sequencerRegister[sequencerRegisterIndex];
+            case 0x3c7:
+                return dacState;
+            case 0x3c8:
+                return dacWriteIndex;
+            case 0x3c9:
+                int val = palette[dacReadIndex * 3 + dacSubIndex];
+                if (++dacSubIndex == 3) {
+                    dacSubIndex = 0;
+                    dacReadIndex++;
+                }
+                return val;
+            case 0x3ca:
+                return featureControlRegister;
+            case 0x3cc:
+                return miscellaneousOutputRegister;
+            case 0x3ce:
+                return graphicsRegisterIndex;
+            case 0x3cf:
+                return graphicsRegister[graphicsRegisterIndex];
+            case 0x3b4:
+            case 0x3d4:
+                return crtRegisterIndex;
+            case 0x3b5:
+            case 0x3d5:
+                return crtRegister[crtRegisterIndex];
+            case 0x3ba:
+            case 0x3da:
+                attributeRegisterFlipFlop = false;
+                if (updatingScreen) {
+                    st01 &= ~ST01_V_RETRACE; //claim we are not in vertical retrace (in the process of screen refresh)
+                    st01 &= ~ST01_DISP_ENABLE; //is set when in h/v retrace (i.e. if e-beam is off, but we claim always on)
+                } else {
+                    st01 ^= (ST01_V_RETRACE | ST01_DISP_ENABLE); //if not updating toggle to fool polling in some vga code
+                }
+                return st01;
+            default:
+                return 0x00;
+        }
+    }
+
     private void vbeIOPortWriteIndex(int data) {
         vbeIndex = data;
     }
@@ -500,9 +645,7 @@ public abstract class VGACard extends BasePCIDevice {
                         if ((data & VBE_DISPI_NOCLEARMEM) == 0) {
                             int limit = vbeRegs[VBE_DISPI_INDEX_YRES] * vbeLineOffset;
                             for (int i = 0; i < limit; i++) {
-                                //ioRegion.setByte(i, (byte) 0);
-                                System.out.println("to impl");
-                                //todo
+                                ioRegion.setByte(i, (byte) 0);
                             }
                         }
 
@@ -580,26 +723,15 @@ public abstract class VGACard extends BasePCIDevice {
 
     }
 
-    //IODevice Methods
-    public void ioPortWrite8(int address, int data) {
-        //all byte accesses are vgaIOPort ones
-        vgaIOPortWriteByte(address, data);
+    private int vbeIOPortReadIndex() {
+        return vbeIndex;
     }
 
-    public void ioPortWrite16(int address, int data) {
-        switch (address) {
-            case 0x1ce:
-            case 0xff80:
-                vbeIOPortWriteIndex(data);
-                break;
-            case 0x1cf:
-            case 0xff81:
-                vbeIOPortWriteData(data);
-                break;
-            default:
-                ioPortWrite8(address, 0xFF & data);
-                ioPortWrite8(address + 1, 0xFF & (data >>> 8));
-                break;
+    private int vbeIOPortReadData() {
+        if (vbeIndex <= VBE_DISPI_INDEX_NB) {
+            return vbeRegs[vbeIndex];
+        } else {
+            return 0;
         }
     }
 
@@ -610,25 +742,11 @@ public abstract class VGACard extends BasePCIDevice {
                 vgaIOPortWriteByte(address, (int) v);
                 break;
             case 16: {
-                switch (address) {
-                    case 0x1ce:
-                    case 0xff80:
-                        vbeIOPortWriteIndex((int) v);
-                        break;
-                    case 0x1cf:
-                    case 0xff81:
-                        vbeIOPortWriteData((int) v);
-                        break;
-                    default:
-                        ioPortWrite8(address, 0xFF & ((int) v));
-                        ioPortWrite8(address + 1, 0xFF & ((int) (v >>> 8)));
-                        break;
-                }
+                ioPortWrite16(address, (int) v);
             }
             break;
             case 32: {
-                ioPortWrite16(address, 0xFFFF & ((int) v));
-                ioPortWrite16(address + 2, (int) (v >>> 16));
+                ioPortWrite32(address, (int) v);
             }
             break;
             default:
@@ -642,130 +760,54 @@ public abstract class VGACard extends BasePCIDevice {
             case 8:
                 return vgaIOPortReadByte(address);
             case 16:
-                switch (address) {
-                    case 0x1ce:
-                    case 0xff80:
-                        return vbeIOPortReadIndex();
-                    case 0x1cf:
-                    case 0xff81:
-                        return vbeIOPortReadData();
-                    default:
-                        int b0 = 0xFF & ioPortRead8(address);
-                        int b1 = 0xFF & ioPortRead8(address + 1);
-                        return b0 | (b1 << 8);
-                }
+                return ioPortRead16(address);
             case 32:
-                int b0 = 0xFFFF & ioPortRead16(address);
-                int b1 = 0xFFFF & ioPortRead16(address + 2);
-                return b0 | (b1 << 16);
+                return ioPortRead32(address);
             default:
                 throw new NotImplException();
         }
     }
 
-    public int ioPortRead8(int address) {
-        //all byte accesses are vgaIOPort ones
-        return vgaIOPortReadByte(address);
-    }
-
-    public int ioPortRead16(int address) {
-        switch (address) {
-            case 0x1ce:
-            case 0xff80:
-                return vbeIOPortReadIndex();
-            case 0x1cf:
-            case 0xff81:
-                return vbeIOPortReadData();
-            default:
-                int b0 = 0xFF & ioPortRead8(address);
-                int b1 = 0xFF & ioPortRead8(address + 1);
-                return b0 | (b1 << 8);
-        }
-    }
-
-    private int vbeIOPortReadData() {
-        if (vbeIndex <= VBE_DISPI_INDEX_NB) {
-            return vbeRegs[vbeIndex];
-        } else {
-            return 0;
-        }
-    }
-
-    private int vbeIOPortReadIndex() {
-        return vbeIndex;
-    }
-
-    private int vgaIOPortReadByte(int address) {
-        if ((address >= 0x3b0 && address <= 0x3bf && ((miscellaneousOutputRegister & MOR_COLOR_EMULATION) != 0)) ||
-                (address >= 0x3d0 && address <= 0x3df && ((miscellaneousOutputRegister & MOR_COLOR_EMULATION) == 0)))
-            return 0xff;
-
-        switch (address) {
-            case 0x3c0:
-                if (!attributeRegisterFlipFlop) {
-                    return attributeRegisterIndex;
-                } else {
-                    return 0;
-                }
-            case 0x3c1:
-                int index = attributeRegisterIndex & 0x1f;
-                if (index < 21) {
-                    return attributeRegister[index];
-                } else {
-                    return 0;
-                }
-            case 0x3c2:
-                return st00;
-            case 0x3c4:
-                return sequencerRegisterIndex;
-            case 0x3c5:
-                return sequencerRegister[sequencerRegisterIndex];
-            case 0x3c7:
-                return dacState;
-            case 0x3c8:
-                return dacWriteIndex;
-            case 0x3c9:
-                int val = palette[dacReadIndex * 3 + dacSubIndex];
-                if (++dacSubIndex == 3) {
-                    dacSubIndex = 0;
-                    dacReadIndex++;
-                }
-                return val;
-            case 0x3ca:
-                return featureControlRegister;
-            case 0x3cc:
-                return miscellaneousOutputRegister;
-            case 0x3ce:
-                return graphicsRegisterIndex;
-            case 0x3cf:
-                return graphicsRegister[graphicsRegisterIndex];
-            case 0x3b4:
-            case 0x3d4:
-                return crtRegisterIndex;
-            case 0x3b5:
-            case 0x3d5:
-                return crtRegister[crtRegisterIndex];
-            case 0x3ba:
-            case 0x3da:
-                attributeRegisterFlipFlop = false;
-                if (updatingScreen) {
-                    st01 &= ~ST01_V_RETRACE; //claim we are not in vertical retrace (in the process of screen refresh)
-                    st01 &= ~ST01_DISP_ENABLE; //is set when in h/v retrace (i.e. if e-beam is off, but we claim always on)
-                } else {
-                    st01 ^= (ST01_V_RETRACE | ST01_DISP_ENABLE); //if not updating toggle to fool polling in some vga code
-                }
-                return st01;
-            default:
-                return 0x00;
-        }
-    }
 
     @Override
     public void reset() {
-        if(ioRegion==null) {
+        ioportRegistered = false;
+        memoryRegistered = false;
+        pciRegistered = false;
+
+        setFuncNum(-1);
+        putConfig(PCI_CONFIG_VENDOR_ID, 0x1234, 16); // Dummy
+        putConfig(PCI_CONFIG_DEVICE_ID, 0x1111, 16);
+        putConfig(PCI_CONFIG_CLASS_DEVICE, 0x0300, 16); // VGA Controller
+        putConfig(PCI_CONFIG_HEADER, 0x00, 8); // header_type
+
+        if (sequencerRegister == null) {
+            sequencerRegister = new int[256];
+            graphicsRegister = new int[256];
+            attributeRegister = new int[256];
+            crtRegister = new int[256];
+
+            dacCache = new int[3];
+            palette = new int[768];
+
+            lastChar = new int[CH_ATTR_SIZE];
+            fontOffset = new int[2];
+
             ioRegion = new VGARAMIORegion();
+            lowIORegion = new VGALowMemoryRegion();
+
+            vbeRegs = new int[VBE_DISPI_INDEX_NB + 1];
         }
+
+        vbeRegs[VBE_DISPI_INDEX_ID] = VBE_DISPI_ID0;
+        vbeBankMask = ((VGA_RAM_SIZE >>> 16) - 1);
+        vbeRegs[VBE_DISPI_INDEX_XRES] = 1600;
+        vbeRegs[VBE_DISPI_INDEX_YRES] = 1200;
+        vbeRegs[VBE_DISPI_INDEX_BPP] = 32;
+
+        this.internalReset();
     }
+
 
     private final void internalReset() {
         latch = 0;
@@ -792,17 +834,478 @@ public abstract class VGACard extends BasePCIDevice {
         cursorStart = cursorEnd = 0;
         cursorOffset = 0;
 
-        lastChar = new int[CH_ATTR_SIZE];
-        fontOffset = new int[2];
-        vbeRegs = new int[VBE_DISPI_INDEX_NB + 1];
-        dacCache = new int[3];
-        palette = new int[768];
-        sequencerRegister = new int[256];
-        graphicsRegister = new int[256];
-        attributeRegister = new int[256];
-        crtRegister = new int[256];
-
         graphicMode = -1;
+        bankOffset = 0;
+    }
+
+    public class VGALowMemoryRegion {
+
+        public void lock(int addr) {
+        }
+
+        public void unlock(int addr) {
+        }
+
+        public void copyContentsIntoArray(int address, byte[] buffer, int off, int len) {
+            throw new IllegalStateException("copyContentsInto: Invalid Operation for VGA Card");
+        }
+
+        public void copyArrayIntoContents(int address, byte[] buffer, int off, int len) {
+            throw new IllegalStateException("copyContentsFrom: Invalid Operation for VGA Card");
+        }
+
+        public long getSize() {
+            return 0x20000;
+        }
+
+        public boolean isAllocated() {
+            return false;
+        }
+
+        public byte getByte(int offset) {
+                    /* convert to VGA memory offset */
+            int memoryMapMode = (graphicsRegister[GR_INDEX_MISC] >>> 2) & 3;
+            offset &= 0x1ffff;
+            switch (memoryMapMode) {
+                case 0:
+                    break;
+                case 1:
+                    if (offset >= 0x10000)
+                        return (byte) 0xff;
+                    offset += bankOffset;
+                    break;
+                case 2:
+                    offset -= 0x10000;
+                    if ((offset >= 0x8000) || (offset < 0))
+                        return (byte) 0xff;
+                    break;
+                default:
+                case 3:
+                    offset -= 0x18000;
+                    if (offset < 0)
+                        return (byte) 0xff;
+                    break;
+            }
+
+            if ((sequencerRegister[SR_INDEX_SEQ_MEMORY_MODE] & 0x08) != 0) {
+                        /* chain 4 mode : simplest access */
+                //return vramPtr[address];
+                return ioRegion.getByte(offset);
+            } else if ((graphicsRegister[GR_INDEX_GRAPHICS_MODE] & 0x10) != 0) {
+                        /* odd/even mode (aka text mode mapping) */
+                int plane = (graphicsRegister[GR_INDEX_READ_MAP_SELECT] & 2) | (offset & 1);
+                return ioRegion.getByte(((offset & ~1) << 1) | plane);
+            } else {
+                        /* standard VGA latched access */
+                latch = ioRegion.getDoubleWord(4 * offset);
+
+                if ((graphicsRegister[GR_INDEX_GRAPHICS_MODE] & 0x08) == 0) {
+                            /* read mode 0 */
+                    return (byte) (latch >>> (graphicsRegister[GR_INDEX_READ_MAP_SELECT] * 8));
+                } else {
+                            /* read mode 1 */
+                    int ret = (latch ^ mask16[graphicsRegister[GR_INDEX_COLOR_COMPARE]])
+                            & mask16[graphicsRegister[GR_INDEX_COLOR_DONT_CARE]];
+                    ret |= ret >>> 16;
+                    ret |= ret >>> 8;
+                    return (byte) (~ret);
+                }
+            }
+        }
+
+        public short getWord(int offset) {
+            int v = 0xFF & getByte(offset);
+            v |= getByte(offset + 1) << 8;
+            return (short) v;
+        }
+
+        public int getDoubleWord(int offset) {
+            int v = 0xFF & getByte(offset);
+            v |= (0xFF & getByte(offset + 1)) << 8;
+            v |= (0xFF & getByte(offset + 2)) << 16;
+            v |= (0xFF & getByte(offset + 3)) << 24;
+            return v;
+        }
+
+        public long getQuadWord(int offset) {
+            long v = 0xFFl & getByte(offset);
+            v |= (0xFFl & getByte(offset + 1)) << 8;
+            v |= (0xFFl & getByte(offset + 2)) << 16;
+            v |= (0xFFl & getByte(offset + 3)) << 24;
+            v |= (0xFFl & getByte(offset + 4)) << 32;
+            v |= (0xFFl & getByte(offset + 5)) << 40;
+            v |= (0xFFl & getByte(offset + 6)) << 48;
+            v |= (0xFFl & getByte(offset + 7)) << 56;
+            return v;
+        }
+
+        public long getLowerDoubleQuadWord(int offset) {
+            return getQuadWord(offset);
+        }
+
+        public long getUpperDoubleQuadWord(int offset) {
+            return getQuadWord(offset + 8);
+        }
+
+        public void setByte(int offset, byte data) {
+                    /* convert to VGA memory offset */
+            int memoryMapMode = (graphicsRegister[GR_INDEX_MISC] >>> 2) & 3;
+            offset &= 0x1ffff;
+            switch (memoryMapMode) {
+                case 0:
+                    break;
+                case 1:
+                    if (offset >= 0x10000)
+                        return;
+                    offset += bankOffset;
+                    break;
+                case 2:
+                    offset -= 0x10000;
+                    if ((offset >= 0x8000) || (offset < 0))
+                        return;
+                    break;
+                default:
+                case 3:
+                    offset -= 0x18000;
+                    //should be (unsigned) if (offset >= 0x8000) but anding above "offset &= 0x1ffff;" means <=> the below
+                    if (offset < 0)
+                        return;
+                    break;
+            }
+
+            if ((sequencerRegister[SR_INDEX_SEQ_MEMORY_MODE] & 0x08) != 0) {
+                        /* chain 4 mode : simplest access */
+                int plane = offset & 3;
+                int mask = 1 << plane;
+                if ((sequencerRegister[SR_INDEX_MAP_MASK] & mask) != 0) {
+                    ioRegion.setByte(offset, data);
+                    planeUpdated |= mask; // only used to detect font change
+                    //cpu_physical_memory_set_dirty
+                }
+            } else if ((graphicsRegister[GR_INDEX_GRAPHICS_MODE] & 0x10) != 0) {
+                        /* odd/even mode (aka text mode mapping) */
+                int plane = (graphicsRegister[GR_INDEX_READ_MAP_SELECT] & 2) | (offset & 1);
+                int mask = 1 << plane;
+                if ((sequencerRegister[SR_INDEX_MAP_MASK] & mask) != 0) {
+                    ioRegion.setByte(((offset & ~1) << 1) | plane, data);
+                    planeUpdated |= mask; // only used to detect font change
+                    //cpu_physical_memory_set_dirty
+                }
+            } else {
+                        /* standard VGA latched access */
+                int bitMask = 0;
+                int writeMode = graphicsRegister[GR_INDEX_GRAPHICS_MODE] & 3;
+                int intData = 0xff & data;
+                switch (writeMode) {
+                    default:
+                    case 0:
+                                /* rotate */
+                        int b = graphicsRegister[GR_INDEX_DATA_ROTATE] & 7;
+                        intData |= intData << 8;
+                        intData |= intData << 16;
+                        intData = (intData >>> b) | (intData << -b);
+                        //Integer.rotateRight(intData, b);
+
+                                /* apply set/reset mask */
+                        int setMask = mask16[graphicsRegister[GR_INDEX_ENABLE_SETRESET]];
+                        intData = (intData & ~setMask) | (mask16[graphicsRegister[GR_INDEX_SETRESET]] & setMask);
+                        bitMask = graphicsRegister[GR_INDEX_BITMASK];
+                        break;
+                    case 1:
+                        intData = latch;
+                        int mask = sequencerRegister[SR_INDEX_MAP_MASK];
+                        planeUpdated |= mask; // only used to detect font change
+                        int writeMask = mask16[mask];
+                        //check address being used here;
+                        offset <<= 2;
+                        ioRegion.setDoubleWord(offset, (ioRegion.getDoubleWord(offset) & ~writeMask) | (intData & writeMask));
+                        return;
+                    case 2:
+                        intData = mask16[intData & 0x0f];
+                        bitMask = graphicsRegister[GR_INDEX_BITMASK];
+                        break;
+                    case 3:
+                                /* rotate */
+                        b = graphicsRegister[GR_INDEX_DATA_ROTATE] & 7;
+                        intData = ((intData >>> b) | (intData << (8 - b)));
+                        bitMask = graphicsRegister[GR_INDEX_BITMASK] & intData;
+                        intData = mask16[graphicsRegister[GR_INDEX_SETRESET]];
+                        break;
+                }
+
+                        /* apply logical operation */
+                int funcSelect = graphicsRegister[GR_INDEX_DATA_ROTATE] >>> 3;
+                switch (funcSelect) {
+                    default:
+                    case 0:
+                                /* nothing to do */
+                        break;
+                    case 1:
+                                /* and */
+                        intData &= latch;
+                        break;
+                    case 2:
+                                /* or */
+                        intData |= latch;
+                        break;
+                    case 3:
+                                /* xor */
+                        intData ^= latch;
+                        break;
+                }
+
+                        /* apply bit mask */
+                bitMask |= bitMask << 8;
+                bitMask |= bitMask << 16;
+                intData = (intData & bitMask) | (latch & ~bitMask);
+
+                        /* mask data according to sequencerRegister[SR_INDEX_MAP_MASK] */
+                int mask = sequencerRegister[SR_INDEX_MAP_MASK];
+                planeUpdated |= mask; // only used to detect font change
+                int writeMask = mask16[mask];
+                offset <<= 2;
+                //check address being used here;
+                ioRegion.setDoubleWord(offset, (ioRegion.getDoubleWord(offset) & ~writeMask) | (intData & writeMask));
+            }
+        }
+
+        public void setWord(int offset, short data) {
+            setByte(offset++, (byte) data);
+            data >>>= 8;
+            setByte(offset, (byte) data);
+        }
+
+        public void setDoubleWord(int offset, int data) {
+            setByte(offset++, (byte) data);
+            data >>>= 8;
+            setByte(offset++, (byte) data);
+            data >>>= 8;
+            setByte(offset++, (byte) data);
+            data >>>= 8;
+            setByte(offset, (byte) data);
+        }
+
+        public void setQuadWord(int offset, long data) {
+            setDoubleWord(offset, (int) data);
+            setDoubleWord(offset + 4, (int) (data >> 32));
+        }
+
+        public void setLowerDoubleQuadWord(int offset, long data) {
+            setDoubleWord(offset, (int) data);
+            setDoubleWord(offset + 4, (int) (data >> 32));
+        }
+
+        public void setUpperDoubleQuadWord(int offset, long data) {
+            offset += 8;
+            setDoubleWord(offset, (int) data);
+            setDoubleWord(offset + 4, (int) (data >> 32));
+        }
+
+        public void clear() {
+            internalReset();
+        }
+
+        public void clear(int start, int length) {
+            clear();
+        }
+
+        public void loadInitialContents(int address, byte[] buf, int off, int len) {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+    }
+
+    public static class VGARAMIORegion implements IORegion {
+        private byte[] buffer;
+        private int startAddress;
+        private boolean[] dirtyPages;
+
+        public VGARAMIORegion() {
+            buffer = new byte[INIT_VGA_RAM_SIZE];
+            dirtyPages = new boolean[(VGA_RAM_SIZE >>> PAGE_SHIFT) + 1];
+            for (int i = 0; i < dirtyPages.length; i++)
+                dirtyPages[i] = false;
+
+            startAddress = -1;
+        }
+
+        public void dumpState(DataOutput output) throws IOException {
+            output.writeInt(startAddress);
+            output.writeInt(buffer.length);
+            output.write(buffer);
+            output.writeInt(dirtyPages.length);
+            for (int i = 0; i < dirtyPages.length; i++)
+                output.writeBoolean(dirtyPages[i]);
+        }
+
+        private void increaseVGARAMSize(int offset) {
+            if ((offset < 0) || (offset >= VGA_RAM_SIZE))
+                throw new ArrayIndexOutOfBoundsException("tried to access outside of memory bounds");
+
+            int newSize = buffer.length;
+            while (newSize <= offset)
+                newSize = newSize << 1;
+
+            if (newSize > VGA_RAM_SIZE)
+                newSize = VGA_RAM_SIZE;
+
+            byte[] newBuf = new byte[newSize];
+            System.arraycopy(buffer, 0, newBuf, 0, buffer.length);
+            buffer = newBuf;
+        }
+
+        public void copyContentsIntoArray(int address, byte[] buf, int off, int len) {
+            System.arraycopy(buffer, address, buf, off, len);
+        }
+
+        public void copyArrayIntoContents(int address, byte[] buf, int off, int len) {
+            System.arraycopy(buf, off, buffer, address, len);
+        }
+
+        public void clear() {
+            for (int i = 0; i < buffer.length; i++)
+                buffer[i] = 0;
+
+            for (int i = 0; i < dirtyPages.length; i++)
+                dirtyPages[i] = false;
+        }
+
+        public void clear(int start, int length) {
+            int limit = start + length;
+            if (limit > getSize()) throw new ArrayIndexOutOfBoundsException("Attempt to clear outside of memory bounds");
+            try {
+                for (int i = start; i < limit; i++)
+                    buffer[i] = 0;
+            } catch (ArrayIndexOutOfBoundsException e) {
+                e.printStackTrace();
+            }
+
+            int pageStart = start >>> PAGE_SHIFT;
+            int pageLimit = (limit - 1) >>> PAGE_SHIFT;
+            for (int i = pageStart; i <= pageLimit; i++)
+                dirtyPages[i] = true;
+        }
+
+        public boolean pageIsDirty(int i) {
+            return dirtyPages[i];
+        }
+
+        public void cleanPage(int i) {
+            dirtyPages[i] = false;
+        }
+
+        //IORegion Methods
+        public int getAddress() {
+            return startAddress;
+        }
+
+        public long getSize() {
+            return VGA_RAM_SIZE;
+        }
+
+        public int getType() {
+            return PCI_ADDRESS_SPACE_MEM_PREFETCH;
+        }
+
+        public int getRegionNumber() {
+            return 0;
+        }
+
+        public void setAddress(int address) {
+            this.startAddress = address;
+        }
+
+        public void setByte(int offset, byte data) {
+            try {
+                dirtyPages[offset >>> PAGE_SHIFT] = true;
+                buffer[offset] = data;
+            } catch (ArrayIndexOutOfBoundsException e) {
+                increaseVGARAMSize(offset);
+                setByte(offset, data);
+            }
+        }
+
+        public byte getByte(int offset) {
+            try {
+                return buffer[offset];
+            } catch (ArrayIndexOutOfBoundsException e) {
+                increaseVGARAMSize(offset);
+                return getByte(offset);
+            }
+        }
+
+        public void setWord(int offset, short data) {
+            try {
+                buffer[offset] = (byte) data;
+                dirtyPages[offset >>> PAGE_SHIFT] = true;
+                offset++;
+                buffer[offset] = (byte) (data >> 8);
+                dirtyPages[offset >>> PAGE_SHIFT] = true;
+            } catch (ArrayIndexOutOfBoundsException e) {
+                increaseVGARAMSize(offset);
+                setWord(offset, data);
+            }
+        }
+
+        public short getWord(int offset) {
+            try {
+                int result = 0xFF & buffer[offset];
+                offset++;
+                result |= buffer[offset] << 8;
+                return (short) result;
+            } catch (ArrayIndexOutOfBoundsException e) {
+                increaseVGARAMSize(offset);
+                return getWord(offset);
+            }
+        }
+
+        public void setDoubleWord(int offset, int data) {
+            try {
+                dirtyPages[offset >>> PAGE_SHIFT] = true;
+                buffer[offset] = (byte) data;
+                offset++;
+                data >>= 8;
+                buffer[offset] = (byte) (data);
+                offset++;
+                data >>= 8;
+                buffer[offset] = (byte) (data);
+                offset++;
+                data >>= 8;
+                buffer[offset] = (byte) (data);
+                dirtyPages[offset >>> PAGE_SHIFT] = true;
+            } catch (ArrayIndexOutOfBoundsException e) {
+                increaseVGARAMSize(offset);
+                setDoubleWord(offset, data);
+            }
+        }
+
+        public int getDoubleWord(int offset) {
+            try {
+                int result = 0xFF & buffer[offset];
+                offset++;
+                result |= (0xFF & buffer[offset]) << 8;
+                offset++;
+                result |= (0xFF & buffer[offset]) << 16;
+                offset++;
+                result |= (buffer[offset]) << 24;
+                return result;
+            } catch (ArrayIndexOutOfBoundsException e) {
+                increaseVGARAMSize(offset);
+                return getDoubleWord(offset);
+            }
+        }
+
+        public String toString() {
+            return "VGA RAM ByteArray[" + getSize() + "]";
+        }
+
+        public boolean isAllocated() {
+            return true;
+        }
+
+        public void loadInitialContents(int address, byte[] buf, int off, int len) {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
     }
 
     public void updateDisplay() {
@@ -837,97 +1340,12 @@ public abstract class VGACard extends BasePCIDevice {
         updatingScreen = false;
     }
 
-    private void drawGraphic(boolean fullUpdate) {
-        boolean temp = updateBasicParameters();
-        fullUpdate |= temp;
-
-        int width = (crtRegister[CR_INDEX_HORZ_DISPLAY_END] + 1) * 8;
-        int height = (crtRegister[CR_INDEX_VERT_DISPLAY_END] | ((crtRegister[CR_INDEX_OVERFLOW] & 0x02) << 7) | ((crtRegister[CR_INDEX_OVERFLOW] & 0x40) << 3)) + 1;
-
-        int dispWidth = width;
-        int shiftControlBuffer = (graphicsRegister[GR_INDEX_GRAPHICS_MODE] >>> 5) & 3;
-        int doubleScanBuffer = crtRegister[CR_INDEX_MAX_SCANLINE] >>> 7;
-
-        int multiScan;
-        if (shiftControlBuffer != 1)
-            multiScan = (((crtRegister[CR_INDEX_MAX_SCANLINE] & 0x1f) + 1) << doubleScanBuffer) - 1;
-        else {
-                /* in CGA modes, multi_scan is ignored */
-                /* XXX: is it correct ? */
-            multiScan = doubleScanBuffer;
-        }
-
-        if (shiftControlBuffer != shiftControl || doubleScanBuffer != doubleScan) {
-            fullUpdate = true;
-            this.shiftControl = shiftControlBuffer;
-            this.doubleScan = doubleScanBuffer;
-        }
-
-        GraphicsUpdater graphicUpdater = null;
-        if (shiftControl == 0) {
-            temp = updatePalette16();
-            fullUpdate |= temp;
-            if ((sequencerRegister[SR_INDEX_CLOCKING_MODE] & 8) != 0) {
-                graphicUpdater = VGA_DRAW_LINE4D2;
-                dispWidth <<= 1;
-            } else
-                graphicUpdater = VGA_DRAW_LINE4;
-        } else if (shiftControl == 1) {
-            temp = updatePalette16();
-            fullUpdate |= temp;
-            if ((sequencerRegister[SR_INDEX_CLOCKING_MODE] & 8) != 0) {
-                graphicUpdater = VGA_DRAW_LINE2D2;
-                dispWidth <<= 1;
-            } else
-                graphicUpdater = VGA_DRAW_LINE2;
-        } else {
-            int bpp = 0;
-            if ((vbeRegs[VBE_DISPI_INDEX_ENABLE] & VBE_DISPI_ENABLED) != 0)
-                bpp = vbeRegs[VBE_DISPI_INDEX_BPP];
-
-            switch (bpp) {
-                default:
-                case 0:
-                    temp = updatePalette256();
-                    fullUpdate |= temp;
-                    graphicUpdater = VGA_DRAW_LINE8D2;
-                    break;
-                case 8:
-                    temp = updatePalette256();
-                    fullUpdate |= temp;
-                    graphicUpdater = VGA_DRAW_LINE8;
-                    break;
-                case 15:
-                    graphicUpdater = VGA_DRAW_LINE15;
-                    break;
-                case 16:
-                    graphicUpdater = VGA_DRAW_LINE16;
-                    break;
-                case 24:
-                    graphicUpdater = VGA_DRAW_LINE24;
-                    break;
-                case 32:
-                    graphicUpdater = VGA_DRAW_LINE32;
-                    break;
-            }
-        }
-
-        if ((dispWidth != lastWidth) || (height != lastHeight)) {
-            fullUpdate = true;
-            lastScreenWidth = lastWidth = dispWidth;
-            lastScreenHeight = lastHeight = height;
-            resizeDisplay(lastScreenWidth, lastScreenHeight);
-        }
-
-        graphicUpdater.updateDisplay(width, height, dispWidth, fullUpdate, multiScan);
-    }
-
     private void drawText(boolean fullUpdate) {
         boolean temp = updatePalette16();
         fullUpdate |= temp;
         int[] palette = lastPalette;
 
-            /* compute font data address (in plane 2) */
+                /* compute font data address (in plane 2) */
         int v = this.sequencerRegister[SR_INDEX_CHAR_MAP_SELECT];
 
         int offset = (((v >>> 4) & 1) | ((v << 1) & 6)) * 8192 * 4 + 2;
@@ -944,8 +1362,8 @@ public abstract class VGACard extends BasePCIDevice {
         }
 
         if ((this.planeUpdated & (1 << 2)) != 0) {
-                /* if the plane 2 was modified since the last display, it
-                  indicates the font may have been modified */
+                    /* if the plane 2 was modified since the last display, it
+                      indicates the font may have been modified */
             this.planeUpdated = 0;
             fullUpdate = true;
         }
@@ -955,7 +1373,7 @@ public abstract class VGACard extends BasePCIDevice {
 
         int srcIndex = this.startAddress * 4;
 
-            /* total width and height */
+                /* total width and height */
         int charHeight = (crtRegister[CR_INDEX_MAX_SCANLINE] & 0x1f) + 1;
         int charWidth = 8;
         if ((sequencerRegister[SR_INDEX_CLOCKING_MODE] & 0x01) == 0)
@@ -966,7 +1384,7 @@ public abstract class VGACard extends BasePCIDevice {
         int width = crtRegister[CR_INDEX_HORZ_DISPLAY_END] + 1;
         int height;
         if (crtRegister[CR_INDEX_VERT_TOTAL] == 100) {
-                /* ugly hack for CGA 160x100x16 */
+                    /* ugly hack for CGA 160x100x16 */
             height = 100;
         } else {
             height = crtRegister[CR_INDEX_VERT_DISPLAY_END] | ((crtRegister[CR_INDEX_OVERFLOW] & 0x02) << 7) | ((crtRegister[CR_INDEX_OVERFLOW] & 0x40) << 3);
@@ -974,7 +1392,7 @@ public abstract class VGACard extends BasePCIDevice {
         }
 
         if ((height * width) > CH_ATTR_SIZE) {
-                /* better than nothing: exit if transient size is too big */
+                    /* better than nothing: exit if transient size is too big */
             return;
         }
 
@@ -992,8 +1410,8 @@ public abstract class VGACard extends BasePCIDevice {
         int curCursorOffset = ((crtRegister[CR_INDEX_CURSOR_LOC_HIGH] << 8) | crtRegister[CR_INDEX_CURSOR_LOC_LOW]) - this.startAddress;
 
         if ((curCursorOffset != this.cursorOffset) || (crtRegister[CR_INDEX_CURSOR_START] != this.cursorStart) || (crtRegister[CR_INDEX_CURSOR_END] != this.cursorEnd)) {
-                /* if the cursor position changed, we updated the old and new
-                  chars */
+                    /* if the cursor position changed, we updated the old and new
+                      chars */
             if ((this.cursorOffset < CH_ATTR_SIZE) && (this.cursorOffset >= 0))
                 this.lastChar[this.cursorOffset] = -1;
             if ((curCursorOffset < CH_ATTR_SIZE) && (curCursorOffset >= 0))
@@ -1030,7 +1448,7 @@ public abstract class VGACard extends BasePCIDevice {
                             if ((srcOffset == cursorIndex) && ((crtRegister[CR_INDEX_CURSOR_START] & 0x20) == 0)) {
                                 int lineStart = crtRegister[CR_INDEX_CURSOR_START] & 0x1f;
                                 int lineLast = crtRegister[CR_INDEX_CURSOR_END] & 0x1f;
-                                    /* XXX: check that */
+                                        /* XXX: check that */
                                 if (lineLast > charHeight - 1)
                                     lineLast = charHeight - 1;
 
@@ -1071,7 +1489,7 @@ public abstract class VGACard extends BasePCIDevice {
                             if ((srcOffset == cursorIndex) && ((crtRegister[CR_INDEX_CURSOR_START] & 0x20) == 0)) {
                                 int lineStart = crtRegister[CR_INDEX_CURSOR_START] & 0x1f;
                                 int lineLast = crtRegister[CR_INDEX_CURSOR_END] & 0x1f;
-                                    /* XXX: check that */
+                                        /* XXX: check that */
                                 if (lineLast > charHeight - 1)
                                     lineLast = charHeight - 1;
 
@@ -1111,7 +1529,7 @@ public abstract class VGACard extends BasePCIDevice {
                             if ((srcOffset == cursorIndex) && ((crtRegister[CR_INDEX_CURSOR_START] & 0x20) == 0)) {
                                 int lineStart = crtRegister[CR_INDEX_CURSOR_START] & 0x1f;
                                 int lineLast = crtRegister[CR_INDEX_CURSOR_END] & 0x1f;
-                                    /* XXX: check that */
+                                        /* XXX: check that */
                                 if (lineLast > charHeight - 1)
                                     lineLast = charHeight - 1;
 
@@ -1133,227 +1551,6 @@ public abstract class VGACard extends BasePCIDevice {
                 mb.pc.getDebugger().onMessage(WARN, "Unknown character width %d\n", charWidth);
                 return;
         }
-    }
-
-    private final void drawGlyph8(int[] buffer, int startOffset, int scanSize, int glyphOffset, int charHeight, int foregroundColor, int backgroundColor) {
-        int xorColor = backgroundColor ^ foregroundColor;
-        scanSize -= 8;
-
-        do {
-            int fontData = ioRegion.getByte(glyphOffset);
-            for (int i = 7; i >= 0; i--) {
-                int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
-                buffer[startOffset++] = pixel;
-            }
-            glyphOffset += 4;
-            startOffset += scanSize;
-        } while (--charHeight != 0);
-    }
-
-    private final void drawBlank(boolean fullUpdate) {
-        if (!fullUpdate)
-            return;
-        if ((lastScreenWidth <= 0) || (lastScreenHeight <= 0))
-            return;
-
-        int[] rawBytes = getDisplayBuffer();
-        int black = rgbToPixel(0, 0, 0);
-        for (int i = rawBytes.length - 1; i >= 0; i--) {
-            rawBytes[i] = black;
-        }
-
-        dirtyDisplayRegion(0, 0, lastScreenWidth, lastScreenHeight);
-    }
-
-    public abstract void resizeDisplay(int w, int h);
-
-    protected abstract int[] getDisplayBuffer();
-
-    protected abstract int rgbToPixel(int r, int g, int b);
-
-    protected abstract void dirtyDisplayRegion(int x, int y, int w, int h);
-
-    public String toString() {
-        return "VGA Card [Mode: " + lastScreenWidth + " x " + lastScreenHeight + "]";
-    }
-
-    private final void drawCursorGlyph8(int[] buffer, int startOffset, int scanSize, int charHeight, int foregroundColor, int backgroundColor) {
-        int xorColor = backgroundColor ^ foregroundColor;
-        int glyphOffset = 0;
-        scanSize -= 8;
-
-        do {
-            int fontData = cursorGlyph[glyphOffset];
-            for (int i = 7; i >= 0; i--) {
-                int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
-                buffer[startOffset++] = pixel;
-            }
-            glyphOffset += 4;
-            startOffset += scanSize;
-        }
-        while (--charHeight != 0);
-    }
-
-    private final void drawGlyph16(int[] buffer, int startOffset, int scanSize, int glyphOffset, int charHeight, int foregroundColor, int backgroundColor) {
-        int xorColor = backgroundColor ^ foregroundColor;
-        scanSize -= 16;
-
-        do {
-            int rawData = ioRegion.getByte(glyphOffset);
-            int fontData = expand4to8[(rawData >>> 4) & 0x0f];
-            for (int i = 7; i >= 0; i--) {
-                int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
-                buffer[startOffset++] = pixel;
-            }
-            fontData = expand4to8[rawData & 0x0f];
-            for (int i = 7; i >= 0; i--) {
-                int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
-                buffer[startOffset++] = pixel;
-            }
-            glyphOffset += 4;
-            startOffset += scanSize;
-        } while (--charHeight != 0);
-    }
-
-    private final void drawCursorGlyph16(int[] buffer, int startOffset, int scanSize, int charHeight, int foregroundColor, int backgroundColor) {
-        int glyphOffset = 0;
-        int xorColor = backgroundColor ^ foregroundColor;
-        scanSize -= 16;
-
-        do {
-            int rawData = cursorGlyph[glyphOffset];
-            int fontData = expand4to8[(rawData >>> 4) & 0x0f];
-            for (int i = 7; i >= 0; i--) {
-                int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
-                buffer[startOffset++] = pixel;
-            }
-            fontData = expand4to8[rawData & 0x0f];
-            for (int i = 7; i >= 0; i--) {
-                int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
-                buffer[startOffset++] = pixel;
-            }
-            glyphOffset += 4;
-            startOffset += scanSize;
-        }
-        while (--charHeight != 0);
-    }
-
-    private final void drawCursorGlyph9(int[] buffer, int startOffset, int scanSize, int charHeight, int foregroundColor, int backgroundColor) {
-        int glyphOffset = 0;
-        int xorColor = backgroundColor ^ foregroundColor;
-        scanSize -= 9;
-
-        do {
-            int fontData = cursorGlyph[glyphOffset];
-            for (int i = 7; i >= 0; i--) {
-                int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
-                buffer[startOffset++] = pixel;
-            }
-            buffer[startOffset++] = buffer[startOffset - 2];
-            glyphOffset++;
-            startOffset += scanSize;
-        } while (--charHeight != 0);
-    }
-
-    private final void drawGlyph9(int[] buffer, int startOffset, int scanSize, int glyphOffset, int charHeight, int foregroundColor, int backgroundColor, boolean dup9) {
-        int xorColor = backgroundColor ^ foregroundColor;
-        scanSize -= 9;
-
-        if (dup9) {
-            do {
-                int fontData = ioRegion.getByte(glyphOffset);
-
-                for (int i = 7; i >= 0; i--) {
-                    int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
-                    buffer[startOffset++] = pixel;
-                }
-
-                buffer[startOffset++] = buffer[startOffset - 2];
-
-                glyphOffset += 4;
-                startOffset += scanSize;
-            } while (--charHeight != 0);
-        } else {
-            do {
-                int fontData = ioRegion.getByte(glyphOffset);
-
-                for (int i = 7; i >= 0; i--) {
-                    int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
-                    buffer[startOffset++] = pixel;
-                }
-
-                buffer[startOffset++] = backgroundColor;
-
-                glyphOffset += 4;
-                startOffset += scanSize;
-            } while (--charHeight != 0);
-        }
-    }
-
-    private final boolean updatePalette16() {
-        boolean fullUpdate = false;
-        int[] palette = lastPalette;
-
-        for (int colorIndex = AR_INDEX_PALLETE_MIN; colorIndex <= AR_INDEX_PALLETE_MAX; colorIndex++) {
-            int v = attributeRegister[colorIndex];
-            if ((attributeRegister[AR_INDEX_ATTR_MODE_CONTROL] & 0x80) != 0)
-                v = ((attributeRegister[AR_INDEX_COLOR_SELECT] & 0xf) << 4) | (v & 0xf);
-            else
-                v = ((attributeRegister[AR_INDEX_COLOR_SELECT] & 0xc) << 4) | (v & 0x3f);
-
-            v *= 3;
-            int col = rgbToPixel(c6to8(this.palette[v]),
-                    c6to8(this.palette[v + 1]),
-                    c6to8(this.palette[v + 2]));
-            if (col != palette[colorIndex]) {
-                fullUpdate = true;
-                palette[colorIndex] = col;
-            }
-        }
-        return fullUpdate;
-    }
-
-    private final boolean updatePalette256() {
-        boolean fullUpdate = false;
-        int[] palette = lastPalette;
-
-        for (int i = 0, v = 0; i < 256; i++, v += 3) {
-            int col = rgbToPixel(c6to8(this.palette[v]),
-                    c6to8(this.palette[v + 1]),
-                    c6to8(this.palette[v + 2]));
-            if (col != palette[i]) {
-                fullUpdate = true;
-                palette[i] = col;
-            }
-        }
-        return fullUpdate;
-    }
-
-    private final boolean updateBasicParameters() {
-        int curStartAddress, curLineOffset;
-        if ((vbeRegs[VBE_DISPI_INDEX_ENABLE] & VBE_DISPI_ENABLED) != 0) {
-            curLineOffset = this.vbeLineOffset;
-            curStartAddress = this.vbeStartAddress;
-        } else {
-                /* compute curLineOffset in bytes */
-            curLineOffset = crtRegister[CR_INDEX_OFFSET];
-            curLineOffset <<= 3;
-
-                /* starting address */
-            curStartAddress = crtRegister[CR_INDEX_START_ADDR_LOW] | (crtRegister[CR_INDEX_START_ADDR_HIGH] << 8);
-        }
-
-            /* line compare */
-        int curLineCompare = crtRegister[CR_INDEX_LINE_COMPARE] | ((crtRegister[CR_INDEX_OVERFLOW] & 0x10) << 4) | ((crtRegister[CR_INDEX_MAX_SCANLINE] & 0x40) << 3);
-
-        if ((curLineOffset != this.lineOffset) || (curStartAddress != this.startAddress) || (curLineCompare != this.lineCompare)) {
-            this.lineOffset = curLineOffset;
-            this.startAddress = curStartAddress;
-            this.lineCompare = curLineCompare;
-            return true;
-        }
-
-        return false;
     }
 
     abstract class GraphicsUpdater {
@@ -1385,7 +1582,7 @@ public abstract class VGACard extends BasePCIDevice {
 
                 if (addrMunge) {
                     if (addrMunge1) {
-                            /* CGA compatibility handling */
+                                /* CGA compatibility handling */
                         int shift = 14 + ((crtRegister[CR_INDEX_CRTC_MODE_CONTROL] >>> 6) & 1);
                         addr = (addr & ~(1 << shift)) | ((y1 & 1) << shift);
                     }
@@ -1416,7 +1613,7 @@ public abstract class VGACard extends BasePCIDevice {
                 } else
                     multiRun--;
 
-                    /* line compare acts on the displayed lines */
+                        /* line compare acts on the displayed lines */
                 if (y == lineCompare)
                     addr1 = 0;
             }
@@ -1710,215 +1907,318 @@ public abstract class VGACard extends BasePCIDevice {
         }
     }
 
+    private void drawGraphic(boolean fullUpdate) {
+        boolean temp = updateBasicParameters();
+        fullUpdate |= temp;
+
+        int width = (crtRegister[CR_INDEX_HORZ_DISPLAY_END] + 1) * 8;
+        int height = (crtRegister[CR_INDEX_VERT_DISPLAY_END] | ((crtRegister[CR_INDEX_OVERFLOW] & 0x02) << 7) | ((crtRegister[CR_INDEX_OVERFLOW] & 0x40) << 3)) + 1;
+
+        int dispWidth = width;
+        int shiftControlBuffer = (graphicsRegister[GR_INDEX_GRAPHICS_MODE] >>> 5) & 3;
+        int doubleScanBuffer = crtRegister[CR_INDEX_MAX_SCANLINE] >>> 7;
+
+        int multiScan;
+        if (shiftControlBuffer != 1)
+            multiScan = (((crtRegister[CR_INDEX_MAX_SCANLINE] & 0x1f) + 1) << doubleScanBuffer) - 1;
+        else {
+                /* in CGA modes, multi_scan is ignored */
+                /* XXX: is it correct ? */
+            multiScan = doubleScanBuffer;
+        }
+
+        if (shiftControlBuffer != shiftControl || doubleScanBuffer != doubleScan) {
+            fullUpdate = true;
+            this.shiftControl = shiftControlBuffer;
+            this.doubleScan = doubleScanBuffer;
+        }
+
+        GraphicsUpdater graphicUpdater = null;
+        if (shiftControl == 0) {
+            temp = updatePalette16();
+            fullUpdate |= temp;
+            if ((sequencerRegister[SR_INDEX_CLOCKING_MODE] & 8) != 0) {
+                graphicUpdater = VGA_DRAW_LINE4D2;
+                dispWidth <<= 1;
+            } else
+                graphicUpdater = VGA_DRAW_LINE4;
+        } else if (shiftControl == 1) {
+            temp = updatePalette16();
+            fullUpdate |= temp;
+            if ((sequencerRegister[SR_INDEX_CLOCKING_MODE] & 8) != 0) {
+                graphicUpdater = VGA_DRAW_LINE2D2;
+                dispWidth <<= 1;
+            } else
+                graphicUpdater = VGA_DRAW_LINE2;
+        } else {
+            int bpp = 0;
+            if ((vbeRegs[VBE_DISPI_INDEX_ENABLE] & VBE_DISPI_ENABLED) != 0)
+                bpp = vbeRegs[VBE_DISPI_INDEX_BPP];
+
+            switch (bpp) {
+                default:
+                case 0:
+                    temp = updatePalette256();
+                    fullUpdate |= temp;
+                    graphicUpdater = VGA_DRAW_LINE8D2;
+                    break;
+                case 8:
+                    temp = updatePalette256();
+                    fullUpdate |= temp;
+                    graphicUpdater = VGA_DRAW_LINE8;
+                    break;
+                case 15:
+                    graphicUpdater = VGA_DRAW_LINE15;
+                    break;
+                case 16:
+                    graphicUpdater = VGA_DRAW_LINE16;
+                    break;
+                case 24:
+                    graphicUpdater = VGA_DRAW_LINE24;
+                    break;
+                case 32:
+                    graphicUpdater = VGA_DRAW_LINE32;
+                    break;
+            }
+        }
+
+        if ((dispWidth != lastWidth) || (height != lastHeight)) {
+            fullUpdate = true;
+            lastScreenWidth = lastWidth = dispWidth;
+            lastScreenHeight = lastHeight = height;
+            resizeDisplay(lastScreenWidth, lastScreenHeight);
+        }
+
+        graphicUpdater.updateDisplay(width, height, dispWidth, fullUpdate, multiScan);
+    }
+
+    private final void drawBlank(boolean fullUpdate) {
+        if (!fullUpdate)
+            return;
+        if ((lastScreenWidth <= 0) || (lastScreenHeight <= 0))
+            return;
+
+        int[] rawBytes = getDisplayBuffer();
+        int black = rgbToPixel(0, 0, 0);
+        for (int i = rawBytes.length - 1; i >= 0; i--) {
+            rawBytes[i] = black;
+        }
+
+        dirtyDisplayRegion(0, 0, lastScreenWidth, lastScreenHeight);
+    }
+
+    private final boolean updatePalette16() {
+        boolean fullUpdate = false;
+        int[] palette = lastPalette;
+
+        for (int colorIndex = AR_INDEX_PALLETE_MIN; colorIndex <= AR_INDEX_PALLETE_MAX; colorIndex++) {
+            int v = attributeRegister[colorIndex];
+            if ((attributeRegister[AR_INDEX_ATTR_MODE_CONTROL] & 0x80) != 0)
+                v = ((attributeRegister[AR_INDEX_COLOR_SELECT] & 0xf) << 4) | (v & 0xf);
+            else
+                v = ((attributeRegister[AR_INDEX_COLOR_SELECT] & 0xc) << 4) | (v & 0x3f);
+
+            v *= 3;
+            int col = rgbToPixel(c6to8(this.palette[v]),
+                    c6to8(this.palette[v + 1]),
+                    c6to8(this.palette[v + 2]));
+            if (col != palette[colorIndex]) {
+                fullUpdate = true;
+                palette[colorIndex] = col;
+            }
+        }
+        return fullUpdate;
+    }
+
+    private final boolean updatePalette256() {
+        boolean fullUpdate = false;
+        int[] palette = lastPalette;
+
+        for (int i = 0, v = 0; i < 256; i++, v += 3) {
+            int col = rgbToPixel(c6to8(this.palette[v]),
+                    c6to8(this.palette[v + 1]),
+                    c6to8(this.palette[v + 2]));
+            if (col != palette[i]) {
+                fullUpdate = true;
+                palette[i] = col;
+            }
+        }
+        return fullUpdate;
+    }
+
+    private final boolean updateBasicParameters() {
+        int curStartAddress, curLineOffset;
+        if ((vbeRegs[VBE_DISPI_INDEX_ENABLE] & VBE_DISPI_ENABLED) != 0) {
+            curLineOffset = this.vbeLineOffset;
+            curStartAddress = this.vbeStartAddress;
+        } else {
+                    /* compute curLineOffset in bytes */
+            curLineOffset = crtRegister[CR_INDEX_OFFSET];
+            curLineOffset <<= 3;
+
+                    /* starting address */
+            curStartAddress = crtRegister[CR_INDEX_START_ADDR_LOW] | (crtRegister[CR_INDEX_START_ADDR_HIGH] << 8);
+        }
+
+                /* line compare */
+        int curLineCompare = crtRegister[CR_INDEX_LINE_COMPARE] | ((crtRegister[CR_INDEX_OVERFLOW] & 0x10) << 4) | ((crtRegister[CR_INDEX_MAX_SCANLINE] & 0x40) << 3);
+
+        if ((curLineOffset != this.lineOffset) || (curStartAddress != this.startAddress) || (curLineCompare != this.lineCompare)) {
+            this.lineOffset = curLineOffset;
+            this.startAddress = curStartAddress;
+            this.lineCompare = curLineCompare;
+            return true;
+        }
+
+        return false;
+    }
+
     private static final int c6to8(int v) {
         v &= 0x3f;
         int b = v & 1;
         return (v << 2) | (b << 1) | b;
     }
 
-    public static class VGARAMIORegion implements IORegion {
-        private byte[] buffer;
-        private int startAddress;
-        private boolean[] dirtyPages;
+    private final void drawGlyph8(int[] buffer, int startOffset, int scanSize, int glyphOffset, int charHeight, int foregroundColor, int backgroundColor) {
+        int xorColor = backgroundColor ^ foregroundColor;
+        scanSize -= 8;
 
-        public VGARAMIORegion() {
-            // 	    buffer = new byte[VGA_RAM_SIZE];
-            buffer = new byte[INIT_VGA_RAM_SIZE];
-            dirtyPages = new boolean[(VGA_RAM_SIZE >>> PAGE_SHIFT) + 1];
-            for (int i = 0; i < dirtyPages.length; i++)
-                dirtyPages[i] = false;
-
-            startAddress = -1;
-        }
-
-        public void dumpState(DataOutput output) throws IOException {
-            output.writeInt(startAddress);
-            output.writeInt(buffer.length);
-            output.write(buffer);
-            output.writeInt(dirtyPages.length);
-            for (int i = 0; i < dirtyPages.length; i++)
-                output.writeBoolean(dirtyPages[i]);
-        }
-
-        public void loadState(DataInput input) throws IOException {
-            startAddress = input.readInt();
-            int len = input.readInt();
-            buffer = new byte[len];
-            input.readFully(buffer, 0, len);
-            len = input.readInt();
-            dirtyPages = new boolean[len];
-            for (int i = 0; i < len; i++)
-                dirtyPages[i] = input.readBoolean();
-        }
-
-        private void increaseVGARAMSize(int offset) {
-            if ((offset < 0) || (offset >= VGA_RAM_SIZE))
-                throw new ArrayIndexOutOfBoundsException("tried to access outside of memory bounds");
-
-            int newSize = buffer.length;
-            while (newSize <= offset)
-                newSize = newSize << 1;
-
-            if (newSize > VGA_RAM_SIZE)
-                newSize = VGA_RAM_SIZE;
-
-            byte[] newBuf = new byte[newSize];
-            System.arraycopy(buffer, 0, newBuf, 0, buffer.length);
-            buffer = newBuf;
-        }
-
-        public void copyContentsIntoArray(int address, byte[] buf, int off, int len) {
-            System.arraycopy(buffer, address, buf, off, len);
-        }
-
-        public void copyArrayIntoContents(int address, byte[] buf, int off, int len) {
-            System.arraycopy(buf, off, buffer, address, len);
-        }
-
-        public void clear() {
-            for (int i = 0; i < buffer.length; i++)
-                buffer[i] = 0;
-
-            for (int i = 0; i < dirtyPages.length; i++)
-                dirtyPages[i] = false;
-        }
-
-        public void clear(int start, int length) {
-            int limit = start + length;
-            if (limit > getSize()) throw new ArrayIndexOutOfBoundsException("Attempt to clear outside of memory bounds");
-            try {
-                for (int i = start; i < limit; i++)
-                    buffer[i] = 0;
-            } catch (ArrayIndexOutOfBoundsException e) {
+        do {
+            int fontData = ioRegion.getByte(glyphOffset);
+            for (int i = 7; i >= 0; i--) {
+                int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
+                buffer[startOffset++] = pixel;
             }
+            glyphOffset += 4;
+            startOffset += scanSize;
+        } while (--charHeight != 0);
+    }
 
-            int pageStart = start >>> PAGE_SHIFT;
-            int pageLimit = (limit - 1) >>> PAGE_SHIFT;
-            for (int i = pageStart; i <= pageLimit; i++)
-                dirtyPages[i] = true;
-        }
+    private final void drawGlyph16(int[] buffer, int startOffset, int scanSize, int glyphOffset, int charHeight, int foregroundColor, int backgroundColor) {
+        int xorColor = backgroundColor ^ foregroundColor;
+        scanSize -= 16;
 
-        public boolean pageIsDirty(int i) {
-            return dirtyPages[i];
-        }
-
-        public void cleanPage(int i) {
-            dirtyPages[i] = false;
-        }
-
-        //IORegion Methods
-        public int getAddress() {
-            return startAddress;
-        }
-
-        public long getSize() {
-            return VGA_RAM_SIZE;
-        }
-
-        public int getType() {
-            return PCI_ADDRESS_SPACE_MEM_PREFETCH;
-        }
-
-        public int getRegionNumber() {
-            return 0;
-        }
-
-        public void setAddress(int address) {
-            this.startAddress = address;
-        }
-
-        public void setByte(int offset, byte data) {
-            try {
-                dirtyPages[offset >>> PAGE_SHIFT] = true;
-                buffer[offset] = data;
-            } catch (ArrayIndexOutOfBoundsException e) {
-                increaseVGARAMSize(offset);
-                setByte(offset, data);
+        do {
+            int rawData = ioRegion.getByte(glyphOffset);
+            int fontData = expand4to8[(rawData >>> 4) & 0x0f];
+            for (int i = 7; i >= 0; i--) {
+                int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
+                buffer[startOffset++] = pixel;
             }
-        }
-
-        public byte getByte(int offset) {
-            try {
-                return buffer[offset];
-            } catch (ArrayIndexOutOfBoundsException e) {
-                increaseVGARAMSize(offset);
-                return getByte(offset);
+            fontData = expand4to8[rawData & 0x0f];
+            for (int i = 7; i >= 0; i--) {
+                int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
+                buffer[startOffset++] = pixel;
             }
-        }
+            glyphOffset += 4;
+            startOffset += scanSize;
+        } while (--charHeight != 0);
+    }
 
-        public void setWord(int offset, short data) {
-            try {
-                buffer[offset] = (byte) data;
-                dirtyPages[offset >>> PAGE_SHIFT] = true;
-                offset++;
-                buffer[offset] = (byte) (data >> 8);
-                dirtyPages[offset >>> PAGE_SHIFT] = true;
-            } catch (ArrayIndexOutOfBoundsException e) {
-                increaseVGARAMSize(offset);
-                setWord(offset, data);
+    private final void drawGlyph9(int[] buffer, int startOffset, int scanSize, int glyphOffset, int charHeight, int foregroundColor, int backgroundColor, boolean dup9) {
+        int xorColor = backgroundColor ^ foregroundColor;
+        scanSize -= 9;
+
+        if (dup9) {
+            do {
+                int fontData = ioRegion.getByte(glyphOffset);
+
+                for (int i = 7; i >= 0; i--) {
+                    int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
+                    buffer[startOffset++] = pixel;
+                }
+
+                buffer[startOffset++] = buffer[startOffset - 2];
+
+                glyphOffset += 4;
+                startOffset += scanSize;
+            } while (--charHeight != 0);
+        } else {
+            do {
+                int fontData = ioRegion.getByte(glyphOffset);
+
+                for (int i = 7; i >= 0; i--) {
+                    int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
+                    buffer[startOffset++] = pixel;
+                }
+
+                buffer[startOffset++] = backgroundColor;
+
+                glyphOffset += 4;
+                startOffset += scanSize;
+            } while (--charHeight != 0);
+        }
+    }
+
+
+    private final void drawCursorGlyph8(int[] buffer, int startOffset, int scanSize, int charHeight, int foregroundColor, int backgroundColor) {
+        int xorColor = backgroundColor ^ foregroundColor;
+        int glyphOffset = 0;
+        scanSize -= 8;
+
+        do {
+            int fontData = cursorGlyph[glyphOffset];
+            for (int i = 7; i >= 0; i--) {
+                int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
+                buffer[startOffset++] = pixel;
             }
+            glyphOffset += 4;
+            startOffset += scanSize;
         }
+        while (--charHeight != 0);
+    }
 
-        public short getWord(int offset) {
-            try {
-                int result = 0xFF & buffer[offset];
-                offset++;
-                result |= buffer[offset] << 8;
-                return (short) result;
-            } catch (ArrayIndexOutOfBoundsException e) {
-                increaseVGARAMSize(offset);
-                return getWord(offset);
+
+    private final void drawCursorGlyph16(int[] buffer, int startOffset, int scanSize, int charHeight, int foregroundColor, int backgroundColor) {
+        int glyphOffset = 0;
+        int xorColor = backgroundColor ^ foregroundColor;
+        scanSize -= 16;
+
+        do {
+            int rawData = cursorGlyph[glyphOffset];
+            int fontData = expand4to8[(rawData >>> 4) & 0x0f];
+            for (int i = 7; i >= 0; i--) {
+                int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
+                buffer[startOffset++] = pixel;
             }
-        }
-
-        public void setDoubleWord(int offset, int data) {
-            try {
-                dirtyPages[offset >>> PAGE_SHIFT] = true;
-                buffer[offset] = (byte) data;
-                offset++;
-                data >>= 8;
-                buffer[offset] = (byte) (data);
-                offset++;
-                data >>= 8;
-                buffer[offset] = (byte) (data);
-                offset++;
-                data >>= 8;
-                buffer[offset] = (byte) (data);
-                dirtyPages[offset >>> PAGE_SHIFT] = true;
-            } catch (ArrayIndexOutOfBoundsException e) {
-                increaseVGARAMSize(offset);
-                setDoubleWord(offset, data);
+            fontData = expand4to8[rawData & 0x0f];
+            for (int i = 7; i >= 0; i--) {
+                int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
+                buffer[startOffset++] = pixel;
             }
+            glyphOffset += 4;
+            startOffset += scanSize;
         }
+        while (--charHeight != 0);
+    }
 
-        public int getDoubleWord(int offset) {
-            try {
-                int result = 0xFF & buffer[offset];
-                offset++;
-                result |= (0xFF & buffer[offset]) << 8;
-                offset++;
-                result |= (0xFF & buffer[offset]) << 16;
-                offset++;
-                result |= (buffer[offset]) << 24;
-                return result;
-            } catch (ArrayIndexOutOfBoundsException e) {
-                increaseVGARAMSize(offset);
-                return getDoubleWord(offset);
+    private final void drawCursorGlyph9(int[] buffer, int startOffset, int scanSize, int charHeight, int foregroundColor, int backgroundColor) {
+        int glyphOffset = 0;
+        int xorColor = backgroundColor ^ foregroundColor;
+        scanSize -= 9;
+
+        do {
+            int fontData = cursorGlyph[glyphOffset];
+            for (int i = 7; i >= 0; i--) {
+                int pixel = ((-((fontData >>> i) & 1)) & xorColor) ^ backgroundColor;
+                buffer[startOffset++] = pixel;
             }
-        }
+            buffer[startOffset++] = buffer[startOffset - 2];
+            glyphOffset++;
+            startOffset += scanSize;
+        } while (--charHeight != 0);
+    }
 
-        public String toString() {
-            return "VGA RAM ByteArray[" + getSize() + "]";
-        }
+    public boolean initialised() {
+        return ioportRegistered && pciRegistered && memoryRegistered;
+    }
 
-        public boolean isAllocated() {
-            return true;
-        }
+    public boolean updated() {
+        return ioportRegistered && pciRegistered && memoryRegistered;
+    }
 
-        public void loadInitialContents(int address, byte[] buf, int off, int len) {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
+    public String toString() {
+        return "VGA Card [Mode: " + lastScreenWidth + " x " + lastScreenHeight + "]";
     }
 
 }
