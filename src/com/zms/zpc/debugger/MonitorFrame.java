@@ -77,9 +77,11 @@ public class MonitorFrame extends UtilityFrame implements Runnable, ComponentLis
                             Thread.sleep(10 - gap);
                         }
                         t = System.currentTimeMillis();
-                        vga.prepareUpdate();
-                        vga.updateDisplay();
-                        GarUtils.runInUI(refresh);
+                        if(this.isVisible()) {
+                            vga.prepareUpdate();
+                            vga.updateDisplay();
+                            GarUtils.runInUI(refresh);
+                        }
                         break;
                     default:
                         Thread.sleep(20);
