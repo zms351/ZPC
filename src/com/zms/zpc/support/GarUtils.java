@@ -128,8 +128,16 @@ public class GarUtils {
         return a == b || (a != null && a.equals(b));
     }
 
-    public static void runInUI(Runnable run) {
+    public static void runLater(Runnable run) {
         SwingUtilities.invokeLater(run);
+    }
+
+    public static void runInUI(Runnable run) {
+        try {
+            SwingUtilities.invokeAndWait(run);
+        } catch (Throwable t) {
+            throw new RuntimeException(t);
+        }
     }
 
 }

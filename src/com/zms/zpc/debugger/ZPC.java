@@ -19,7 +19,7 @@ import static com.zms.zpc.support.Constants.WARN;
  */
 public class ZPC extends JFrame implements ActionListener, Runnable {
 
-    private PC pc = new PC();
+    private final PC pc = new PC();
 
     public ZPC() {
         super("ZPC Debugger");
@@ -395,7 +395,7 @@ public class ZPC extends JFrame implements ActionListener, Runnable {
             case "Show Debug Msg":
                 if (e.getSource() instanceof AbstractButton) {
                     final AbstractButton button = (AbstractButton) e.getSource();
-                    GarUtils.runInUI(() -> BaseObj.Debug = button.isSelected() ? 1 : 0);
+                    GarUtils.runLater(() -> BaseObj.Debug = button.isSelected() ? 1 : 0);
                 }
                 break;
         }

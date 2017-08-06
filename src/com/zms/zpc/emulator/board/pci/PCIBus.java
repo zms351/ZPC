@@ -11,6 +11,7 @@ public class PCIBus extends BaseDevice {
 
     public MotherBoard mb;
     public BasePCIDevice[] devices = new BasePCIDevice[256];
+    public VGACard vga;
 
     public PCIBus(MotherBoard mb) {
         this.mb = mb;
@@ -40,6 +41,9 @@ public class PCIBus extends BaseDevice {
             device.setFuncNum(fn);
         }
         devices[device.getFuncNum()] = device;
+        if(device instanceof VGACard) {
+            vga= (VGACard) device;
+        }
     }
 
     private BasePCIDevice validPCIDataAccess(long address) {
