@@ -455,12 +455,12 @@ public class InstructionExecutor2 extends InstructionExecutor {
                 c = c - 1;
                 k++;
                 if (isHasf3()) {
-                    if (v == v2) {
+                    if (v != v2) {
                         break;
                     }
                 }
                 if (isHasf2()) {
-                    if (v != v2) {
+                    if (v == v2) {
                         break;
                     }
                 }
