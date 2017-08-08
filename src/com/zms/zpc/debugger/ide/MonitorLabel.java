@@ -1,6 +1,6 @@
 package com.zms.zpc.debugger.ide;
 
-import com.zms.zpc.debugger.MonitorFrame;
+import com.zms.zpc.debugger.PCMonitorFrame;
 import com.zms.zpc.emulator.board.pci.DefaultVGACard;
 
 import javax.swing.*;
@@ -15,7 +15,7 @@ public class MonitorLabel extends JLabel {
     public DefaultVGACard vga;
     public volatile boolean clearBackground = true;
 
-    public MonitorLabel(MonitorFrame parent) {
+    public MonitorLabel(PCMonitorFrame parent) {
         this.addComponentListener(parent);
     }
 
