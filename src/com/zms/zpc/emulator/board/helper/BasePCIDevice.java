@@ -32,7 +32,7 @@ public abstract class BasePCIDevice extends BaseDevice {
     public static final int PCI_HEADER_MULTI_FUNCTION = 0x80;
 
     public PCIBus bus;
-    public RAM configuration;
+    public Memory configuration;
 
     public BasePCIDevice(PCIBus bus) {
         this.bus = bus;

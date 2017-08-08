@@ -1,7 +1,7 @@
 package com.zms.zpc.execute;
 
 import com.zms.zpc.emulator.PC;
-import com.zms.zpc.emulator.memory.RAM;
+import com.zms.zpc.emulator.memory.*;
 import com.zms.zpc.emulator.processor.Regs;
 
 import java.io.InputStream;
@@ -13,7 +13,7 @@ import java.io.InputStream;
 public class CodeStream extends InputStream {
 
     private long pos;
-    private RAM ram;
+    private Memory ram;
 
     public void seek(PC pc) {
         Regs regs = pc.cpu.regs;
