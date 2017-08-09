@@ -21,7 +21,7 @@ public class PC extends BaseObj implements Runnable {
     public Processor processor, cpu;
     private PCConfig config;
     private PCState state = PCState.Shutddown;
-    public RAM memory;
+    public Memory memory;
     public MotherBoard board;
     private String name;
 
@@ -48,7 +48,7 @@ public class PC extends BaseObj implements Runnable {
     private void init() {
         this.processor = new Processor(config.getProcessorConfig());
         this.cpu = this.processor;
-        this.memory = new PhysicalMemory(config.getMemoryChipLen(), config.getMemoryCount());
+        this.memory = new MappedMemory(config.getMemoryChipLen(), config.getMemoryCount());
         this.board = new MotherBoard(this);
         this.setName(config.getName());
     }
