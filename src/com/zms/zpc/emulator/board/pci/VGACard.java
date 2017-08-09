@@ -3,7 +3,7 @@ package com.zms.zpc.emulator.board.pci;
 import com.zms.zpc.emulator.board.MotherBoard;
 import com.zms.zpc.emulator.board.helper.BasePCIDevice;
 import com.zms.zpc.emulator.debug.DummyDebugger;
-import com.zms.zpc.emulator.memory.RAM;
+import com.zms.zpc.emulator.memory.*;
 import com.zms.zpc.support.NotImplException;
 
 import java.awt.*;
@@ -793,9 +793,9 @@ public abstract class VGACard extends BasePCIDevice {
             fontOffset = new int[2];
 
             ioRegion = new VGARAMIORegion();
-            ioRegion.install(mb.pc.memory,0xe0000);
+            ioRegion.install(new PhysicalMemory(new byte[VGA_RAM_SIZE]),0);
             lowIORegion = new VGALowMemoryRegion();
-
+            ((MappedMemory)mb.pc.memory).install(lowIORegion,0xa0000,0x20000);
             vbeRegs = new int[VBE_DISPI_INDEX_NB + 1];
         }
 
@@ -838,20 +838,12 @@ public abstract class VGACard extends BasePCIDevice {
         bankOffset = 0;
     }
 
-    public class VGALowMemoryRegion {
+    public class VGALowMemoryRegion implements RAM {
 
         public void lock(int addr) {
         }
 
         public void unlock(int addr) {
-        }
-
-        public void copyContentsIntoArray(int address, byte[] buffer, int off, int len) {
-            throw new IllegalStateException("copyContentsInto: Invalid Operation for VGA Card");
-        }
-
-        public void copyArrayIntoContents(int address, byte[] buffer, int off, int len) {
-            throw new IllegalStateException("copyContentsFrom: Invalid Operation for VGA Card");
         }
 
         public long getSize() {
@@ -1109,19 +1101,26 @@ public abstract class VGACard extends BasePCIDevice {
             clear();
         }
 
-        public void loadInitialContents(int address, byte[] buf, int off, int len) {
-            throw new UnsupportedOperationException("Not supported yet.");
+        @Override
+        public int read(long context, long pos) {
+            return getByte((int) pos);
         }
+
+        @Override
+        public void write(long context, long pos, int v) {
+            setByte((int)pos,(byte)v);
+        }
+
     }
 
     public static abstract class MapVGARAMIORegion implements IORegion {
 
         protected int bufferSize;
 
-        private RAM memory;
+        private Memory memory;
         private long pos;
 
-        public void install(RAM memory,long pos) {
+        public void install(Memory memory,long pos) {
             this.memory=memory;
             this.pos=pos;
         }

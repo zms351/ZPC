@@ -42,10 +42,6 @@ public class MappedMemory extends PhysicalMemory {
         super(size, count);
     }
 
-    public MappedMemory(byte[] bytes) {
-        super(bytes);
-    }
-
     @Override
     public int read(long context, long pos) {
         RAM ram = getRam(pos);

@@ -3,6 +3,7 @@ package com.zms.zpc.support;
 import com.zms.zpc.debugger.*;
 import com.zms.zpc.debugger.ide.FileEditorPane;
 import com.zms.zpc.emulator.PC;
+import com.zms.zpc.emulator.memory.MappedMemory;
 import com.zms.zpc.emulator.processor.*;
 import com.zms.zpc.emulator.reg.*;
 import com.zms.zpc.execute.*;
@@ -40,6 +41,8 @@ public class Warnings {
 
         System.out.println(NumberUtils.toHex(123, 456));
         System.out.println(NumberUtils.toBin(123, 456));
+
+        ((MappedMemory)pc.memory).install(pc.memory,1,2);
     }
 
 }
