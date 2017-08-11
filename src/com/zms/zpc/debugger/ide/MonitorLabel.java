@@ -39,7 +39,9 @@ public class MonitorLabel extends JLabel {
             }
             clearBackground = false;
         }
-        vga.paintPCMonitor(g, this);
+        if(vga!=null) {
+            vga.paintPCMonitor(g, this);
+        }
     }
 
 }

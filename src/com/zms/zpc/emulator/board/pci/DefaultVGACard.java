@@ -42,17 +42,21 @@ public class DefaultVGACard extends VGACard {
         return ((0xFF & red) << 16) | ((0xFF & green) << 8) | (0xFF & blue);
     }
 
+    public Frame frame;
+
     public void resizeDisplay(int width, int height) {
         if ((width == 0) || (height == 0))
             return;
         this.width = width;
         this.height = height;
-
-        buffer = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        buffer.setAccelerationPriority(1);
-        DataBufferInt buf = (DataBufferInt) buffer.getRaster().getDataBuffer();
-        rawImageData = buf.getData();
-        size.setSize(width, height);
+        if (frame != null) {
+            buffer = frame.getGraphicsConfiguration().createCompatibleImage(width, height, Transparency.OPAQUE);
+            //new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+            buffer.setAccelerationPriority(1);
+            DataBufferInt buf = (DataBufferInt) buffer.getRaster().getDataBuffer();
+            rawImageData = buf.getData();
+            size.setSize(width, height);
+        }
     }
 
     public void saveScreenshot() {
@@ -82,10 +86,11 @@ public class DefaultVGACard extends VGACard {
 
     public void paintPCMonitor(Graphics g, ImageObserver io) {
         if (g instanceof Graphics2D) {
-
             ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
         }
-        g.drawImage(buffer, 0, 0, io);
+        if (buffer != null) {
+            g.drawImage(buffer, 0, 0, io);
+        }
     }
 
     public final void prepareUpdate() {

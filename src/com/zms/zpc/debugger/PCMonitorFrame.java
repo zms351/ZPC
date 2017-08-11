@@ -53,6 +53,7 @@ public class PCMonitorFrame extends UtilityFrame implements Runnable, ComponentL
         PCState state;
         long t = System.currentTimeMillis();
         long gap;
+        vga.frame=this.getFrame();
         screen.vga = vga;
         Runnable refresh = () -> {
             Dimension size = vga.getDisplaySize();
