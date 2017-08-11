@@ -45,8 +45,9 @@ public class DefaultVGACard extends VGACard {
     public Frame frame;
 
     public void resizeDisplay(int width, int height) {
-        if ((width == 0) || (height == 0))
+        if ((width == 0) || (height == 0)) {
             return;
+        }
         this.width = width;
         this.height = height;
         if (frame != null) {
@@ -88,7 +89,10 @@ public class DefaultVGACard extends VGACard {
             ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
         }
         if (buffer != null) {
+            long start = System.currentTimeMillis();
             g.drawImage(buffer, 0, 0, io);
+            long t = System.currentTimeMillis() - start;
+            //System.out.println(t);
         }
     }
 
