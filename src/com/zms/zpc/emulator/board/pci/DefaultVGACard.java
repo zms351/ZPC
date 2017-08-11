@@ -68,7 +68,6 @@ public class DefaultVGACard extends VGACard {
         }
     }
 
-
     public Dimension getDisplaySize() {
         return size;
     }
