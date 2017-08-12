@@ -3,6 +3,7 @@ package com.zms.zpc.emulator.board;
 import com.zms.zpc.emulator.PC;
 import com.zms.zpc.emulator.board.pci.*;
 import com.zms.zpc.emulator.debug.DummyDebugger;
+import com.zms.zpc.emulator.store.FloppyController;
 
 import java.util.*;
 
@@ -24,6 +25,7 @@ public class MotherBoard {
 
     public SimpleInterruptController pic;
     public VirtualClock vc;
+    public FloppyController floppy;
 
     public MotherBoard(PC pc) {
         this.pc = pc;
@@ -47,9 +49,6 @@ public class MotherBoard {
         dma2 = new DMAController(this);
         devices.add(dma2);
 
-        cmos = new CMOS(this);
-        devices.add(cmos);
-
         keyboard = new Keyboard(this);
         devices.add(keyboard);
 
@@ -65,6 +64,12 @@ public class MotherBoard {
         devices.add(new DefaultVGACard(this));
         devices.add(new PCIISABridge(this));
         devices.add(new PIIX3IDEInterface(this));
+
+        floppy=new FloppyController(this);
+        devices.add(floppy);
+
+        cmos = new CMOS(this);
+        devices.add(cmos);
     }
 
     public void reset() {

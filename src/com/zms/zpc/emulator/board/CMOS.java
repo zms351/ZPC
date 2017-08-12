@@ -1,6 +1,7 @@
 package com.zms.zpc.emulator.board;
 
 import com.zms.zpc.emulator.board.helper.BaseDevice;
+import com.zms.zpc.emulator.store.FloppyController;
 import com.zms.zpc.support.NotImplException;
 
 /**
@@ -89,6 +90,48 @@ public class CMOS extends BaseDevice {
         if (val > 65535) val = 65535;
         cmos[0x34] = (byte) val;
         cmos[0x35] = (byte) (val >>> 8);
+        cmos[0x3d] = (byte) 0x01; /* floppy boot */
+
+        cmosInitFloppy(mb.floppy);
+    }
+
+    private void cmosInitFloppy(FloppyController fdc) {
+        byte[] cmosData = cmos;
+        int val = (cmosGetFDType(fdc, 0) << 4) | cmosGetFDType(fdc, 1);
+        cmosData[0x10] = (byte) val;
+
+        int num = 0;
+        val = 0;
+        if (fdc.getDriveType(0) != FloppyController.DriverType.DRIVE_NONE)
+            num++;
+        if (fdc.getDriveType(1) != FloppyController.DriverType.DRIVE_NONE)
+            num++;
+        switch (num) {
+            case 0:
+                break;
+            case 1:
+                val |= 0x01;
+                break;
+            case 2:
+                val |= 0x41;
+                break;
+        }
+        val |= 0x02; // Have FPU
+        val |= 0x04; // Have PS2 Mouse
+        cmosData[0x14] = (byte) val;
+    }
+
+    private int cmosGetFDType(FloppyController fdc, int drive) {
+        switch (fdc.getDriveType(drive)) {
+            case DRIVE_144:
+                return 4;
+            case DRIVE_288:
+                return 5;
+            case DRIVE_120:
+                return 2;
+            default:
+                return 0;
+        }
     }
 
 }
