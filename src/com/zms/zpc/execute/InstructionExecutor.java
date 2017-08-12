@@ -493,7 +493,6 @@ public abstract class InstructionExecutor extends Instruction {
                 return false;
             }
         }
-        BaseReg rip = pc.cpu.regs.rip;
         executor.reLoc(input);
         return int_(v * 4);
     }
@@ -504,10 +503,8 @@ public abstract class InstructionExecutor extends Instruction {
         bits.clearITACR();
         push_(regs.cs.getValue(), 16);
         push_(regs.rip.getValue(), 16);
-
         regs.rip.setValue(mrs.memoryRead(pc, address, 16));
         regs.cs.setValue(mrs.memoryRead(pc, address + 2, 16));
-
         return true;
     }
 
