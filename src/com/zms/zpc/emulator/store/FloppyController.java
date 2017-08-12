@@ -17,9 +17,19 @@ public class FloppyController extends BaseDevice {
         this.init();
     }
 
+    private static final int IOPORT_BASE = 0x3f0;
+
+    public int[] ioPortsRequested() {
+        return new int[]{IOPORT_BASE + 1, IOPORT_BASE + 2, IOPORT_BASE + 3,
+                IOPORT_BASE + 4, IOPORT_BASE + 5, IOPORT_BASE + 7};
+    }
+
     protected void init() {
         drivers = new FloppyDrive[2];
         drivers[0] = new FloppyDrive(mb);
+        for (int port : ioPortsRequested()) {
+            mb.ios.register(port,this);
+        }
         reset();
     }
 

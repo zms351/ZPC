@@ -1,8 +1,7 @@
 package com.zms.zpc.emulator.board;
 
-import com.zms.zpc.emulator.board.helper.BaseDevice;
+import com.zms.zpc.emulator.board.helper.BaseIODevice;
 import com.zms.zpc.emulator.debug.DummyDebugger;
-import com.zms.zpc.support.NotImplException;
 
 import java.util.logging.Level;
 
@@ -10,7 +9,7 @@ import java.util.logging.Level;
  * Created by 张小美 on 17/八月/12.
  * Copyright 2002-2016
  */
-public class InterruptController extends BaseDevice {
+public class InterruptController extends BaseIODevice {
 
     public MotherBoard mb;
 
@@ -512,36 +511,6 @@ public class InterruptController extends BaseDevice {
 
     public String toString() {
         return "Intel i8259 Programmable Interrupt Controller";
-    }
-
-    @Override
-    public void write(int address, long v, int width) {
-        switch (width) {
-            case 8:
-                ioPortWrite8(address, (int) v);
-                break;
-            case 16:
-                ioPortWrite16(address, (int) v);
-                break;
-            case 32:
-                ioPortWrite32(address, (int) v);
-            default:
-                throw new NotImplException();
-        }
-    }
-
-    @Override
-    public long read(int address, int width) {
-        switch (width) {
-            case 8:
-                return ioPortRead8(address);
-            case 16:
-                return ioPortRead16(address);
-            case 32:
-                return ioPortRead32(address);
-            default:
-                throw new NotImplException();
-        }
     }
 
     public boolean hasInterrupt() {
