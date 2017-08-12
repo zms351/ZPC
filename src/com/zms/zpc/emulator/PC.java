@@ -259,6 +259,11 @@ public class PC extends BaseObj implements Runnable {
                         }
                         case 17: { //run to cursor
                             long rip = cpu.regs.rip.getValue();
+                            if(cpu.getMode()!=CPUMode.Real) {
+                                break;
+                            } else {
+                                rip=rip & 0xffff;
+                            }
                             if (intObj[1] == -1) {
                                 intObj[1] = rip + intObj[0];
                             }
