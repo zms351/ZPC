@@ -21,7 +21,7 @@ public class SimpleInterruptController extends InterruptController {
     @Override
     public void setIRQ(int irqNumber, int level) {
         if (level == 0 && irqNumber == 0) {
-            //irq = 8;
+            irq = 8;
         }
     }
 
