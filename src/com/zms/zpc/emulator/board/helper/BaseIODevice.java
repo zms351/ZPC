@@ -47,6 +47,7 @@ public abstract class BaseIODevice extends BaseDevice {
                 break;
             case 32:
                 ioPortWrite32(address, (int) v);
+                break;
             default:
                 throw new NotImplException();
         }

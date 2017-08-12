@@ -9,8 +9,28 @@ import com.zms.zpc.emulator.board.helper.BaseDevice;
  */
 public class FloppyDrive extends BaseDevice {
 
+    static final int MOTOR_ON = 0x01; // motor on/off
+
+    static final int REVALIDATE = 0x02; // Revalidated
+
+    static final int DOUBLE_SIDES = 0x01;
+
     public MotherBoard mb;
     public FloppyController.DriverType driver;
+
+    int driveFlags;
+    int perpendicular;
+    int head;
+    int headCount;
+    int track;
+    int sector;
+    int sectorCount;
+    int direction;
+    int readWrite;
+    int flags;
+    int maxTrack;
+    int bps;
+    int readOnly;
 
     public FloppyDrive(MotherBoard mb) {
         this.mb = mb;
@@ -18,7 +38,7 @@ public class FloppyDrive extends BaseDevice {
     }
 
     protected void init() {
-        driver=FloppyController.DriverType.DRIVE_144;
+        driver = FloppyController.DriverType.DRIVE_144;
         reset();
     }
 
@@ -35,6 +55,14 @@ public class FloppyDrive extends BaseDevice {
     @Override
     public void reset() {
 
+    }
+
+    public void start() {
+        driveFlags |= MOTOR_ON;
+    }
+
+    public void stop() {
+        driveFlags &= ~MOTOR_ON;
     }
 
 }
