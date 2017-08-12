@@ -499,7 +499,7 @@ public abstract class InstructionExecutor extends Instruction {
 
     public boolean int_(long address) {
         Regs regs = pc.cpu.regs;
-        push_(regs.eflags.getValue(), 16);
+        push_(regs.getFlag(), 16);
         bits.clearITACR();
         push_(regs.cs.getValue(), 16);
         push_(regs.rip.getValue(), 16);
@@ -512,7 +512,7 @@ public abstract class InstructionExecutor extends Instruction {
         Regs regs = pc.cpu.regs;
         regs.rip.setValue(pop_(16));
         regs.cs.setValue(pop_(16));
-        regs.flags.setValue(pop_(16));
+        regs.setFlag(pop_(16),16);
         return true;
     }
 
