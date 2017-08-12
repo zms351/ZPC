@@ -1,5 +1,6 @@
 package com.zms.zpc.emulator.board.pci;
 
+import com.zms.zpc.debugger.ZPC;
 import com.zms.zpc.emulator.board.MotherBoard;
 
 import javax.imageio.ImageIO;
@@ -42,7 +43,7 @@ public class DefaultVGACard extends VGACard {
         return ((0xFF & red) << 16) | ((0xFF & green) << 8) | (0xFF & blue);
     }
 
-    public Frame frame;
+    public ZPC frame;
 
     public void resizeDisplay(int width, int height) {
         if ((width == 0) || (height == 0)) {
@@ -92,7 +93,9 @@ public class DefaultVGACard extends VGACard {
             long start = System.currentTimeMillis();
             g.drawImage(buffer, 0, 0, io);
             long t = System.currentTimeMillis() - start;
-            //System.out.println(t);
+            if (frame != null) {
+                frame.stats[4] = t;
+            }
         }
     }
 

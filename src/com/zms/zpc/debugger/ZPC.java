@@ -202,7 +202,7 @@ public class ZPC extends JFrame implements ActionListener, Runnable {
             menuBar.add(one);
             for (int i = 0; i < one.getItemCount(); i++) {
                 item = (JIconMenuItem) one.getItem(i);
-                if(item==null) {
+                if (item == null) {
                     continue;
                 }
                 item.addActionListener(this);
@@ -321,6 +321,8 @@ public class ZPC extends JFrame implements ActionListener, Runnable {
             label.setText(" ");
         }
     }
+
+    public long[] stats = new long[32];
 
     public void setStatus(int index, String text) {
         JLabel label = statusLabels.get(index);
@@ -445,13 +447,18 @@ public class ZPC extends JFrame implements ActionListener, Runnable {
     public void run() {
         try {
             final Object[] vs = new Object[10];
-            Runnable run1 = () -> setStatus(2, String.valueOf(vs[0]));
+            final long[] stats = this.stats;
+            Runnable run1 = () -> {
+                setStatus(2, String.valueOf(vs[2]));
+                setStatus(3, String.valueOf(stats[3]));
+            };
             while (this.isVisible() || this.isShowing()) {
                 Thread.sleep(200);
                 {
                     PCState v = pc.getState();
-                    if (v != vs[0]) {
-                        vs[0] = v;
+                    if (v != vs[2] || stats[3] != stats[4]) {
+                        vs[2] = v;
+                        stats[3] = stats[4];
                         GarUtils.runInUI(run1);
                     }
                 }
@@ -460,7 +467,7 @@ public class ZPC extends JFrame implements ActionListener, Runnable {
             t.printStackTrace();
         } finally {
             pc.powerOff();
-            DummyDebugger.getInstance().onMessage(WARN,Thread.currentThread().getName() + " exited!\n");
+            DummyDebugger.getInstance().onMessage(WARN, Thread.currentThread().getName() + " exited!\n");
         }
     }
 
