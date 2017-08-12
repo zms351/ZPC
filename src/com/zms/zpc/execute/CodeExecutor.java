@@ -1,7 +1,8 @@
 package com.zms.zpc.execute;
 
 import com.zms.zpc.emulator.PC;
-import com.zms.zpc.emulator.processor.Regs;
+import com.zms.zpc.emulator.board.InterruptController;
+import com.zms.zpc.emulator.processor.*;
 import com.zms.zpc.support.*;
 
 /**
@@ -1835,7 +1836,7 @@ public class CodeExecutor extends BaseObj {
             System.arraycopy(poses, 1, poses, 0, n - 1);
             poses[n - 1] = instruction.getStartPos();
         }
-        checkIR(false);
+        checkIR(pc, false);
         return 0;
     }
 
@@ -1876,10 +1877,23 @@ public class CodeExecutor extends BaseObj {
         this.bits = bits;
     }
 
-    public void checkIR(boolean hlt) {
+    public void checkIR(PC pc, boolean hlt) {
         try {
             if (hlt) {
-                Thread.sleep(1);
+                Thread.sleep(20);
+            }
+            regs = pc.cpu.regs;
+            if (regs.bits.if_.get()) {
+                InterruptController pic = pc.board.pic;
+                CPUMode mode = pc.cpu.getMode();
+                switch (mode) {
+                    case Real:
+                        if (pic.hasInterrupt()) {
+                            int vector = pic.cpuGetInterrupt();
+                            instruction.executeHardInt(vector);
+                        }
+                        break;
+                }
             }
         } catch (InterruptedException e) {
             throw new NotImplException(e);

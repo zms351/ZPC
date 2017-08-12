@@ -449,7 +449,7 @@ public class InstructionExecutor2 extends InstructionExecutor {
             long c = cr.getValue();
             int k = 0;
             while (c != 0) {
-                executor.checkIR(false);
+                executor.checkIR(pc,false);
                 v = mrs.memoryRead(pc, address1, opWidth);
                 address1 = df ? address1 - n : address1 + n;
                 c = c - 1;

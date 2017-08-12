@@ -312,7 +312,7 @@ public abstract class InstructionExecutor extends Instruction {
             BaseReg cr = regs.cx.getRegWithWidth(getAddressWidth(executor.getBits()));
             long c = cr.getValue();
             while (c != 0) {
-                executor.checkIR(false);
+                executor.checkIR(pc, false);
                 executeSTOS_(base, off, val, width);
                 off = df ? off - n : off + n;
                 c--;
@@ -347,7 +347,7 @@ public abstract class InstructionExecutor extends Instruction {
             BaseReg cr = regs.cx.getRegWithWidth(getAddressWidth(executor.getBits()));
             long c = cr.getValue();
             while (c != 0) {
-                executor.checkIR(false);
+                executor.checkIR(pc, false);
                 long val = mrs.memoryRead(pc, base.getAddress(off), width);
                 reg.setValue(width, val);
                 off = df ? off - n : off + n;
@@ -515,7 +515,7 @@ public abstract class InstructionExecutor extends Instruction {
     }
 
     public void executeHlt() {
-        executor.checkIR(true);
+        executor.checkIR(pc, true);
     }
 
     private void loadBigSegment(BigSegment reg) {
@@ -579,7 +579,7 @@ public abstract class InstructionExecutor extends Instruction {
             long c = cr.getValue();
             long c1 = c;
             while (c != 0) {
-                executor.checkIR(false);
+                executor.checkIR(pc, false);
                 long v = mrs.memoryRead(pc, address1, opWidth);
                 mrs.memoryWrite(pc, address2, v, opWidth);
                 address1 = df ? address1 - n : address1 + n;
@@ -713,6 +713,10 @@ public abstract class InstructionExecutor extends Instruction {
         long v = mrs.getValReg(pc);
         mrs.setValReg(pc, mrs.getValMemory(pc));
         mrs.setValMemory(pc, v);
+    }
+
+    public void executeHardInt(int vector) {
+        System.out.println("here");
     }
 
 }

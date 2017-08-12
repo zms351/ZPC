@@ -544,4 +544,8 @@ public class InterruptController extends BaseDevice {
         }
     }
 
+    public boolean hasInterrupt() {
+        return (interruptFlags & IFLAGS_HARDWARE_INTERRUPT) != 0;
+    }
+
 }
