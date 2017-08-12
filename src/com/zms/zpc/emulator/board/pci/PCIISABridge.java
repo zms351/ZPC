@@ -29,13 +29,38 @@ public class PCIISABridge extends BasePCIDevice {
     }
 
     @Override
-    public void write(int address, long v, int width) {
+    public void ioPortWrite8(int address, int data) {
 
     }
 
     @Override
-    public long read(int address, int width) {
+    public void ioPortWrite16(int address, int data) {
+
+    }
+
+    @Override
+    public void ioPortWrite32(int address, int data) {
+
+    }
+
+    @Override
+    public int ioPortRead8(int address) {
         return 0;
+    }
+
+    @Override
+    public int ioPortRead16(int address) {
+        return 0;
+    }
+
+    @Override
+    public int ioPortRead32(int address) {
+        return 0;
+    }
+
+    @Override
+    public int[] ioPortsRequested() {
+        return new int[0];
     }
 
     @Override

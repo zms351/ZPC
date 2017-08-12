@@ -7,7 +7,7 @@ import com.zms.zpc.emulator.memory.*;
  * Created by 张小美 on 17/八月/4.
  * Copyright 2002-2016
  */
-public abstract class BasePCIDevice extends BaseDevice {
+public abstract class BasePCIDevice extends BaseIODevice {
 
     public static final int PCI_CONFIG_VENDOR_ID = 0x00;
     public static final int PCI_CONFIG_DEVICE_ID = 0x02;

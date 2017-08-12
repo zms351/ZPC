@@ -2,7 +2,6 @@ package com.zms.zpc.emulator.board.pci;
 
 import com.zms.zpc.emulator.board.MotherBoard;
 import com.zms.zpc.emulator.board.helper.BasePCIDevice;
-import com.zms.zpc.support.NotImplException;
 
 /**
  * Created by 张小美 on 17/八月/4.
@@ -18,10 +17,8 @@ public class PCIHostBridge extends BasePCIDevice {
         this.init();
     }
 
-    public int[] ports = new int[]{0xcf8, 0xcfc, 0xcfd, 0xcfe, 0xcff};
-
     public void init() {
-        for (int port : ports) {
+        for (int port : ioPortsRequested()) {
             mb.ios.register(port, this);
         }
 
@@ -42,35 +39,104 @@ public class PCIHostBridge extends BasePCIDevice {
 
     private long configRegister;
 
-    @Override
-    public void write(int address, long v, int width) {
-        switch (address) {
-            case 0xcf8:
-                assert width == 32;
-                configRegister = v;
-                break;
-            case 0xcfc:
-                if ((configRegister & Pows[31]) != 0) {
-                    bus.writePCIData(configRegister | (address & 0x3), v, width);
-                }
-                break;
-        }
-    }
-
-    @Override
-    public long read(int address, int width) {
+    public int ioPortRead8(int address) {
         switch (address) {
             case 0xcfc:
             case 0xcfd:
             case 0xcfe:
             case 0xcff:
-                if ((configRegister & Pows[31]) == 0L) {
-                    return 0xffffffffffffffffL;
-                } else {
-                    return bus.readPCIData(configRegister | (address & 0x3), width);
-                }
+                if ((configRegister & Pows[31]) == 0)
+                    return 0xff;
+                else
+                    return 0xff & (int) bus.readPCIData(configRegister | (address & 0x3), 8);
+
+            default:
+                return 0xff;
         }
-        throw new NotImplException();
+    }
+
+    public int ioPortRead16(int address) {
+        switch (address) {
+            case 0xcfc:
+            case 0xcfd:
+            case 0xcfe:
+            case 0xcff:
+                if ((configRegister & Pows[31]) == 0)
+                    return 0xffff;
+                else
+                    return 0xffff & (int) bus.readPCIData(configRegister | (address & 0x3), 16);
+            default:
+                return 0xffff;
+        }
+    }
+
+    public int ioPortRead32(int address) {
+        switch (address) {
+            case 0xcf8:
+            case 0xcf9:
+            case 0xcfa:
+            case 0xcfb:
+                return (int) configRegister;
+            case 0xcfc:
+            case 0xcfd:
+            case 0xcfe:
+            case 0xcff:
+                if ((configRegister & Pows[31]) == 0)
+                    return 0xffffffff;
+                else
+                    return (int) bus.readPCIData(configRegister | (address & 0x3), 32);
+            default:
+                return 0xffffffff;
+        }
+    }
+
+    public void ioPortWrite8(int address, int data) {
+        switch (address) {
+            case 0xcfc:
+            case 0xcfd:
+            case 0xcfe:
+            case 0xcff:
+                if ((configRegister & Pows[31]) != 0)
+                    bus.writePCIData(configRegister | (address & 0x3), data, 8);
+                break;
+            default:
+        }
+    }
+
+    public void ioPortWrite16(int address, int data) {
+        switch (address) {
+            case 0xcfc:
+            case 0xcfd:
+            case 0xcfe:
+            case 0xcff:
+                if ((configRegister & Pows[31]) != 0)
+                    bus.writePCIData(configRegister | (address & 0x3), data, 16);
+                break;
+            default:
+        }
+    }
+
+    public void ioPortWrite32(int address, int data) {
+        switch (address) {
+            case 0xcf8:
+            case 0xcf9:
+            case 0xcfa:
+            case 0xcfb:
+                configRegister = data;
+                break;
+            case 0xcfc:
+            case 0xcfd:
+            case 0xcfe:
+            case 0xcff:
+                if ((configRegister & Pows[31]) != 0)
+                    bus.writePCIData(configRegister | (address & 0x3), data, 32);
+                break;
+            default:
+        }
+    }
+
+    public int[] ioPortsRequested() {
+        return new int[]{0xcf8, 0xcf9, 0xcfa, 0xcfb, 0xcfc, 0xcfd, 0xcfe, 0xcff};
     }
 
 }

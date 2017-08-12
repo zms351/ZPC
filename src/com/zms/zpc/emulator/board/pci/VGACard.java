@@ -4,7 +4,6 @@ import com.zms.zpc.emulator.board.MotherBoard;
 import com.zms.zpc.emulator.board.helper.BasePCIDevice;
 import com.zms.zpc.emulator.debug.DummyDebugger;
 import com.zms.zpc.emulator.memory.*;
-import com.zms.zpc.support.NotImplException;
 
 import java.awt.*;
 
@@ -401,17 +400,19 @@ public abstract class VGACard extends BasePCIDevice {
         return b0 | (b1 << 16);
     }
 
-    public int[] ioPorts = new int[]{0x3b4, 0x3b5, 0x3ba,
-            0x3d4, 0x3d5, 0x3da,
-            0x3c0, 0x3c1, 0x3c2, 0x3c3,
-            0x3c4, 0x3c5, 0x3c6, 0x3c7,
-            0x3c8, 0x3c9, 0x3ca, 0x3cb,
-            0x3cc, 0x3cd, 0x3ce, 0x3cf,
-            0x1ce, 0x1cf, 0xff80, 0xff81
-    };
+    public int[] ioPortsRequested() {
+        return new int[]{0x3b4, 0x3b5, 0x3ba,
+                0x3d4, 0x3d5, 0x3da,
+                0x3c0, 0x3c1, 0x3c2, 0x3c3,
+                0x3c4, 0x3c5, 0x3c6, 0x3c7,
+                0x3c8, 0x3c9, 0x3ca, 0x3cb,
+                0x3cc, 0x3cd, 0x3ce, 0x3cf,
+                0x1ce, 0x1cf, 0xff80, 0xff81
+        };
+    }
 
     public void init() {
-        for (int port : ioPorts) {
+        for (int port : ioPortsRequested()) {
             mb.ios.register(port, this);
         }
 
@@ -735,40 +736,6 @@ public abstract class VGACard extends BasePCIDevice {
     }
 
     @Override
-    public void write(int address, long v, int width) {
-        switch (width) {
-            case 8:
-                vgaIOPortWriteByte(address, (int) v);
-                break;
-            case 16: {
-                ioPortWrite16(address, (int) v);
-            }
-            break;
-            case 32: {
-                ioPortWrite32(address, (int) v);
-            }
-            break;
-            default:
-                throw new NotImplException();
-        }
-    }
-
-    @Override
-    public long read(int address, int width) {
-        switch (width) {
-            case 8:
-                return vgaIOPortReadByte(address);
-            case 16:
-                return ioPortRead16(address);
-            case 32:
-                return ioPortRead32(address);
-            default:
-                throw new NotImplException();
-        }
-    }
-
-
-    @Override
     public void reset() {
         ioportRegistered = false;
         memoryRegistered = false;
@@ -793,9 +760,9 @@ public abstract class VGACard extends BasePCIDevice {
             fontOffset = new int[2];
 
             ioRegion = new VGARAMIORegion();
-            ioRegion.install(new PhysicalMemory(new byte[VGA_RAM_SIZE]),0);
+            ioRegion.install(new PhysicalMemory(new byte[VGA_RAM_SIZE]), 0);
             lowIORegion = new VGALowMemoryRegion();
-            ((MappedMemory)mb.pc.memory).install(lowIORegion,0xa0000,0x20000);
+            ((MappedMemory) mb.pc.memory).install(lowIORegion, 0xa0000, 0x20000);
             vbeRegs = new int[VBE_DISPI_INDEX_NB + 1];
         }
 
@@ -1108,7 +1075,7 @@ public abstract class VGACard extends BasePCIDevice {
 
         @Override
         public void write(long context, long pos, int v) {
-            setByte((int)pos,(byte)v);
+            setByte((int) pos, (byte) v);
         }
 
     }
@@ -1120,9 +1087,9 @@ public abstract class VGACard extends BasePCIDevice {
         private Memory memory;
         private long pos;
 
-        public void install(Memory memory,long pos) {
-            this.memory=memory;
-            this.pos=pos;
+        public void install(Memory memory, long pos) {
+            this.memory = memory;
+            this.pos = pos;
         }
 
         public MapVGARAMIORegion(int bufferSize) {
