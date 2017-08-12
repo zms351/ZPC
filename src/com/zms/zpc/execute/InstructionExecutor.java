@@ -207,7 +207,7 @@ public abstract class InstructionExecutor extends Instruction {
 
     public void exeucutePush6a() {
         long v = NumberUtils.asSigned(input.read(), 8);
-        push_(__v1, getOpWidth());
+        push_(v, getOpWidth());
     }
 
     public void executePop58() {
