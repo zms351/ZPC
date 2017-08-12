@@ -148,6 +148,25 @@ public class Bits extends BaseObj {
                             return (((((op1) ^ (op2)) & ((op1) ^ (result))) & (0x80000000)) != 0);
                     }
                     break;
+                case SHL:
+                case SAL:
+                    switch (opWidth) {
+                        case 8:
+                        case 16:
+                        case 32:
+                            return ((result >> (opWidth - 1)) != 0) ^ (((op1 >> (opWidth - op2)) & 0x1) != 0);
+                    }
+                    break;
+                case SHR:
+                    switch (opWidth) {
+                        case 8:
+                        case 16:
+                        case 32:
+                            return (((result << 1) ^ result) >> (opWidth - 1)) != 0;
+                    }
+                    break;
+                case SAR:
+                    return false;
             }
             throw new NotImplException();
         }
@@ -183,12 +202,12 @@ public class Bits extends BaseObj {
                 return (result & (Pows[opWidth] - 1)) != result;
             case SHL:
                 if (op2 <= 0) {
-                    return op2<-100;
+                    return op2 < -100;
                 }
                 return ((op1 >> (opWidth - op2)) & 0x1) != 0;
             case SHR:
                 if (op2 <= 0) {
-                    return op2<-100;
+                    return op2 < -100;
                 }
                 return ((op1 >> (op2 - 1)) & 0x1) != 0;
         }
