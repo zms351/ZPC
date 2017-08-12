@@ -1,10 +1,11 @@
 package com.zms.zpc.emulator.debug;
 
-import com.zms.zpc.emulator.board.*;
+import com.zms.zpc.emulator.board.MotherBoard;
 import com.zms.zpc.emulator.board.helper.BaseDevice;
 import com.zms.zpc.support.BaseObj;
 
 import java.util.Arrays;
+import java.util.logging.Level;
 
 /**
  * Created by 张小美 on 17/六月/27.
@@ -12,7 +13,7 @@ import java.util.Arrays;
  */
 public class DummyDebugger extends BaseDevice implements IDebugger {
 
-    public static int[] Ports = new int[]{0x80, 0x400, 0x401, 0x402, 0x403,0x500, 0x501, 0x502, 0x503};
+    public static int[] Ports = new int[]{0x80, 0x400, 0x401, 0x402, 0x403, 0x500, 0x501, 0x502, 0x503};
 
     private static DummyDebugger instance = new DummyDebugger();
 
@@ -55,7 +56,7 @@ public class DummyDebugger extends BaseDevice implements IDebugger {
     }
 
     private StringBuilder[] builders;
-    private long diag=-1;
+    private long diag = -1;
 
     @Override
     public void write(int address, long v, int width) {
@@ -71,9 +72,9 @@ public class DummyDebugger extends BaseDevice implements IDebugger {
                 }
             }
         } else {
-            if(diag!=v) {
+            if (diag != v) {
                 diag = v;
-                onMessage(INFO,"diag %d\n",diag);
+                onMessage(INFO, "diag %d\n", diag);
             }
         }
     }
@@ -99,6 +100,20 @@ public class DummyDebugger extends BaseDevice implements IDebugger {
 
     public long getDiag() {
         return diag;
+    }
+
+    public void log(Level level, String message) {
+        int l;
+        if (level == Level.WARNING) {
+            l = WARN;
+        } else if (level == Level.SEVERE) {
+            l = ERROR;
+        } else if (level == Level.INFO) {
+            l = INFO;
+        } else {
+            l = DEBUG;
+        }
+        onMessage(l, "%s\n", message);
     }
 
 }

@@ -61,6 +61,7 @@ public interface Constants {
     int DEBUG = 31;
     int INFO = 32;
     int WARN = 33;
+    int ERROR = 34;
 
     int SREG=321;
     int CREG=322;
@@ -69,5 +70,10 @@ public interface Constants {
 
     int SHLD=361;
     int SHRD=362;
+
+    int IFLAGS_HARDWARE_INTERRUPT = 0x1;
+    int IFLAGS_PROCESSOR_EXCEPTION = 0x2;
+    int IFLAGS_RESET_REQUEST = 0x4;
+    int IFLAGS_IOPL_MASK = 3 << 12;
 
 }
