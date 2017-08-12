@@ -22,6 +22,9 @@ public class MotherBoard {
     public DummyDebugger debugger;
     public PCIBus pciBus;
 
+    public InterruptController pic;
+    public VirtualClock vc;
+
     public MotherBoard(PC pc) {
         this.pc = pc;
         devices = new ArrayList<>();
@@ -34,6 +37,9 @@ public class MotherBoard {
         ios = new IODevices(this);
 
         devices.clear();
+
+        pic=new InterruptController(this);
+        devices.add(pic);
 
         dma1 = new DMAController(this);
         devices.add(dma1);
@@ -52,6 +58,8 @@ public class MotherBoard {
 
         pciBus = new PCIBus(this);
         devices.add(pciBus);
+
+        vc=new VirtualClock(this);
 
         devices.add(new PCIHostBridge(this));
         devices.add(new DefaultVGACard(this));
