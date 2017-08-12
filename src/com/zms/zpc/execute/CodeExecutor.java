@@ -1886,6 +1886,7 @@ public class CodeExecutor extends BaseObj {
             if (regs.bits.if_.get()) {
                 InterruptController pic = pc.board.pic;
                 CPUMode mode = pc.cpu.getMode();
+                instruction.pc=pc;
                 switch (mode) {
                     case Real:
                         if (pic.hasInterrupt()) {

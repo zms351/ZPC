@@ -218,6 +218,7 @@ public class Regs {
 
     public void setFlag(long v,int width) {
         rflags.getRegWithWidth(width).setValue(v);
+        bits.setStatus(0);
     }
 
 }

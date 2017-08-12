@@ -22,7 +22,7 @@ public class DTR extends BaseObj {
         val=PC.currentPC.get().memory.read(1,address+index*8,64);
         long limit=(val & 0xffff) | ((val & 0xf000000000000L)>>32);
         segment.base= ((val & 0xffffff0000L)>>16) | ((val >> 32) & 0xff000000L);
-        segment.limit.setValue(limit);
+        segment.limit=limit;
     }
 
     public boolean hasG() {

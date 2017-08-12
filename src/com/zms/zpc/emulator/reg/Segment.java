@@ -10,14 +10,17 @@ import com.zms.zpc.support.NotImplException;
 public class Segment extends Reg {
 
     public BaseReg_16 attribute;
-    public BaseReg_32 limit;
+    public long limit;
     public long base;
     public DTR dtr;
 
     public Segment(String name, Regs regs, int index) {
-        super(name, regs, index, 16);
+        this(name, regs, index, 16);
+    }
+
+    public Segment(String name, Regs regs, int index, int size) {
+        super(name, regs, index, size);
         attribute = new BaseReg_16(name + "r", regs, index);
-        limit = new BaseReg_32(name + "l", regs, index);
         dtr = new DTR(this);
     }
 
@@ -34,7 +37,7 @@ public class Segment extends Reg {
             big = regs.ldtr;
         } else {
             big = regs.gdtr;
-            dtr._null=v1==0;
+            dtr._null = v1 == 0;
         }
         dtr.load(big.getValue(), v1);
     }
@@ -63,7 +66,7 @@ public class Segment extends Reg {
             case Real:
                 return base + (address & 0xffff);
             case Protected32:
-                return base+(address & 0xffffffffL);
+                return base + (address & 0xffffffffL);
             default:
                 throw new NotImplException();
         }

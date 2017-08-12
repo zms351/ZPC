@@ -482,6 +482,9 @@ public abstract class InstructionExecutor extends Instruction {
     }
 
     public boolean executeInt(long v) {
+        if (pc.cpu.getMode() != CPUMode.Real) {
+            throw new NotImplException();
+        }
         if (v == -1) {
             v = readOp(8);
         }
@@ -490,18 +493,20 @@ public abstract class InstructionExecutor extends Instruction {
                 return false;
             }
         }
+        BaseReg rip = pc.cpu.regs.rip;
+        executor.reLoc(input);
+        return int_(v * 4);
+    }
 
+    public boolean int_(long address) {
         Regs regs = pc.cpu.regs;
         push_(regs.eflags.getValue(), 16);
         bits.clearITACR();
-
-        BaseReg rip = pc.cpu.regs.rip;
-        executor.reLoc(input);
         push_(regs.cs.getValue(), 16);
         push_(regs.rip.getValue(), 16);
 
-        regs.rip.setValue(mrs.memoryRead(pc, 4 * v, 16));
-        regs.cs.setValue(mrs.memoryRead(pc, 4 * v + 2, 16));
+        regs.rip.setValue(mrs.memoryRead(pc, address, 16));
+        regs.cs.setValue(mrs.memoryRead(pc, address + 2, 16));
 
         return true;
     }
@@ -716,7 +721,10 @@ public abstract class InstructionExecutor extends Instruction {
     }
 
     public void executeHardInt(int vector) {
-        System.out.println("here");
+        vector *= 4;
+        Regs regs = pc.cpu.regs;
+        long address = regs.idtr.getAddress(vector);
+        int_(address);
     }
 
 }
