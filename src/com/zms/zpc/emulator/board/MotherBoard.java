@@ -22,7 +22,7 @@ public class MotherBoard {
     public DummyDebugger debugger;
     public PCIBus pciBus;
 
-    public InterruptController pic;
+    public SimpleInterruptController pic;
     public VirtualClock vc;
 
     public MotherBoard(PC pc) {
@@ -38,7 +38,7 @@ public class MotherBoard {
 
         devices.clear();
 
-        pic=new InterruptController(this);
+        pic=new SimpleInterruptController(this);
         devices.add(pic);
 
         dma1 = new DMAController(this);

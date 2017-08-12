@@ -23,7 +23,7 @@ public class VirtualClock extends BaseObj implements Runnable {
     public void run() {
         try {
             PC pc = mb.pc;
-            InterruptController pic = mb.pic;
+            SimpleInterruptController pic = mb.pic;
             long start = System.currentTimeMillis();
             double m = 0x001800b0 / 24.0 / 3600;
             PCState state;

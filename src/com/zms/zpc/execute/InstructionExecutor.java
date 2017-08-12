@@ -721,6 +721,9 @@ public abstract class InstructionExecutor extends Instruction {
     }
 
     public void executeHardInt(int vector) {
+        if(vector!=8) {
+            return;
+        }
         vector *= 4;
         Regs regs = pc.cpu.regs;
         long address = regs.idtr.getAddress(vector);
