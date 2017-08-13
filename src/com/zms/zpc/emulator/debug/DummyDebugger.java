@@ -102,7 +102,7 @@ public class DummyDebugger extends BaseDevice implements IDebugger {
         return diag;
     }
 
-    public void log(Level level, String message) {
+    public void log(Level level, String message,Object... args) {
         int l;
         if (level == Level.WARNING) {
             l = WARN;
@@ -113,7 +113,10 @@ public class DummyDebugger extends BaseDevice implements IDebugger {
         } else {
             l = DEBUG;
         }
-        onMessage(l, "%s\n", message);
+        if(!message.endsWith("\n")) {
+            message+="\n";
+        }
+        onMessage(l, message, args);
     }
 
 }

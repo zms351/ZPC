@@ -1,6 +1,7 @@
 package com.zms.zpc.emulator.board;
 
 import com.zms.zpc.emulator.board.helper.BaseDevice;
+import com.zms.zpc.support.NotImplException;
 
 /**
  * Created by 张小美 on 17/六月/28.
@@ -28,6 +29,15 @@ public class DMAController extends BaseDevice {
     }
 
     public void releaseDmaRequest(int channel) {
+        throw new NotImplException();
+    }
+
+    public void holdDmaRequest(int channel) {
+        throw new NotImplException();
+    }
+
+    public int getChannelMode(int channel) {
+        throw new NotImplException();
     }
 
 }

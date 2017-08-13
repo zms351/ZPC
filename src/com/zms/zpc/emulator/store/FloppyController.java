@@ -98,8 +98,9 @@ public class FloppyController extends BaseIODevice {
         for (int port : ioPortsRequested()) {
             mb.ios.register(port, this);
         }
-        irqDevice=mb.pic;
-        dma=mb.dma1;
+        irqDevice = mb.pic;
+        dma = mb.dma1;
+        fifo = new byte[SECTOR_LENGTH];
         reset();
     }
 
@@ -491,12 +492,299 @@ public class FloppyController extends BaseIODevice {
     }
 
     private void enqueue(FloppyDrive drive, int data) {
-        throw new NotImplException();
+        fifo[dataOffset] = (byte) data;
+        if (++dataOffset == dataLength) {
+            if ((dataState & STATE_FORMAT) != 0) {
+                formatSector();
+                return;
+            }
+            switch (fifo[0] & 0x1f) {
+                case 0x06:
+                    startTransfer(DIRECTION_READ);
+                    return;
+                case 0x0c:
+                    startTransferDelete(DIRECTION_READ);
+                    return;
+                case 0x16:
+                    stopTransfer((byte) 0x20, (byte) 0x00, (byte) 0x00);
+                    return;
+                case 0x10:
+                    startTransfer(DIRECTION_SCANE);
+                    return;
+                case 0x19:
+                    startTransfer(DIRECTION_SCANL);
+                    return;
+                case 0x1d:
+                    startTransfer(DIRECTION_SCANH);
+                    return;
+                default:
+                    break;
+            }
+            switch (fifo[0] & 0x3f) {
+                case 0x05:
+                    startTransfer(DIRECTION_WRITE);
+                    return;
+                case 0x09:
+                    startTransferDelete(DIRECTION_WRITE);
+                    return;
+                default:
+                    break;
+            }
+            switch (fifo[0]) {
+                case 0x03:
+                    timer0 = (byte) ((fifo[1] >>> 4) & 0xf);
+                    timer1 = (byte) (fifo[2] >>> 1);
+                    dmaEnabled = ((fifo[2] & 1) != 1);
+                    resetFIFO();
+                    break;
+                case 0x04:
+                    currentDrive = fifo[1] & 1;
+                    drive = getCurrentDrive();
+                    drive.head = ((fifo[1] >>> 2) & 1);
+                    fifo[0] = (byte) ((drive.readOnly << 6) | (drive.track == 0 ? 0x10 : 0x00) | (drive.head << 2) | currentDrive | 0x28);
+                    setFIFO(1, false);
+                    break;
+                case 0x07:
+                    currentDrive = fifo[1] & 1;
+                    drive = getCurrentDrive();
+                    drive.recalibrate();
+                    resetFIFO();
+                    raiseIRQ(0x20);
+                    break;
+                case 0x0f:
+                    currentDrive = fifo[1] & 1;
+                    drive = getCurrentDrive();
+                    drive.start();
+                    if (fifo[2] <= drive.track)
+                        drive.direction = 1;
+                    else
+                        drive.direction = 0;
+                    resetFIFO();
+                    if (fifo[2] > drive.maxTrack)
+                        raiseIRQ(0x60);
+                    else {
+                        drive.track = fifo[2];
+                        raiseIRQ(0x20);
+                    }
+                    break;
+                case 0x12:
+                    if ((fifo[1] & 0x80) != 0)
+                        drive.perpendicular = fifo[1] & 0x7;
+                    /* No result back */
+                    resetFIFO();
+                    break;
+                case 0x13:
+                    config = fifo[2];
+                    preCompensationTrack = fifo[3];
+                    /* No result back */
+                    resetFIFO();
+                    break;
+                case 0x17:
+                    pwrd = fifo[1];
+                    fifo[0] = fifo[1];
+                    setFIFO(1, true);
+                    break;
+                case 0x33:
+                    /* No result back */
+                    resetFIFO();
+                    break;
+                case 0x42:
+                    LOGGING.log(Level.INFO, "implement READ_TRACK command");
+                    startTransfer(DIRECTION_READ);
+                    break;
+                case 0x4A:
+                    /* XXX: should set main status register to busy */
+                    drive.head = (fifo[1] >>> 2) & 1;
+                    //resultTimer.setExpiry(clock.getEmulatedNanos() + (clock.getTickRate() / 50));
+                    if(drive.head>=Integer.MIN_VALUE) {
+                        throw new NotImplException();
+                    }
+                    break;
+                case 0x4C:
+                    /* RESTORE */
+                    /* Drives position */
+                    getDrive(0).track = fifo[3];
+                    getDrive(1).track = fifo[4];
+                    /* timers */
+                    timer0 = fifo[7];
+                    timer1 = fifo[8];
+                    drive.sectorCount = fifo[9];
+                    lock = (byte) (fifo[10] >>> 7);
+                    drive.perpendicular = (fifo[10] >>> 2) & 0xf;
+                    config = fifo[11];
+                    preCompensationTrack = fifo[12];
+                    pwrd = fifo[13];
+                    resetFIFO();
+                    break;
+                case 0x4D:
+                    /* FORMAT_TRACK */
+                    currentDrive = fifo[1] & 1;
+                    drive = getCurrentDrive();
+                    dataState |= STATE_FORMAT;
+                    if ((fifo[0] & 0x80) != 0)
+                        dataState |= STATE_MULTI;
+                    else
+                        dataState &= ~STATE_MULTI;
+                    dataState &= ~STATE_SEEK;
+                    drive.bps = fifo[2] > 7 ? 0x4000 : (0x80 << fifo[2]);
+                    drive.sectorCount = fifo[3];
+
+                    /* Bochs BIOS is buggy and don't send format informations
+         * for each sector. So, pretend all's done right now...
+		 */
+                    dataState &= ~STATE_FORMAT;
+                    stopTransfer((byte) 0x00, (byte) 0x00, (byte) 0x00);
+                    break;
+                case (byte) 0x8E:
+                    /* DRIVE_SPECIFICATION_COMMAND */
+                    if ((fifo[dataOffset - 1] & 0x80) != 0)
+                        /* Command parameters done */
+                        if ((fifo[dataOffset - 1] & 0x40) != 0) {
+                            fifo[0] = fifo[1];
+                            fifo[2] = 0;
+                            fifo[3] = 0;
+                            setFIFO(4, true);
+                        } else
+                            resetFIFO();
+                    else if (dataLength > 7) {
+                        /* ERROR */
+                        fifo[0] = (byte) (0x80 | (drive.head << 2) | currentDrive);
+                        setFIFO(1, true);
+                    }
+                    break;
+                case (byte) 0x8F:
+                    /* RELATIVE_SEEK_OUT */
+                    currentDrive = fifo[1] & 1;
+                    drive = getCurrentDrive();
+                    drive.start();
+                    drive.direction = 0;
+                    if (fifo[2] + drive.track >= drive.maxTrack)
+                        drive.track = drive.maxTrack - 1;
+                    else
+                        drive.track += fifo[2];
+                    resetFIFO();
+                    raiseIRQ(0x20);
+                    break;
+                case (byte) 0xCD:
+                    /* FORMAT_AND_WRITE */
+                    LOGGING.log(Level.INFO, "implement FORMAT_AND_WRITE command");
+                    unimplemented();
+                    break;
+                case (byte) 0xCF:
+                    /* RELATIVE_SEEK_IN */
+                    currentDrive = fifo[1] & 1;
+                    drive = getCurrentDrive();
+                    drive.start();
+                    drive.direction = 1;
+                    if (fifo[2] > drive.track)
+                        drive.track = 0;
+                    else
+                        drive.track -= fifo[2];
+                    resetFIFO();
+                    /* Raise Interrupt */
+                    raiseIRQ(0x20);
+                    break;
+            }
+        }
+    }
+
+    private void formatSector()
+        {
+            LOGGING.log(Level.INFO, "format sector not implemented");
+        }
+
+    private void resetFIFO() {
+        dataDirection = DIRECTION_WRITE;
+        dataOffset = 0;
+        dataState = (dataState & ~STATE_STATE) | STATE_COMMAND;
+    }
+
+    public void callback()
+        {
+            stopTransfer((byte) 0x00, (byte) 0x00, (byte) 0x00);
+        }
+
+    private void startTransfer(int direction) {
+        currentDrive = fifo[1] & 1;
+        FloppyDrive drive = getCurrentDrive();
+        byte kt = fifo[2];
+        byte kh = fifo[3];
+        byte ks = fifo[4];
+        boolean didSeek = false;
+        switch (drive.seek(0xff & kh, 0xff & kt, 0xff & ks, drive.sectorCount)) {
+            case 2:
+                    /* sect too big */
+                stopTransfer((byte) 0x40, (byte) 0x00, (byte) 0x00);
+                fifo[3] = kt;
+                fifo[4] = kh;
+                fifo[5] = ks;
+                return;
+            case 3:
+                    /* track too big */
+                stopTransfer((byte) 0x40, (byte) 0x80, (byte) 0x00);
+                fifo[3] = kt;
+                fifo[4] = kh;
+                fifo[5] = ks;
+                return;
+            case 4:
+                    /* No seek enabled */
+                stopTransfer((byte) 0x40, (byte) 0x00, (byte) 0x00);
+                fifo[3] = kt;
+                fifo[4] = kh;
+                fifo[5] = ks;
+                return;
+            case 1:
+                didSeek = true;
+                break;
+            default:
+                break;
+        }
+
+        dataDirection = direction;
+        dataOffset = 0;
+        dataState = (dataState & ~STATE_STATE) | STATE_DATA;
+
+        if ((fifo[0] & 0x80) != 0)
+            dataState |= STATE_MULTI;
+        else
+            dataState &= ~STATE_MULTI;
+        if (didSeek)
+            dataState |= STATE_SEEK;
+        else
+            dataState &= ~STATE_SEEK;
+        if (fifo[5] == 0x00)
+            dataLength = fifo[8];
+        else {
+            dataLength = 128 << fifo[5];
+            int temp = drive.sectorCount - ks + 1;
+            if ((fifo[0] & 0x80) != 0)
+                temp += drive.sectorCount;
+            dataLength *= temp;
+        }
+        eot = fifo[6];
+        if (dmaEnabled) {
+            int dmaMode = dma.getChannelMode(DMA_CHANNEL & 3);
+            dmaMode = (dmaMode >>> 2) & 3;
+            if (((direction == DIRECTION_SCANE || direction == DIRECTION_SCANL || direction == DIRECTION_SCANH) && dmaMode == 0) ||
+                    (direction == DIRECTION_WRITE && dmaMode == 2) || (direction == DIRECTION_READ && dmaMode == 1)) {
+                // No access is allowed until DMA transfer has completed
+                state |= CONTROL_BUSY;
+                // simulate a data transfer rate of a spinning platter at 300 rpm (each sector should take 200,000/sectorPerTrack micro seconds
+                dma.holdDmaRequest(DMA_CHANNEL & 3);
+                return;
+            } else
+                LOGGING.log(Level.INFO, "DMA mode %d, direction %d\n", dmaMode, direction);
+        }
+            /* IO based transfer: calculate len */
+        raiseIRQ(0x00);
+    }
+
+    private void startTransferDelete(int direction) {
+        stopTransfer((byte) 0x60, (byte) 0x00, (byte) 0x00);
     }
 
     @Override
     public void reset() {
-
     }
 
     private void reset(boolean doIRQ) {

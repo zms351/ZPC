@@ -51,7 +51,7 @@ public class FloppyDrive extends BaseDevice {
 
     }
 
-    private int seek(int seekHead, int seekTrack, int seekSector, int enableSeek) {
+    public int seek(int seekHead, int seekTrack, int seekSector, int enableSeek) {
         if ((seekTrack > maxTrack) || (seekHead != 0 && (headCount == 0)))
             return 2;
 
@@ -79,7 +79,7 @@ public class FloppyDrive extends BaseDevice {
         return device.read(0xffffffffl & sector, buffer, length);
     }
 
-    private void recalibrate() {
+    public void recalibrate() {
         head = 0;
         track = 0;
         sector = 1;
