@@ -1,11 +1,12 @@
 package com.zms.zpc.emulator.store;
 
-import com.zms.zpc.emulator.board.MotherBoard;
+import com.zms.zpc.emulator.board.*;
 import com.zms.zpc.emulator.board.helper.BaseIODevice;
 import com.zms.zpc.emulator.debug.DummyDebugger;
 import com.zms.zpc.support.NotImplException;
 
 import java.time.Clock;
+import java.util.logging.Level;
 
 /**
  * Created by 张小美 on 17/八月/13.
@@ -76,6 +77,9 @@ public class FloppyController extends BaseIODevice {
     /* Power down config */
     private byte pwrd;
 
+    public InterruptController irqDevice;
+    public DMAController dma;
+
     public FloppyController(MotherBoard mb) {
         this.mb = mb;
         this.init();
@@ -90,10 +94,12 @@ public class FloppyController extends BaseIODevice {
         drivers = new FloppyDrive[2];
         drivers[0] = new FloppyDrive(mb);
         drivers[1] = new FloppyDrive(mb);
-        drivers[1].driver = DriverType.DRIVE_NONE;
+        drivers[1].drive = DriveType.DRIVE_NONE;
         for (int port : ioPortsRequested()) {
             mb.ios.register(port, this);
         }
+        irqDevice=mb.pic;
+        dma=mb.dma1;
         reset();
     }
 
@@ -187,7 +193,211 @@ public class FloppyController extends BaseIODevice {
     }
 
     private void writeData(int data) {
-        throw new NotImplException();
+        FloppyDrive drive = getCurrentDrive();
+
+        /* Reset Mode */
+        if ((state & CONTROL_RESET) != 0) {
+            LOGGING.log(Level.WARNING, "cannot write data in reset state");
+            return;
+        }
+        state &= ~CONTROL_SLEEP;
+        if ((dataState & STATE_STATE) == STATE_STATUS) {
+            LOGGING.log(Level.WARNING, "cannot write data in status mode");
+            return;
+        }
+        /* Is it write command time? */
+        if ((dataState & STATE_STATE) == STATE_DATA) {
+            /* FIFO data write */
+            fifo[dataOffset++] = (byte) data;
+            if (dataOffset % SECTOR_LENGTH == (SECTOR_LENGTH - 1) || dataOffset == dataLength)
+                drive.write(drive.currentSector(), fifo, SECTOR_LENGTH);
+
+            /* Switch from transfer mode to status mode
+         * then from status mode to command mode
+	     */
+            if ((dataState & STATE_STATE) == STATE_DATA)
+                stopTransfer((byte) 0x20, (byte) 0x00, (byte) 0x00);
+            return;
+        }
+        if (dataOffset == 0) {
+            /* Command */
+            switch (data & 0x5f) {
+                case 0x46:
+                case 0x4c:
+                case 0x50:
+                case 0x56:
+                case 0x59:
+                case 0x5d:
+                    dataLength = 9;
+                    enqueue(drive, data);
+                    return;
+                default:
+                    break;
+            }
+            switch (data & 0x7f) {
+                case 0x45:
+                case 0x49:
+                    dataLength = 9;
+                    enqueue(drive, data);
+                    return;
+                default:
+                    break;
+            }
+            switch (data) {
+                case 0x03:
+                case 0x0f:
+                    dataLength = 3;
+                    enqueue(drive, data);
+                    return;
+                case 0x04:
+                case 0x07:
+                case 0x12:
+                case 0x33:
+                case 0x4a:
+                    dataLength = 2;
+                    enqueue(drive, data);
+                    return;
+                case 0x08:
+                    fifo[0] = (byte) (0x20 | (drive.head << 2) | currentDrive);
+                    fifo[1] = (byte) drive.track;
+                    setFIFO(2, false);
+                    resetIRQ();
+                    interruptStatus = 0xc0;
+                    return;
+                case 0x0e:
+                    /* Drives position */
+                    fifo[0] = (byte) getDrive(0).track;
+                    fifo[1] = (byte) getDrive(1).track;
+                    fifo[2] = 0;
+                    fifo[3] = 0;
+                    /* timers */
+                    fifo[4] = timer0;
+                    fifo[5] = dmaEnabled ? (byte) (timer1 << 1) : (byte) 0;
+                    fifo[6] = (byte) drive.sectorCount;
+                    fifo[7] = (byte) ((lock << 7) | (drive.perpendicular << 2));
+                    fifo[8] = config;
+                    fifo[9] = preCompensationTrack;
+                    setFIFO(10, false);
+                    return;
+                case 0x10:
+                    fifo[0] = CONTROLLER_VERSION;
+                    setFIFO(1, true);
+                    return;
+                case 0x13:
+                    dataLength = 4;
+                    enqueue(drive, data);
+                    return;
+                case 0x14:
+                    lock = 0;
+                    fifo[0] = 0;
+                    setFIFO(1, false);
+                    return;
+                case 0x17:
+                case 0x8f:
+                case 0xcf:
+                    dataLength = 3;
+                    enqueue(drive, data);
+                    return;
+                case 0x18:
+                    fifo[0] = 0x41; /* Stepping 1 */
+                    setFIFO(1, false);
+                    return;
+                case 0x2c:
+                    fifo[0] = 0;
+                    fifo[1] = 0;
+                    fifo[2] = (byte) getDrive(0).track;
+                    fifo[3] = (byte) getDrive(1).track;
+                    fifo[4] = 0;
+                    fifo[5] = 0;
+                    fifo[6] = timer0;
+                    fifo[7] = timer1;
+                    fifo[8] = (byte) drive.sectorCount;
+                    fifo[9] = (byte) ((lock << 7) | (drive.perpendicular << 2));
+                    fifo[10] = config;
+                    fifo[11] = preCompensationTrack;
+                    fifo[12] = pwrd;
+                    fifo[13] = 0;
+                    fifo[14] = 0;
+                    setFIFO(15, true);
+                    return;
+                case 0x42:
+                    dataLength = 9;
+                    enqueue(drive, data);
+                    return;
+                case 0x4c:
+                    dataLength = 18;
+                    enqueue(drive, data);
+                    return;
+                case 0x4d:
+                case 0x8e:
+                    dataLength = 6;
+                    enqueue(drive, data);
+                    return;
+                case 0x94:
+                    lock = 1;
+                    fifo[0] = 0x10;
+                    setFIFO(1, true);
+                    return;
+                case 0xcd:
+                    dataLength = 11;
+                    enqueue(drive, data);
+                    return;
+                default:
+                    /* Unknown command */
+                    unimplemented();
+                    return;
+            }
+        }
+        enqueue(drive, data);
+    }
+
+    private void unimplemented() {
+        fifo[0] = (byte) 0x80;
+        setFIFO(1, false);
+    }
+
+    private FloppyDrive getCurrentDrive() {
+        return getDrive(currentDrive);
+    }
+
+    private void stopTransfer(byte status0, byte status1, byte status2) {
+        FloppyDrive drive = getCurrentDrive();
+
+        fifo[0] = (byte) (status0 | (drive.head << 2) | currentDrive);
+        fifo[1] = status1;
+        fifo[2] = status2;
+        fifo[3] = (byte) drive.track;
+        fifo[4] = (byte) drive.head;
+        fifo[5] = (byte) drive.sector;
+        fifo[6] = SECTOR_SIZE_CODE;
+        dataDirection = DIRECTION_READ;
+        if ((state & CONTROL_BUSY) != 0) {
+            dma.releaseDmaRequest(DMA_CHANNEL & 3);
+            state &= ~CONTROL_BUSY;
+        }
+        setFIFO(7, true);
+    }
+
+    private void setFIFO(int fifoLength, boolean doIRQ) {
+        dataDirection = DIRECTION_READ;
+        dataLength = fifoLength;
+        dataOffset = 0;
+        dataState = (dataState & ~STATE_STATE) | STATE_STATUS;
+        if (doIRQ)
+            raiseIRQ(0x00);
+    }
+
+    private void resetIRQ() {
+        irqDevice.setIRQ(INTERRUPT_LEVEL, 0);
+        state &= ~CONTROL_INTERRUPT;
+    }
+
+    private void raiseIRQ(int status) {
+        if (~(state & CONTROL_INTERRUPT) != 0) {
+            irqDevice.setIRQ(INTERRUPT_LEVEL, 1);
+            state |= CONTROL_INTERRUPT;
+        }
+        interruptStatus = status;
     }
 
     private void writeDOR(int data) {
@@ -292,13 +502,13 @@ public class FloppyController extends BaseIODevice {
     private void reset(boolean doIRQ) {
     }
 
-    public DriverType getDriveType(int number) {
+    public DriveType getDriveType(int number) {
         if (drivers[number] == null) {
-            return DriverType.DRIVE_NONE;
+            return DriveType.DRIVE_NONE;
         }
-        return drivers[number].driver;
+        return drivers[number].drive;
     }
 
-    public enum DriverType {DRIVE_144, DRIVE_288, DRIVE_120, DRIVE_NONE}
+    public enum DriveType {DRIVE_144, DRIVE_288, DRIVE_120, DRIVE_NONE}
 
 }

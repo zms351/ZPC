@@ -102,9 +102,9 @@ public class CMOS extends BaseDevice {
 
         int num = 0;
         val = 0;
-        if (fdc.getDriveType(0) != FloppyController.DriverType.DRIVE_NONE)
+        if (fdc.getDriveType(0) != FloppyController.DriveType.DRIVE_NONE)
             num++;
-        if (fdc.getDriveType(1) != FloppyController.DriverType.DRIVE_NONE)
+        if (fdc.getDriveType(1) != FloppyController.DriveType.DRIVE_NONE)
             num++;
         switch (num) {
             case 0:

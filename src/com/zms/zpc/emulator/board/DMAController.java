@@ -27,4 +27,7 @@ public class DMAController extends BaseDevice {
     public void reset() {
     }
 
+    public void releaseDmaRequest(int channel) {
+    }
+
 }
