@@ -104,10 +104,12 @@ public class PCMonitorFrame extends UtilityFrame implements Runnable, ComponentL
 
     @Override
     public void componentShown(ComponentEvent e) {
+        screen.moved(e);
     }
 
     @Override
     public void componentHidden(ComponentEvent e) {
+        screen.moved(e);
     }
 
 }
