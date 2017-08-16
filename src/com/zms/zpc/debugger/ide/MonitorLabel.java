@@ -82,4 +82,8 @@ public class MonitorLabel extends JLabel implements IScreen {
         return this;
     }
 
+    @Override
+    public void moved(Object e) {
+    }
+
 }

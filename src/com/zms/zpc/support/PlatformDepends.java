@@ -11,7 +11,8 @@ import java.awt.event.ComponentListener;
 public class PlatformDepends {
 
     public static IScreen createScreen(ComponentListener frame) {
-        return new MonitorLabel(frame);
+        //return new MonitorLabel(frame);
+        return MonitorOpengl.createOne(frame);
     }
 
 }

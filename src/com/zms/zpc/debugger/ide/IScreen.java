@@ -13,6 +13,8 @@ public interface IScreen {
 
     void resized(Dimension size);
 
+    void moved(Object e);
+
     void setData(Object data);
 
     void repaint();

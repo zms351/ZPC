@@ -99,6 +99,7 @@ public class PCMonitorFrame extends UtilityFrame implements Runnable, ComponentL
 
     @Override
     public void componentMoved(ComponentEvent e) {
+        screen.moved(e);
     }
 
     @Override
