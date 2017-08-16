@@ -62,10 +62,13 @@ public class MonitorLabel extends JLabel implements IScreen {
         this.requestFocusInWindow();
     }
 
+    private Dimension size=new Dimension();
     @Override
-    public void resized(Dimension size) {
-        this.setPreferredSize(size);
+    public void resized(Dimension d) {
+        Dimension size=this.size;
+        size.setSize(d);
         this.getSize(size);
+        this.setPreferredSize(size);
         this.clearBackground = true;
     }
 
