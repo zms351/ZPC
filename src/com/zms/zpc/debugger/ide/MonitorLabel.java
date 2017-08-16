@@ -67,7 +67,7 @@ public class MonitorLabel extends JLabel implements IScreen {
     public void resized(Dimension d) {
         Dimension size=this.size;
         size.setSize(d);
-        this.getSize(size);
+        this.setSize(size);
         this.setPreferredSize(size);
         this.clearBackground = true;
     }
