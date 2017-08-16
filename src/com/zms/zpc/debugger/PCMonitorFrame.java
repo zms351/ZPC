@@ -1,11 +1,11 @@
 package com.zms.zpc.debugger;
 
-import com.zms.zpc.debugger.ide.MonitorLabel;
+import com.zms.zpc.debugger.ide.IScreen;
 import com.zms.zpc.debugger.util.UtilityFrame;
 import com.zms.zpc.emulator.*;
 import com.zms.zpc.emulator.board.pci.DefaultVGACard;
 import com.zms.zpc.emulator.debug.DummyDebugger;
-import com.zms.zpc.support.GarUtils;
+import com.zms.zpc.support.*;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -31,19 +31,17 @@ public class PCMonitorFrame extends UtilityFrame implements Runnable, ComponentL
     }
 
     private Dimension size = new Dimension(640, 480);
-    private MonitorLabel screen;
+    IScreen screen;
 
     public void design() {
         Container content = this.getContentPane();
         content.setLayout(new BorderLayout());
         if (screen == null) {
-            screen = new MonitorLabel(this);
+            screen = PlatformDepends.createScreen(this);
         }
-        screen.setPreferredSize(size);
-        screen.setSize(size);
-        content.add(screen, BorderLayout.CENTER);
-        screen.setDoubleBuffered(false);
-        screen.requestFocusInWindow();
+        screen.resized(size);
+        content.add(screen.getComponent(), BorderLayout.CENTER);
+        screen.init();
     }
 
     @Override
@@ -53,15 +51,13 @@ public class PCMonitorFrame extends UtilityFrame implements Runnable, ComponentL
         PCState state;
         long t = System.currentTimeMillis();
         long gap;
-        vga.frame=this.getFrame();
-        screen.vga = vga;
+        vga.frame = this.getFrame();
+        screen.setData(vga);
         Runnable refresh = () -> {
             Dimension size = vga.getDisplaySize();
             if (size.width > 0 && size.height > 0 && (size.width != PCMonitorFrame.this.size.width || size.height != PCMonitorFrame.this.size.height)) {
                 PCMonitorFrame.this.size.setSize(size);
-                screen.clearBackground = true;
-                screen.setPreferredSize(size);
-                screen.setSize(size);
+                screen.resized(size);
                 PCMonitorFrame.this.pack();
             }
             screen.repaint();
@@ -78,7 +74,7 @@ public class PCMonitorFrame extends UtilityFrame implements Runnable, ComponentL
                             Thread.sleep(10 - gap);
                         }
                         t = System.currentTimeMillis();
-                        if(this.isVisible()) {
+                        if (this.isVisible()) {
                             vga.prepareUpdate();
                             vga.updateDisplay();
                             GarUtils.runInUI(refresh);
@@ -98,8 +94,7 @@ public class PCMonitorFrame extends UtilityFrame implements Runnable, ComponentL
 
     @Override
     public void componentResized(ComponentEvent e) {
-        screen.getSize(size);
-        screen.clearBackground = true;
+        screen.resized(size);
     }
 
     @Override

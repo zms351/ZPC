@@ -1,21 +1,21 @@
 package com.zms.zpc.debugger.ide;
 
-import com.zms.zpc.debugger.PCMonitorFrame;
 import com.zms.zpc.emulator.board.pci.DefaultVGACard;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentListener;
 
 /**
  * Created by 张小美 on 17/八月/6.
  * Copyright 2002-2016
  */
-public class MonitorLabel extends JLabel {
+public class MonitorLabel extends JLabel implements IScreen {
 
     public DefaultVGACard vga;
     public volatile boolean clearBackground = true;
 
-    public MonitorLabel(PCMonitorFrame parent) {
+    public MonitorLabel(ComponentListener parent) {
         this.addComponentListener(parent);
     }
 
@@ -39,9 +39,32 @@ public class MonitorLabel extends JLabel {
             }
             clearBackground = false;
         }
-        if(vga!=null) {
+        if (vga != null) {
             vga.paintPCMonitor(g, this);
         }
+    }
+
+    @Override
+    public void init() {
+        this.setDoubleBuffered(false);
+        this.requestFocusInWindow();
+    }
+
+    @Override
+    public void resized(Dimension size) {
+        this.setPreferredSize(size);
+        this.getSize(size);
+        this.clearBackground = true;
+    }
+
+    @Override
+    public void setData(Object data) {
+        vga = (DefaultVGACard) data;
+    }
+
+    @Override
+    public Component getComponent() {
+        return this;
     }
 
 }
