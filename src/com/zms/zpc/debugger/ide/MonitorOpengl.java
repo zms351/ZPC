@@ -1,9 +1,8 @@
 package com.zms.zpc.debugger.ide;
 
 import com.jogamp.opengl.*;
-import com.jogamp.opengl.awt.GLCanvas;
+import com.jogamp.opengl.awt.GLJPanel;
 import com.zms.zpc.emulator.board.pci.DefaultVGACard;
-import com.zms.zpc.support.GarUtils;
 
 import java.awt.*;
 import java.awt.event.ComponentListener;
@@ -14,7 +13,7 @@ import java.nio.*;
  * Created by 张小美 on 17/八月/15.
  * Copyright 2002-2016
  */
-public class MonitorOpengl extends GLCanvas implements IScreen, GLEventListener, Runnable {
+public class MonitorOpengl extends GLJPanel implements IScreen, GLEventListener, Runnable {
 
     static GLCapabilities cap;
 
@@ -39,6 +38,7 @@ public class MonitorOpengl extends GLCanvas implements IScreen, GLEventListener,
 
     @Override
     public void init() {
+        this.setDoubleBuffered(false);
         this.requestFocusInWindow();
     }
 
@@ -47,7 +47,6 @@ public class MonitorOpengl extends GLCanvas implements IScreen, GLEventListener,
         this.setPreferredSize(size);
         this.setSize(size);
         this.clearBackground = true;
-        GarUtils.runLater(this);
     }
 
     @Override
@@ -111,19 +110,10 @@ public class MonitorOpengl extends GLCanvas implements IScreen, GLEventListener,
 
     @Override
     public void moved(Object e) {
-        GarUtils.runLater(this);
-    }
-
-    public void moved_(Object e) {
-        if (frame instanceof Component) {
-            Component parent = (Component) frame;
-            this.setVisible(parent.isVisible());
-        }
     }
 
     @Override
     public void run() {
-        moved_(this);
     }
 
 }
