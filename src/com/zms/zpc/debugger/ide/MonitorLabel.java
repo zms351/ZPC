@@ -5,6 +5,7 @@ import com.zms.zpc.emulator.board.pci.DefaultVGACard;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentListener;
+import java.awt.image.BufferedImage;
 
 /**
  * Created by 张小美 on 17/八月/6.
@@ -40,7 +41,18 @@ public class MonitorLabel extends JLabel implements IScreen {
             clearBackground = false;
         }
         if (vga != null) {
-            vga.paintPCMonitor(g, this);
+            vga.paintPCMonitor(this, g);
+        }
+    }
+
+    @Override
+    public void paintData(Object context, BufferedImage buffer, Object data1, Object data2) {
+        Graphics g = (Graphics) context;
+        if (g instanceof Graphics2D) {
+            ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        }
+        if (buffer != null) {
+            g.drawImage(buffer, 0, 0, this);
         }
     }
 

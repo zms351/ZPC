@@ -1,6 +1,7 @@
 package com.zms.zpc.debugger.ide;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 /**
  * Created by 张小美 on 17/八月/16.
@@ -17,5 +18,7 @@ public interface IScreen {
     void repaint();
 
     Component getComponent();
+
+    void paintData(Object context, BufferedImage image,Object buffer,Object data);
 
 }

@@ -1,6 +1,7 @@
 package com.zms.zpc.emulator.board.pci;
 
 import com.zms.zpc.debugger.ZPC;
+import com.zms.zpc.debugger.ide.IScreen;
 import com.zms.zpc.emulator.board.MotherBoard;
 
 import javax.imageio.ImageIO;
@@ -85,17 +86,12 @@ public class DefaultVGACard extends VGACard {
         ymax = Math.max(y + h, ymax);
     }
 
-    public void paintPCMonitor(Graphics g, ImageObserver io) {
-        if (g instanceof Graphics2D) {
-            ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-        }
-        if (buffer != null) {
-            long start = System.currentTimeMillis();
-            g.drawImage(buffer, 0, 0, io);
-            long t = System.currentTimeMillis() - start;
-            if (frame != null) {
-                frame.stats[4] = t;
-            }
+    public void paintPCMonitor(IScreen screen, Object context) {
+        long start = System.currentTimeMillis();
+        screen.paintData(context,buffer,rawImageData,this);
+        long t = System.currentTimeMillis() - start;
+        if (frame != null) {
+            frame.stats[4] = t;
         }
     }
 
