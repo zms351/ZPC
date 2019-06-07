@@ -10,13 +10,11 @@ import com.zms.zpc.support.*;
 import java.awt.*;
 import java.awt.event.*;
 
-import static com.zms.zpc.support.Constants.WARN;
-
 /**
  * Created by 张小美 on 17/五月/25.
  * Copyright 2002-2016
  */
-public class PCMonitorFrame extends UtilityFrame implements Runnable, ComponentListener {
+public class PCMonitorFrame extends UtilityFrame implements Runnable, ComponentListener, Constants {
 
     public static final String Title = "PC Monitor";
 
