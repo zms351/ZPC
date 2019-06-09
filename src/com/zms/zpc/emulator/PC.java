@@ -4,6 +4,7 @@ import com.zms.zpc.emulator.board.MotherBoard;
 import com.zms.zpc.emulator.debug.*;
 import com.zms.zpc.emulator.memory.*;
 import com.zms.zpc.emulator.processor.*;
+import com.zms.zpc.emulator.store.SeekableIODevice;
 import com.zms.zpc.execute.*;
 import com.zms.zpc.support.*;
 
@@ -51,6 +52,10 @@ public class PC extends BaseObj implements Runnable {
         this.memory = new MappedMemory(config.getMemoryChipLen(), config.getMemoryCount());
         this.board = new MotherBoard(this);
         this.setName(config.getName());
+    }
+
+    public SeekableIODevice getSeekableIODevice(Object owner, String name, boolean isWritable, boolean allowRemote) throws Exception {
+        return null;
     }
 
     public PCConfig getConfig() {

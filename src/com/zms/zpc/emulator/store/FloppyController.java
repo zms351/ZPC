@@ -92,8 +92,8 @@ public class FloppyController extends BaseIODevice {
 
     protected void init() {
         drivers = new FloppyDrive[2];
-        drivers[0] = new FloppyDrive(mb);
-        drivers[1] = new FloppyDrive(mb);
+        drivers[0] = new FloppyDrive(mb,0);
+        drivers[1] = new FloppyDrive(mb,1);
         drivers[1].drive = DriveType.DRIVE_NONE;
         for (int port : ioPortsRequested()) {
             mb.ios.register(port, this);

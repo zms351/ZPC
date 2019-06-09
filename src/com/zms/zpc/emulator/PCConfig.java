@@ -15,6 +15,7 @@ public class PCConfig {
 
     private String bios;
     private String vgaBios;
+    private String floppyA;
     private String name="一个虚拟机";
 
     public PCConfig() {
@@ -29,6 +30,7 @@ public class PCConfig {
 
         this.bios="BIOS-bochs-latest";
         this.vgaBios="VGABIOS-lgpl-latest.debug.bin";
+        this.floppyA="res:images/floppy.img";
     }
 
     public static PCConfig defaultPCConfig() {
@@ -69,6 +71,14 @@ public class PCConfig {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getFloppyA() {
+        return floppyA;
+    }
+
+    public void setFloppyA(String floppyA) {
+        this.floppyA = floppyA;
     }
 
 }

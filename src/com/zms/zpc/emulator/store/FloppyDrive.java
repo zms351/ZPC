@@ -34,15 +34,24 @@ public class FloppyDrive extends BaseDevice {
     int bps;
     int readOnly;
 
+    int driverIndex;
     FloppyFormat format;
 
-    public FloppyDrive(MotherBoard mb) {
+    public FloppyDrive(MotherBoard mb,int index) {
         this.mb = mb;
+        this.driverIndex=index;
         this.init();
     }
 
     protected void init() {
         drive = FloppyController.DriveType.DRIVE_144;
+        if(driverIndex==0) {
+            //A驱
+            String floppyA = mb.pc.getConfig().getFloppyA();
+            if(floppyA!=null && floppyA.length()>0) {
+
+            }
+        }
         reset();
     }
 
