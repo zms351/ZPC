@@ -5,6 +5,7 @@ import com.zms.zpc.emulator.debug.*;
 import com.zms.zpc.emulator.memory.*;
 import com.zms.zpc.emulator.processor.*;
 import com.zms.zpc.emulator.store.SeekableIODevice;
+import com.zms.zpc.emulator.store.impl.ArrayBackedSeekableIODevice;
 import com.zms.zpc.execute.*;
 import com.zms.zpc.support.*;
 
@@ -54,7 +55,26 @@ public class PC extends BaseObj implements Runnable {
         this.setName(config.getName());
     }
 
-    public SeekableIODevice getSeekableIODevice(Object owner, String name, boolean isWritable, boolean allowRemote) throws Exception {
+    public SeekableIODevice getSeekableIODevice(Object owner, String name, String path,boolean isWritable, boolean allowRemote) throws Exception {
+        if(path==null || path.length()<1) {
+            return null;
+        }
+        if(path.startsWith("res:")) {
+            InputStream input = this.getClass().getClassLoader().getResourceAsStream(path.substring(4));
+            if(input==null) {
+                return null;
+            }
+            byte[] bytes;
+            try {
+                bytes=GarUtils.readAll(input);
+            } finally {
+                input.close();
+            }
+            if(bytes==null || bytes.length<1) {
+                return null;
+            }
+            return new ArrayBackedSeekableIODevice(name,bytes);
+        }
         return null;
     }
 
@@ -128,7 +148,6 @@ public class PC extends BaseObj implements Runnable {
             if (state == PCState.Running) {
                 resetBefore = state;
                 state = PCState.Reset;
-                this.board.reset();
             }
         }
     }

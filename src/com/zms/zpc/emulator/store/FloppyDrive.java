@@ -2,6 +2,7 @@ package com.zms.zpc.emulator.store;
 
 import com.zms.zpc.emulator.board.MotherBoard;
 import com.zms.zpc.emulator.board.helper.BaseDevice;
+import com.zms.zpc.emulator.store.impl.FloppyBlockDevice;
 
 /**
  * Created by 张小美 on 17/八月/13.
@@ -49,7 +50,13 @@ public class FloppyDrive extends BaseDevice {
             //A驱
             String floppyA = mb.pc.getConfig().getFloppyA();
             if(floppyA!=null && floppyA.length()>0) {
-
+                try {
+                    SeekableIODevice d = mb.pc.getSeekableIODevice(this, "fda", floppyA, true, false);
+                    assert d!=null;
+                    this.device=new FloppyBlockDevice(d);
+                } catch (Throwable t) {
+                    throw new RuntimeException(t);
+                }
             }
         }
         reset();
