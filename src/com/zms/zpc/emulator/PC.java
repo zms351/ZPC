@@ -123,6 +123,7 @@ public class PC extends BaseObj implements Runnable {
             if (state == PCState.Running) {
                 resetBefore = state;
                 state = PCState.Reset;
+                this.board.reset();
             }
         }
     }

@@ -785,6 +785,13 @@ public class FloppyController extends BaseIODevice {
 
     @Override
     public void reset() {
+        this.dmaEnabled=true;
+        this.state=CONTROL_ACTIVE;
+        for (FloppyDrive driver : drivers) {
+            if(driver!=null) {
+                driver.reset();
+            }
+        }
     }
 
     private void reset(boolean doIRQ) {

@@ -76,7 +76,7 @@ public class FloppyDrive extends BaseDevice {
     }
 
     private int read(int sector, byte[] buffer, int length) {
-        return device.read(0xffffffffl & sector, buffer, length);
+        return device.read(0xffffffffL & sector, buffer, length);
     }
 
     public void recalibrate() {
@@ -96,6 +96,7 @@ public class FloppyDrive extends BaseDevice {
     public void reset() {
         stop();
         recalibrate();
+        revalidate();
     }
 
     public int currentSector() {
@@ -115,7 +116,7 @@ public class FloppyDrive extends BaseDevice {
     }
 
     public int write(int sector, byte[] buffer, int length) {
-        return device.write(0xffffffffl & sector, buffer, length);
+        return device.write(0xffffffffL & sector, buffer, length);
     }
 
     private void revalidate() {

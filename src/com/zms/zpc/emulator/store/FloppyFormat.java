@@ -53,9 +53,8 @@ public enum FloppyFormat {
     /* end */
     EMPTY(DriveType.DRIVE_NONE, DiskType.DISK_NONE, -1, -1, 0, "");
 
-    private static enum DiskType {DISK_288, DISK_144, DISK_720, DISK_USER, DISK_NONE}
+    private enum DiskType {DISK_288, DISK_144, DISK_720, DISK_USER, DISK_NONE}
 
-    ;
 
     private final DriveType drive;
     private final DiskType disk;
@@ -64,7 +63,7 @@ public enum FloppyFormat {
     private final int maxHead;
     private final String description;
 
-    private FloppyFormat(DriveType drive, DiskType disk, int lastSector, int maxTrack, int maxHead, String description) {
+    FloppyFormat(DriveType drive, DiskType disk, int lastSector, int maxTrack, int maxHead, String description) {
         this.drive = drive;
         this.disk = disk;
         this.lastSector = lastSector;
