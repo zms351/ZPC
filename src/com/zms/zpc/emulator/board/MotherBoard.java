@@ -2,7 +2,7 @@ package com.zms.zpc.emulator.board;
 
 import com.zms.zpc.emulator.PC;
 import com.zms.zpc.emulator.board.pci.*;
-import com.zms.zpc.emulator.board.time.VirtualClock;
+import com.zms.zpc.emulator.board.time.*;
 import com.zms.zpc.emulator.debug.DummyDebugger;
 import com.zms.zpc.emulator.store.FloppyController;
 
@@ -22,6 +22,7 @@ public class MotherBoard {
     public CMOS cmos;
     public Keyboard keyboard;
     public PCSpeaker speaker;
+    public IntervalTimer timer;
     public DummyDebugger debugger;
     public PCIBus pciBus;
     public PCIISABridge isaBridge;
@@ -54,6 +55,9 @@ public class MotherBoard {
 
         keyboard = new Keyboard(this);
         devices.add(keyboard);
+
+        timer=new IntervalTimer(this,0x40,0);
+        devices.add(timer);
 
         speaker=new PCSpeaker(this);
         devices.add(speaker);
