@@ -22,6 +22,7 @@ public class MotherBoard {
     public Keyboard keyboard;
     public DummyDebugger debugger;
     public PCIBus pciBus;
+    public PCIISABridge isaBridge;
 
     public SimpleInterruptController pic;
     public VirtualClock vc;
@@ -62,7 +63,7 @@ public class MotherBoard {
 
         devices.add(new PCIHostBridge(this));
         devices.add(new DefaultVGACard(this));
-        devices.add(new PCIISABridge(this));
+        devices.add(isaBridge=new PCIISABridge(this));
         devices.add(new PIIX3IDEInterface(this));
 
         floppy=new FloppyController(this);

@@ -13,6 +13,10 @@ public class PCIBus extends BaseDevice {
     public BasePCIDevice[] devices = new BasePCIDevice[256];
     public DefaultVGACard vga;
 
+    private int biosIOAddress;
+    private int biosMemoryAddress;
+    private static final byte[] PCI_IRQS = new byte[]{11, 9, 11, 9};
+
     public PCIBus(MotherBoard mb) {
         this.mb = mb;
         this.init();
@@ -23,6 +27,30 @@ public class PCIBus extends BaseDevice {
 
     @Override
     public void reset() {
+        biosIOAddress = 0xc000;
+        biosMemoryAddress = 0xf0000000;
+        byte elcr[] = new byte[2];
+
+        /* activate IRQ mappings */
+        elcr[0] = 0x00;
+        elcr[1] = 0x00;
+        for (int i = 0; i < 4; i++) {
+            byte irq = PCI_IRQS[i];
+            /* set to trigger level */
+            elcr[irq >> 3] |= (1 << (irq & 7));
+            /* activate irq remapping in PIIX */
+            mb.isaBridge.configWrite(0x60 + i, irq, 8);
+        }
+
+        mb.ios.write(0x4d0, elcr[0], 8); // setup io master
+        mb.ios.write(0x4d1, elcr[1], 8); // setup io slave
+
+        /*for (int devFN = 0; devFN < 256; devFN++) {
+            BasePCIDevice device = devices[devFN];
+            if (device != null) {
+                device.init();
+            }
+        }*/
     }
 
     @Override

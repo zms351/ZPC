@@ -62,4 +62,6 @@ public abstract class BasePCIDevice extends BaseIODevice {
         return true;
     }
 
+    public abstract void init();
+
 }
