@@ -21,6 +21,7 @@ public class MotherBoard {
     public DMAController dma2;
     public CMOS cmos;
     public Keyboard keyboard;
+    public PCSpeaker speaker;
     public DummyDebugger debugger;
     public PCIBus pciBus;
     public PCIISABridge isaBridge;
@@ -53,6 +54,9 @@ public class MotherBoard {
 
         keyboard = new Keyboard(this);
         devices.add(keyboard);
+
+        speaker=new PCSpeaker(this);
+        devices.add(speaker);
 
         debugger = new DummyDebugger(this);
         devices.add(debugger);

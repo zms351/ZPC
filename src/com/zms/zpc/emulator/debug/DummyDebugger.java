@@ -17,6 +17,10 @@ public class DummyDebugger extends BaseDevice implements IDebugger {
 
     private static DummyDebugger instance = new DummyDebugger();
 
+    public static DummyDebugger getLogger(Object owner) {
+        return getInstance();
+    }
+
     public static DummyDebugger getInstance() {
         return instance;
     }

@@ -1,5 +1,6 @@
 package com.zms.zpc.emulator.store.impl;
 
+import com.zms.zpc.emulator.debug.DummyDebugger;
 import com.zms.zpc.emulator.store.SeekableIODevice;
 
 import java.io.*;
@@ -11,7 +12,7 @@ import java.util.logging.*;
  */
 public class ArrayBackedSeekableIODevice implements SeekableIODevice {
 
-    private static final Logger LOGGING = Logger.getLogger(ArrayBackedSeekableIODevice.class.getName());
+    private static final DummyDebugger LOGGING = DummyDebugger.getLogger(ArrayBackedSeekableIODevice.class.getName());
 
     private String resource;
     private byte[] imageData;

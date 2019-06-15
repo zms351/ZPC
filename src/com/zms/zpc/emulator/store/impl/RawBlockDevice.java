@@ -1,5 +1,6 @@
 package com.zms.zpc.emulator.store.impl;
 
+import com.zms.zpc.emulator.debug.DummyDebugger;
 import com.zms.zpc.emulator.store.*;
 
 import java.io.IOException;
@@ -11,7 +12,7 @@ import java.util.logging.*;
  */
 public abstract class RawBlockDevice implements BlockDevice {
 
-    private static final Logger LOGGING = Logger.getLogger(RawBlockDevice.class.getName());
+    private static final DummyDebugger LOGGING = DummyDebugger.getLogger(RawBlockDevice.class.getName());
 
     private SeekableIODevice data;
     private long totalSectors;

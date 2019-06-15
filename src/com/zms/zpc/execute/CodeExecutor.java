@@ -1879,6 +1879,7 @@ public class CodeExecutor extends BaseObj {
 
     public void checkIR(PC pc, boolean hlt) {
         try {
+            pc.board.vc.updateAndProcess(1);
             if (hlt) {
                 Thread.sleep(20);
             }
