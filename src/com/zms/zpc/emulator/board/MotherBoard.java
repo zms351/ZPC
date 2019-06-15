@@ -2,6 +2,7 @@ package com.zms.zpc.emulator.board;
 
 import com.zms.zpc.emulator.PC;
 import com.zms.zpc.emulator.board.pci.*;
+import com.zms.zpc.emulator.board.time.VirtualClock;
 import com.zms.zpc.emulator.debug.DummyDebugger;
 import com.zms.zpc.emulator.store.FloppyController;
 
