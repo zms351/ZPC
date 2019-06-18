@@ -44,6 +44,7 @@ public class InterruptController extends BaseIODevice {
 
     public void waitForInterrupt() {
         while ((interruptFlags & IFLAGS_HARDWARE_INTERRUPT) == 0) {
+            Thread.yield();
             mb.vc.updateNowAndProcess(!SKIP_SLEEPS);
         }
     }

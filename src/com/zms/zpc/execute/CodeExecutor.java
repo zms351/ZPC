@@ -1885,7 +1885,6 @@ public class CodeExecutor extends BaseObj {
         try {
             pc.board.vc.updateAndProcess(1);
             if (hlt) {
-                Thread.yield();
                 pc.board.pic.waitForInterrupt();
             }
             regs = pc.cpu.regs;
