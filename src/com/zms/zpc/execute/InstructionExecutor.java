@@ -517,6 +517,7 @@ public abstract class InstructionExecutor extends Instruction {
     }
 
     public boolean executeHlt() {
+        executor.reLoc(input);
         return executor.checkIR(pc, true);
     }
 
