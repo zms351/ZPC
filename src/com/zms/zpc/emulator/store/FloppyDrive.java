@@ -38,22 +38,22 @@ public class FloppyDrive extends BaseDevice {
     int driverIndex;
     FloppyFormat format;
 
-    public FloppyDrive(MotherBoard mb,int index) {
+    public FloppyDrive(MotherBoard mb, int index) {
         this.mb = mb;
-        this.driverIndex=index;
+        this.driverIndex = index;
         this.init();
     }
 
     protected void init() {
         drive = FloppyController.DriveType.DRIVE_144;
-        if(driverIndex==0) {
+        if (driverIndex == 0) {
             //A驱
             String floppyA = mb.pc.getConfig().getFloppyA();
-            if(floppyA!=null && floppyA.length()>0) {
+            if (floppyA != null && floppyA.length() > 0) {
                 try {
                     SeekableIODevice d = mb.pc.getSeekableIODevice(this, "fda", floppyA, true, false);
-                    assert d!=null;
-                    this.device=new FloppyBlockDevice(d);
+                    assert d != null;
+                    this.device = new FloppyBlockDevice(d);
                 } catch (Throwable t) {
                     throw new RuntimeException(t);
                 }
@@ -91,7 +91,7 @@ public class FloppyDrive extends BaseDevice {
         return 0;
     }
 
-    private int read(int sector, byte[] buffer, int length) {
+    int read(int sector, byte[] buffer, int length) {
         return device.read(0xffffffffL & sector, buffer, length);
     }
 

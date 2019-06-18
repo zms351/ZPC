@@ -67,7 +67,7 @@ public class FloppyController extends BaseIODevice {
     private byte eot; // last wanted sector
 
     /* State kept only to be returned back */
-        /* Timers state */
+    /* Timers state */
     private byte timer0;
     private byte timer1;
     /* precompensation */
@@ -92,8 +92,8 @@ public class FloppyController extends BaseIODevice {
 
     protected void init() {
         drivers = new FloppyDrive[2];
-        drivers[0] = new FloppyDrive(mb,0);
-        drivers[1] = new FloppyDrive(mb,1);
+        drivers[0] = new FloppyDrive(mb, 0);
+        drivers[1] = new FloppyDrive(mb, 1);
         drivers[1].drive = DriveType.DRIVE_NONE;
         for (int port : ioPortsRequested()) {
             mb.ios.register(port, this);
@@ -124,7 +124,38 @@ public class FloppyController extends BaseIODevice {
     }
 
     private int readData() {
-        throw new NotImplException();
+        FloppyDrive drive;
+
+        drive = getCurrentDrive();
+        state &= ~CONTROL_SLEEP;
+        if ((dataState & STATE_STATE) == STATE_COMMAND) {
+            LOGGING.log(Level.WARNING, "cannot read data in command state");
+            return 0;
+        }
+
+        int offset = dataOffset;
+        if ((dataState & STATE_STATE) == STATE_DATA) {
+            offset %= SECTOR_LENGTH;
+            if (offset == 0) {
+                int length = Math.min(dataLength - dataOffset, SECTOR_LENGTH);
+                drive.read(drive.currentSector(), fifo, length);
+            }
+        }
+        int retval = fifo[offset];
+        if (++dataOffset == dataLength) {
+            dataOffset = 0;
+            /* Switch from transfer mode to status mode
+             * then from status mode to command mode
+             */
+            if ((dataState & STATE_STATE) == STATE_DATA)
+                stopTransfer((byte) 0x20, (byte) 0x00, (byte) 0x00);
+            else {
+                resetFIFO();
+                resetIRQ();
+            }
+        }
+
+        return retval;
     }
 
     private int readDirection() {
@@ -166,11 +197,11 @@ public class FloppyController extends BaseIODevice {
     }
 
     private void writeRate(int data) {
-            /* Reset mode */
+        /* Reset mode */
         if ((state & CONTROL_RESET) != 0)
             return;
 
-            /* Reset: autoclear */
+        /* Reset: autoclear */
         if ((data & 0x80) != 0) {
             state |= CONTROL_RESET;
             reset(true);
@@ -184,11 +215,11 @@ public class FloppyController extends BaseIODevice {
     }
 
     private void writeTape(int data) {
-            /* Reset mode */
+        /* Reset mode */
         if ((state & CONTROL_RESET) != 0)
             return;
 
-            /* Disk boot selection indicator */
+        /* Disk boot selection indicator */
         bootSelect = (data >>> 2) & 1;
         /* Tape indicators: never allow */
     }
@@ -214,8 +245,8 @@ public class FloppyController extends BaseIODevice {
                 drive.write(drive.currentSector(), fifo, SECTOR_LENGTH);
 
             /* Switch from transfer mode to status mode
-         * then from status mode to command mode
-	     */
+             * then from status mode to command mode
+             */
             if ((dataState & STATE_STATE) == STATE_DATA)
                 stopTransfer((byte) 0x20, (byte) 0x00, (byte) 0x00);
             return;
@@ -402,11 +433,11 @@ public class FloppyController extends BaseIODevice {
     }
 
     private void writeDOR(int data) {
-            /* Reset mode */
+        /* Reset mode */
         if (((state & CONTROL_RESET) != 0) && ((data & 0x04) == 0))
             return;
 
-            /* Drive motors state indicators */
+        /* Drive motors state indicators */
         if ((data & 0x20) != 0)
             getDrive(1).start();
         else
@@ -416,9 +447,9 @@ public class FloppyController extends BaseIODevice {
             getDrive(0).start();
         else
             getDrive(0).stop();
-            /* DMA enable */
+        /* DMA enable */
 
-            /* Reset */
+        /* Reset */
         if ((data & 0x04) == 0)
             if ((state & CONTROL_RESET) == 0)
                 state |= CONTROL_RESET;
@@ -426,7 +457,7 @@ public class FloppyController extends BaseIODevice {
                 reset(true);
                 state &= ~(CONTROL_RESET | CONTROL_SLEEP);
             }
-            /* Selected drive */
+        /* Selected drive */
         currentDrive = data & 1;
     }
 
@@ -447,23 +478,23 @@ public class FloppyController extends BaseIODevice {
     private int readDOR() {
         int retval = 0;
 
-            /* Drive motors state indicators */
+        /* Drive motors state indicators */
         if ((getDrive(0).driveFlags & FloppyDrive.MOTOR_ON) != 0)
             retval |= 1 << 5;
         if ((getDrive(1).driveFlags & FloppyDrive.MOTOR_ON) != 0)
             retval |= 1 << 4;
-            /* DMA enable */
+        /* DMA enable */
         retval |= dmaEnabled ? 1 << 3 : 0;
-            /* Reset indicator */
+        /* Reset indicator */
         retval |= (state & CONTROL_RESET) == 0 ? 1 << 2 : 0;
-            /* Selected drive */
+        /* Selected drive */
         retval |= currentDrive;
 
         return retval;
     }
 
     private int readTape() {
-            /* Disk boot selection indicator */
+        /* Disk boot selection indicator */
         return bootSelect << 2;
         /* Tape indicators: never allowed */
     }
@@ -473,14 +504,14 @@ public class FloppyController extends BaseIODevice {
 
         state &= ~(CONTROL_SLEEP | CONTROL_RESET);
         if ((state & CONTROL_BUSY) == 0) {
-                /* Data transfer allowed */
+            /* Data transfer allowed */
             retval |= 0x80;
-                /* Data transfer direction indicator */
+            /* Data transfer direction indicator */
             if (dataDirection == DIRECTION_READ)
                 retval |= 0x40;
         }
-            /* Should handle 0x20 for SPECIFY command */
-            /* Command busy indicator */
+        /* Should handle 0x20 for SPECIFY command */
+        /* Command busy indicator */
         if ((dataState & STATE_STATE) == STATE_DATA || (dataState & STATE_STATE) == STATE_STATUS)
             retval |= 0x10;
 
@@ -596,7 +627,7 @@ public class FloppyController extends BaseIODevice {
                     /* XXX: should set main status register to busy */
                     drive.head = (fifo[1] >>> 2) & 1;
                     //resultTimer.setExpiry(clock.getEmulatedNanos() + (clock.getTickRate() / 50));
-                    if(drive.head>=Integer.MIN_VALUE) {
+                    if (drive.head >= Integer.MIN_VALUE) {
                         throw new NotImplException();
                     }
                     break;
@@ -630,8 +661,8 @@ public class FloppyController extends BaseIODevice {
                     drive.sectorCount = fifo[3];
 
                     /* Bochs BIOS is buggy and don't send format informations
-         * for each sector. So, pretend all's done right now...
-		 */
+                     * for each sector. So, pretend all's done right now...
+                     */
                     dataState &= ~STATE_FORMAT;
                     stopTransfer((byte) 0x00, (byte) 0x00, (byte) 0x00);
                     break;
@@ -688,10 +719,9 @@ public class FloppyController extends BaseIODevice {
         }
     }
 
-    private void formatSector()
-        {
-            LOGGING.log(Level.INFO, "format sector not implemented");
-        }
+    private void formatSector() {
+        LOGGING.log(Level.INFO, "format sector not implemented");
+    }
 
     private void resetFIFO() {
         dataDirection = DIRECTION_WRITE;
@@ -699,10 +729,9 @@ public class FloppyController extends BaseIODevice {
         dataState = (dataState & ~STATE_STATE) | STATE_COMMAND;
     }
 
-    public void callback()
-        {
-            stopTransfer((byte) 0x00, (byte) 0x00, (byte) 0x00);
-        }
+    public void callback() {
+        stopTransfer((byte) 0x00, (byte) 0x00, (byte) 0x00);
+    }
 
     private void startTransfer(int direction) {
         currentDrive = fifo[1] & 1;
@@ -713,21 +742,21 @@ public class FloppyController extends BaseIODevice {
         boolean didSeek = false;
         switch (drive.seek(0xff & kh, 0xff & kt, 0xff & ks, drive.sectorCount)) {
             case 2:
-                    /* sect too big */
+                /* sect too big */
                 stopTransfer((byte) 0x40, (byte) 0x00, (byte) 0x00);
                 fifo[3] = kt;
                 fifo[4] = kh;
                 fifo[5] = ks;
                 return;
             case 3:
-                    /* track too big */
+                /* track too big */
                 stopTransfer((byte) 0x40, (byte) 0x80, (byte) 0x00);
                 fifo[3] = kt;
                 fifo[4] = kh;
                 fifo[5] = ks;
                 return;
             case 4:
-                    /* No seek enabled */
+                /* No seek enabled */
                 stopTransfer((byte) 0x40, (byte) 0x00, (byte) 0x00);
                 fifo[3] = kt;
                 fifo[4] = kh;
@@ -775,7 +804,7 @@ public class FloppyController extends BaseIODevice {
             } else
                 LOGGING.log(Level.INFO, "DMA mode %d, direction %d\n", dmaMode, direction);
         }
-            /* IO based transfer: calculate len */
+        /* IO based transfer: calculate len */
         raiseIRQ(0x00);
     }
 
@@ -785,10 +814,10 @@ public class FloppyController extends BaseIODevice {
 
     @Override
     public void reset() {
-        this.dmaEnabled=true;
-        this.state=CONTROL_ACTIVE;
+        this.dmaEnabled = true;
+        this.state = CONTROL_ACTIVE;
         for (FloppyDrive driver : drivers) {
-            if(driver!=null) {
+            if (driver != null) {
                 driver.reset();
             }
         }
