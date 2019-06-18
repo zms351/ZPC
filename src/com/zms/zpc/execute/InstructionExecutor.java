@@ -516,8 +516,8 @@ public abstract class InstructionExecutor extends Instruction {
         return true;
     }
 
-    public void executeHlt() {
-        executor.checkIR(pc, true);
+    public boolean executeHlt() {
+        return executor.checkIR(pc, true);
     }
 
     private void loadBigSegment(BigSegment reg) {
@@ -717,14 +717,14 @@ public abstract class InstructionExecutor extends Instruction {
         mrs.setValMemory(pc, v);
     }
 
-    public void executeHardInt(int vector) {
+    public boolean executeHardInt(int vector) {
         if(vector!=8) {
-            return;
+            return false;
         }
         vector *= 4;
         Regs regs = pc.cpu.regs;
         long address = regs.idtr.getAddress(vector);
-        int_(address);
+        return int_(address);
     }
 
 }

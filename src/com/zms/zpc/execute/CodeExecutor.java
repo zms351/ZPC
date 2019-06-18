@@ -1668,7 +1668,7 @@ public class CodeExecutor extends BaseObj {
             case 0xf4:
                 //HLT		void				[	f4]					8086,PRIV
 
-                instruction.executeHlt();
+                jump=instruction.executeHlt();
                 break;
 
             case 0xf5:
@@ -1837,7 +1837,9 @@ public class CodeExecutor extends BaseObj {
             System.arraycopy(poses, 1, poses, 0, n - 1);
             poses[n - 1] = instruction.getStartPos();
         }
-        checkIR(pc, false);
+        if(!jump) {
+            checkIR(pc, false);
+        }
         return 0;
     }
 
@@ -1878,7 +1880,8 @@ public class CodeExecutor extends BaseObj {
         this.bits = bits;
     }
 
-    public void checkIR(PC pc, boolean hlt) {
+    public boolean checkIR(PC pc, boolean hlt) {
+        boolean jump=false;
         try {
             pc.board.vc.updateAndProcess(1);
             if (hlt) {
@@ -1896,7 +1899,7 @@ public class CodeExecutor extends BaseObj {
                             int vector = pic.cpuGetInterrupt();
                             pic.clearInterrupt();
                             if (vector >= 0) {
-                                instruction.executeHardInt(vector);
+                                jump=instruction.executeHardInt(vector);
                             }
                         }
                         break;
@@ -1905,6 +1908,7 @@ public class CodeExecutor extends BaseObj {
         } catch (Throwable e) {
             throw new NotImplException(e);
         }
+        return jump;
     }
 
 }
