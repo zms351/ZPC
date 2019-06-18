@@ -47,11 +47,14 @@ public class MotherBoard {
         pic=new InterruptController(this);
         devices.add(pic);
 
-        dma1 = new DMAController(this);
+        dma1 = new DMAController(this,false,true);
         devices.add(dma1);
 
-        dma2 = new DMAController(this);
+        dma2 = new DMAController(this,false,false);
         devices.add(dma2);
+        dma1.slave=dma2;
+
+        dma1.memory=pc.memory;
 
         keyboard = new Keyboard(this);
         devices.add(keyboard);

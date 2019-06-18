@@ -1,7 +1,8 @@
 package com.zms.zpc.emulator.store;
 
 import com.zms.zpc.emulator.board.*;
-import com.zms.zpc.emulator.board.helper.BaseIODevice;
+import com.zms.zpc.emulator.board.helper.*;
+import com.zms.zpc.emulator.board.time.TimerResponsive;
 import com.zms.zpc.emulator.debug.DummyDebugger;
 import com.zms.zpc.support.NotImplException;
 
@@ -12,7 +13,7 @@ import java.util.logging.Level;
  * Created by 张小美 on 17/八月/13.
  * Copyright 2002-2016
  */
-public class FloppyController extends BaseIODevice {
+public class FloppyController extends BaseIODevice implements DMATransferCapable, TimerResponsive {
 
     public MotherBoard mb;
     private FloppyDrive[] drivers;
@@ -102,6 +103,10 @@ public class FloppyController extends BaseIODevice {
         dma = mb.dma1;
         fifo = new byte[SECTOR_LENGTH];
         reset();
+    }
+
+    public int getType() {
+        return 1;
     }
 
     public int ioPortRead8(int address) {
@@ -721,6 +726,124 @@ public class FloppyController extends BaseIODevice {
 
     private void formatSector() {
         LOGGING.log(Level.INFO, "format sector not implemented");
+    }
+
+    private static int memcmp(byte[] a1, byte[] a2, int offset, int length) {
+        for (int i = 0; i < length; i++)
+            if (a1[i] != a2[i + offset])
+                return a1[i] - a2[i + offset];
+        return 0;
+    }
+
+    public int handleTransfer(DMAController.DMAChannel channel, int pos, int size) {
+        byte status0 = 0x00, status1 = 0x00, status2 = 0x00;
+
+        if ((state & CONTROL_BUSY) == 0)
+            return 0;
+
+        FloppyDrive drive = getCurrentDrive();
+
+        if ((dataDirection == DIRECTION_SCANE) || (dataDirection == DIRECTION_SCANL) || (dataDirection == DIRECTION_SCANH))
+            status2 = 0x04;
+        size = Math.min(size, dataLength);
+        if (drive.device == null) {
+            if (dataDirection == DIRECTION_WRITE)
+                stopTransfer((byte) 0x60, (byte) 0x00, (byte) 0x00);
+            else
+                stopTransfer((byte) 0x40, (byte) 0x00, (byte) 0x00);
+            return 0;
+        }
+
+        int relativeOffset = dataOffset % SECTOR_LENGTH;
+        int startOffset;
+        for (startOffset = dataOffset; dataOffset < size; ) {
+            int length = Math.min(size - dataOffset, SECTOR_LENGTH - relativeOffset);
+            if ((dataDirection != DIRECTION_WRITE) || (length < SECTOR_LENGTH) || (relativeOffset != 0))
+                /* READ & SCAN commands and realign to a sector for WRITE */
+                if (drive.read(drive.currentSector(), fifo, 1) < 0)
+                    /* Sure, image size is too small... */
+                    for (int i = 0; i < Math.min(fifo.length, SECTOR_LENGTH); i++)
+                        fifo[i] = (byte) 0x00;
+            switch (dataDirection) {
+                case DIRECTION_READ:
+                    /* READ commands */
+                    channel.writeMemory(fifo, relativeOffset, dataOffset, length);
+                    break;
+                case DIRECTION_WRITE:
+                    /* WRITE commands */
+                    channel.readMemory(fifo, relativeOffset, dataOffset, length);
+                    if (drive.write(drive.currentSector(), fifo, 1) < 0) {
+                        stopTransfer((byte) 0x60, (byte) 0x00, (byte) 0x00);
+                        return length;
+                    }
+                    break;
+                default:
+                    /* SCAN commands */
+                {
+                    byte[] tempBuffer = new byte[SECTOR_LENGTH];
+                    channel.readMemory(tempBuffer, 0, dataOffset, length);
+                    int ret = memcmp(tempBuffer, fifo, relativeOffset, length);
+                    if (ret == 0) {
+                        status2 = 0x08;
+                        length = dataOffset - startOffset;
+                        if (dataDirection == DIRECTION_SCANE || dataDirection == DIRECTION_SCANL || dataDirection == DIRECTION_SCANH)
+                            status2 = 0x08;
+                        if ((dataState & STATE_SEEK) != 0)
+                            status0 |= 0x20;
+                        dataLength -= length;
+                        //    if (dataLength == 0)
+                        stopTransfer(status0, status1, status2);
+                        return length;
+
+                    }
+                    if ((ret < 0 && dataDirection == DIRECTION_SCANL) || (ret > 0 && dataDirection == DIRECTION_SCANH)) {
+                        status2 = 0x00;
+
+                        length = dataOffset - startOffset;
+                        if (dataDirection == DIRECTION_SCANE || dataDirection == DIRECTION_SCANL || dataDirection == DIRECTION_SCANH)
+                            status2 = 0x08;
+                        if ((dataState & STATE_SEEK) != 0)
+                            status0 |= 0x20;
+                        dataLength -= length;
+                        //    if (dataLength == 0)
+                        stopTransfer(status0, status1, status2);
+
+                        return length;
+                    }
+                }
+                break;
+            }
+            dataOffset += length;
+            relativeOffset = dataOffset % SECTOR_LENGTH;
+            if (relativeOffset == 0)
+                /* Seek to next sector */
+                    /* XXX: drive.sect >= drive.last_sect should be an
+    		   error in fact */
+                if ((drive.sector >= drive.sectorCount) || (drive.sector == eot)) {
+                    drive.sector = 1;
+                    if ((dataState & STATE_MULTI) != 0)
+                        if ((drive.head == 0) && (drive.headCount > 0))
+                            drive.head = 1;
+                        else {
+                            drive.head = 0;
+                            drive.track++;
+                        }
+                    else
+                        drive.track++;
+                } else
+                    drive.sector++;
+        }
+
+        int length = dataOffset - startOffset;
+        if (dataDirection == DIRECTION_SCANE || dataDirection == DIRECTION_SCANL || dataDirection == DIRECTION_SCANH)
+            status2 = 0x08;
+        if ((dataState & STATE_SEEK) != 0)
+            status0 |= 0x20;
+        dataLength -= length;
+        //    if (dataLength == 0)
+        stopTransfer(status0, status1, status2);
+
+        return length;
     }
 
     private void resetFIFO() {
