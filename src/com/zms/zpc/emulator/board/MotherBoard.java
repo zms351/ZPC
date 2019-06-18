@@ -56,19 +56,20 @@ public class MotherBoard {
         keyboard = new Keyboard(this);
         devices.add(keyboard);
 
+        vc=new VirtualClock(this,false);
+
         timer=new IntervalTimer(this,0x40,0);
         devices.add(timer);
 
         speaker=new PCSpeaker(this);
         devices.add(speaker);
+        timer.speaker=speaker;
 
         debugger = new DummyDebugger(this);
         devices.add(debugger);
 
         pciBus = new PCIBus(this);
         devices.add(pciBus);
-
-        vc=new VirtualClock(this);
 
         devices.add(new PCIHostBridge(this));
         devices.add(new DefaultVGACard(this));
