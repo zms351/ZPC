@@ -1,7 +1,7 @@
 package com.zms.zpc.execute;
 
 import com.zms.zpc.emulator.PC;
-import com.zms.zpc.emulator.board.*;
+import com.zms.zpc.emulator.board.SimpleInterruptController;
 import com.zms.zpc.emulator.processor.*;
 import com.zms.zpc.support.*;
 
@@ -47,6 +47,7 @@ public class CodeExecutor extends BaseObj {
         ins = -1;
     }
 
+    @SuppressWarnings("all")
     public int execute(PC pc, CodeStream input) {
         pre(pc);
         instruction.input = input;
@@ -1881,26 +1882,27 @@ public class CodeExecutor extends BaseObj {
         try {
             pc.board.vc.updateAndProcess(1);
             if (hlt) {
-                Thread.sleep(20);
+                Thread.yield();
+                pc.board.pic.waitForInterrupt();
             }
             regs = pc.cpu.regs;
             if (regs.bits.if_.get()) {
                 SimpleInterruptController pic = pc.board.pic;
                 CPUMode mode = pc.cpu.getMode();
-                instruction.pc=pc;
+                instruction.pc = pc;
                 switch (mode) {
                     case Real:
                         if (pic.hasInterrupt()) {
                             int vector = pic.cpuGetInterrupt();
                             pic.clearInterrupt();
-                            if(vector>=0) {
+                            if (vector >= 0) {
                                 instruction.executeHardInt(vector);
                             }
                         }
                         break;
                 }
             }
-        } catch (InterruptedException e) {
+        } catch (Throwable e) {
             throw new NotImplException(e);
         }
     }
