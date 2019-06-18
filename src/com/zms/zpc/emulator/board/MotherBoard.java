@@ -27,7 +27,7 @@ public class MotherBoard {
     public PCIBus pciBus;
     public PCIISABridge isaBridge;
 
-    public SimpleInterruptController pic;
+    public InterruptController pic;
     public VirtualClock vc;
     public FloppyController floppy;
 
@@ -44,7 +44,7 @@ public class MotherBoard {
 
         devices.clear();
 
-        pic=new SimpleInterruptController(this);
+        pic=new InterruptController(this);
         devices.add(pic);
 
         dma1 = new DMAController(this);
