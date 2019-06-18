@@ -14,6 +14,26 @@ public abstract class Memory extends BaseObj implements RAM {
 
     public abstract int write(long context, long pos, byte[] bytes, int offset, int size);
 
+    public void copyContentsIntoArray(long address, byte[] buffer, int off, int len) {
+        int read=0;
+        int n;
+        while(read<len) {
+            n=read(111,address+read,buffer,off+read,len-read);
+            assert n>=0;
+            read+=n;
+        }
+    }
+
+    public void copyArrayIntoContents(int address, byte[] buffer, int off, int len) {
+        int write=0;
+        int n;
+        while(write<len) {
+            n=write(111,address+write,buffer,off+write,len-write);
+            assert n>=0;
+            write+=n;
+        }
+    }
+
     public long read(long context, long pos, int width) {
         switch (width) {
             case 8:

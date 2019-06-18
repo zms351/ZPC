@@ -1,43 +1,652 @@
 package com.zms.zpc.emulator.board;
 
-import com.zms.zpc.emulator.board.helper.BaseDevice;
-import com.zms.zpc.support.NotImplException;
+import com.zms.zpc.emulator.board.helper.*;
+import com.zms.zpc.emulator.debug.DummyDebugger;
+import com.zms.zpc.emulator.memory.Memory;
+
+import java.io.*;
+import java.util.logging.Level;
 
 /**
  * Created by 张小美 on 17/六月/28.
  * Copyright 2002-2016
  */
-public class DMAController extends BaseDevice {
+public class DMAController extends BaseIODevice {
+
+    private static final DummyDebugger LOGGING = DummyDebugger.getLogger(DMAController.class.getName());
+
+    private static final int pagePortList0 = 0x1;
+    private static final int pagePortList1 = 0x2;
+    private static final int pagePortList2 = 0x3;
+    private static final int pagePortList3 = 0x7;
+    private static final int[] pagePortList = new int[]{pagePortList0,
+            pagePortList1, pagePortList2, pagePortList3};
+    private static final int COMMAND_MEMORY_TO_MEMORY = 0x01;
+    private static final int COMMAND_ADDRESS_HOLD = 0x02;
+    private static final int COMMAND_CONTROLLER_DISABLE = 0x04;
+    private static final int COMMAND_COMPRESSED_TIMING = 0x08;
+    private static final int COMMAND_CYCLIC_PRIORITY = 0x10;
+    private static final int COMMAND_EXTENDED_WRITE = 0x20;
+    private static final int COMMAND_DREQ_SENSE_LOW = 0x40;
+    private static final int COMMAND_DACK_SENSE_LOW = 0x80;
+    private static final int CMD_NOT_SUPPORTED = COMMAND_MEMORY_TO_MEMORY | COMMAND_ADDRESS_HOLD | COMMAND_COMPRESSED_TIMING | COMMAND_CYCLIC_PRIORITY | COMMAND_EXTENDED_WRITE | COMMAND_DREQ_SENSE_LOW | COMMAND_DACK_SENSE_LOW;
+    private static final int ADDRESS_READ_STATUS = 0x8;
+    private static final int ADDRESS_READ_MASK = 0xf;
+    private static final int ADDRESS_WRITE_COMMAND = 0x8;
+    private static final int ADDRESS_WRITE_REQUEST = 0x9;
+    private static final int ADDRESS_WRITE_MASK_BIT = 0xa;
+    private static final int ADDRESS_WRITE_MODE = 0xb;
+    private static final int ADDRESS_WRITE_FLIPFLOP = 0xc;
+    private static final int ADDRESS_WRITE_CLEAR = 0xd;
+    private static final int ADDRESS_WRITE_CLEAR_MASK = 0xe;
+    private static final int ADDRESS_WRITE_MASK = 0xf;
+    private int status;
+    private int command;
+    private int mask;
+    private boolean flipFlop;
+    private int dShift;
+    private int ioBase, pageLowBase, pageHighBase;
+    private int controllerNumber;
+    Memory memory;
+    private DMAChannel[] dmaChannels;
+    DMAController slave;
+
+    public class DMAChannel {
+        private static final int MODE_CHANNEL_SELECT = 0x03;
+        private static final int MODE_ADDRESS_INCREMENT = 0x20;
+        public static final int ADDRESS = 0;
+        public static final int COUNT = 1;
+        public int currentAddress, currentWordCount;
+        public int baseAddress, baseWordCount;
+        public int mode;
+        public int dack, eop;
+        public DMATransferCapable transferDevice;
+        public DMAEventHandler eventHandler;
+        public int pageLow, pageHigh;
+        private boolean masked = false;
+
+        public void saveState(DataOutput output) throws IOException {
+            output.writeInt(currentAddress);
+            output.writeInt(currentWordCount);
+            output.writeInt(baseAddress);
+            output.writeInt(baseWordCount);
+            output.writeInt(mode);
+            output.writeInt(pageLow);
+            output.writeInt(pageHigh);
+            output.writeInt(dack);
+            output.writeInt(eop);
+            //tactfully ignore transferDevice
+
+        }
+
+        public void loadState(DataInput input) throws IOException {
+            currentAddress = input.readInt();
+            currentWordCount = input.readInt();
+            baseAddress = input.readInt();
+            baseWordCount = input.readInt();
+            mode = input.readInt();
+            pageLow = input.readInt();
+            pageHigh = input.readInt();
+            dack = input.readInt();
+            eop = input.readInt();
+            //tactfully ignore transferDevice
+
+        }
+
+        public void registerEventHandler(DMAEventHandler handler) {
+            eventHandler = handler;
+            if (masked)
+                eventHandler.handleDMAEvent(DMAEvent.DMA_MASKED);
+            else
+                eventHandler.handleDMAEvent(DMAEvent.DMA_UNMASKED);
+        }
+
+        /**
+         * Reads memory from this channel.
+         * <p>
+         * Allows a <code>DMATransferCapable</code> device to read the section of
+         * memory currently pointed to by this channels internal registers.
+         *
+         * @param buffer   byte[] to save data in.
+         * @param offset   offset into <code>buffer</code>.
+         * @param position offset into channel's memory.
+         * @param length   number of bytes to read.
+         */
+        public void readMemory(byte[] buffer, int offset, int position, int length) {
+            int address = (pageHigh << 24) | (pageLow << 16) | currentAddress;
+
+            if ((mode & DMAChannel.MODE_ADDRESS_INCREMENT) != 0) {
+                LOGGING.log(Level.WARNING, "read in address decrement mode");
+                //This may be broken for 16bit DMA
+                memory.copyContentsIntoArray(address - position - length, buffer, offset, length);
+                //Should have really decremented address with each byte read, so instead just reverse array order
+                for (int left = offset, right = offset + length - 1; left < right; left++, right--) {
+                    byte temp = buffer[left];
+                    buffer[left] = buffer[right];
+                    buffer[right] = temp; // exchange the first and last
+                }
+            } else
+                memory.copyContentsIntoArray(address + position, buffer, offset, length);
+        }
+
+        /**
+         * Writes data to this channel.
+         * <p>
+         * Allows a <code>DMATransferCapable</code> device to write to the section of
+         * memory currently pointed to by this channels internal registers.
+         *
+         * @param buffer   byte[] containing data.
+         * @param offset   offset into <code>buffer</code>.
+         * @param position offset into channel's memory.
+         * @param length   number of bytes to write.
+         */
+        public void writeMemory(byte[] buffer, int offset, int position, int length) {
+            int address = (pageHigh << 24) | (pageLow << 16) | currentAddress;
+
+            if ((mode & DMAChannel.MODE_ADDRESS_INCREMENT) != 0) {
+                LOGGING.log(Level.WARNING, "write in address decrement mode");
+                //This may be broken for 16bit DMA
+                //Should really decremented address with each byte write, so instead we reverse the array order now
+                for (int left = offset, right = offset + length - 1; left < right; left++, right--) {
+                    byte temp = buffer[left];
+                    buffer[left] = buffer[right];
+                    buffer[right] = temp; // exchange the first and last
+                }
+                memory.copyArrayIntoContents(address - position - length, buffer, offset, length);
+            } else
+                memory.copyArrayIntoContents(address + position, buffer, offset, length);
+        }
+
+        private void setMask(boolean mask) {
+            if (masked == mask)
+                return;
+            masked = mask;
+            if ((masked) && (eventHandler != null))
+                eventHandler.handleDMAEvent(DMAEvent.DMA_MASKED);
+            if ((!masked) && (eventHandler != null))
+                eventHandler.handleDMAEvent(DMAEvent.DMA_UNMASKED);
+        }
+
+        private void run() {
+            int n = transferDevice.handleTransfer(this, currentWordCount, (baseWordCount + 1) << controllerNumber);
+            currentWordCount = n;
+        }
+
+        public void reset() {
+            transferDevice = null;
+            currentAddress = currentWordCount = mode = 0;
+            baseAddress = baseWordCount = 0;
+            pageLow = pageHigh = dack = eop = 0;
+        }
+    }
 
     public MotherBoard mb;
 
-    public DMAController(MotherBoard mb) {
+    public DMAController(MotherBoard mb, boolean highPageEnable, boolean primary) {
         this.mb = mb;
+
+        ioportRegistered = false;
+        dShift =
+                primary ? 0 : 1;
+        ioBase =
+                primary ? 0x00 : 0xc0;
+        pageLowBase =
+                primary ? 0x80 : 0x88;
+        pageHighBase =
+                highPageEnable ? (primary ? 0x480 : 0x488) : -1;
+        controllerNumber =
+                primary ? 0 : 1;
+        dmaChannels =
+                new DMAChannel[4];
+        for (int i = 0; i < 4; i++)
+            dmaChannels[i] = new DMAChannel();
+        init();
+        reset();
     }
 
-    @Override
-    public void write(int address, long v, int width) {
+    public void init() {
+        for (int address : ioPortsRequested()) {
+            mb.ios.register(address, this);
+        }
+        this.ioportRegistered = true;
     }
 
-    @Override
-    public long read(int address, int width) {
-        return 0;
+    public DMAChannel getChannel(int number) {
+        if (number < 4)
+            return dmaChannels[number];
+        return slave.getChannel(number - 4);
     }
 
-    @Override
+    /**
+     * Returns true if this controller is the primary DMA controller.
+     * <p>
+     * Non-primary or secondary controllers operate by being chained off the
+     * primary controller.
+     *
+     * @return <code>true</code> if this is the primary DMA controller.
+     */
+    public boolean isPrimary() {
+        return (this.dShift == 0);
+    }
+
     public void reset() {
+        for (int i = 0; i < dmaChannels.length; i++)
+            dmaChannels[i].reset();
+
+        this.writeController(0x0d << this.dShift, 0);
+
+        memory =
+                null;
+        ioportRegistered =
+                false;
     }
 
-    public void releaseDmaRequest(int channel) {
-        throw new NotImplException();
+    private void writeChannel(int portNumber, int data) {
+        int port = (portNumber >>> dShift) & 0x0f;
+        int channelNumber = port >>> 1;
+        DMAChannel r = dmaChannels[channelNumber];
+        if (getFlipFlop()) {
+            if ((port & 1) == DMAChannel.ADDRESS)
+                r.baseAddress = (r.baseAddress & 0xff) | ((data << 8) & 0xff00);
+            else
+                r.baseWordCount = (r.baseWordCount & 0xff) | ((data << 8) & 0xff00);
+            initChannel(channelNumber);
+        } else if ((port & 1) == DMAChannel.ADDRESS)
+            r.baseAddress = (r.baseAddress & 0xff00) | (data & 0xff);
+        else
+            r.baseWordCount = (r.baseWordCount & 0xff00) | (data & 0xff);
     }
 
-    public void holdDmaRequest(int channel) {
-        throw new NotImplException();
+    private void writeController(int portNumber, int data) {
+        int port = (portNumber >>> this.dShift) & 0x0f;
+        switch (port) {
+            case ADDRESS_WRITE_COMMAND: /* command */
+                if ((data != 0) && ((data & CMD_NOT_SUPPORTED) != 0))
+                    break;
+                command = data;
+                break;
+            case ADDRESS_WRITE_REQUEST:
+                int channelNumber = data & 3;
+                if ((data & 4) == 0)
+                    status &= ~(1 << (channelNumber + 4));
+                else
+                    status |= 1 << (channelNumber + 4);
+
+                status &= ~(1 << channelNumber);
+                runTransfers();
+                break;
+            case ADDRESS_WRITE_MASK_BIT:
+                if ((data & 0x4) != 0)
+                    mask |= 1 << (data & 3);
+                else {
+                    mask &= ~(1 << (data & 3));
+                    runTransfers();
+                }
+                dmaChannels[data & 3].setMask((mask & (1 << (data & 3))) != 0);
+                break;
+            case ADDRESS_WRITE_MODE:
+                channelNumber = data & DMAChannel.MODE_CHANNEL_SELECT;
+                dmaChannels[channelNumber].mode = data;
+                break;
+            case ADDRESS_WRITE_FLIPFLOP:
+                flipFlop = false;
+                break;
+            case ADDRESS_WRITE_CLEAR:
+                flipFlop = false;
+                mask = ~0;
+                status = 0;
+                command = 0;
+                for (int i = 0; i < dmaChannels.length; i++)
+                    if (dmaChannels[i] != null) {
+                        dmaChannels[i].setMask(true);
+                    }
+                break;
+            case ADDRESS_WRITE_CLEAR_MASK: /* clear mask for all channels */
+                mask = 0;
+                for (int i = 0; i < dmaChannels.length; i++)
+                    if (dmaChannels[i] != null) {
+                        dmaChannels[i].setMask(false);
+                    }
+                runTransfers();
+                break;
+            case ADDRESS_WRITE_MASK: /* write mask for all channels */
+                mask = data;
+                for (int i = 0; i < dmaChannels.length; i++)
+                    if (dmaChannels[i] != null) {
+                        dmaChannels[i].setMask((mask & (1 << i)) != 0);
+                    }
+                runTransfers();
+                break;
+            default:
+                break;
+        }
+
     }
 
+    private static final int[] channels = new int[]{-1, 2, 3, 1,
+            -1, -1, -1, 0};
+
+    private void writePageLow(int portNumber, int data) {
+        int channelNumber = channels[portNumber & 7];
+        if (-1 == channelNumber)
+            return;
+        dmaChannels[channelNumber].pageLow = 0xff & data;
+    }
+
+    private void writePageHigh(int portNumber, int data) {
+        int channelNumber = channels[portNumber & 7];
+        if (-1 == channelNumber)
+            return;
+        dmaChannels[channelNumber].pageHigh = 0x7f & data;
+    }
+
+    private int readChannel(int portNumber) {
+        int port = (portNumber >>> dShift) & 0x0f;
+        int channelNumber = port >>> 1;
+        int registerNumber = port & 1;
+        DMAChannel r = dmaChannels[channelNumber];
+
+        int direction = ((r.mode & DMAChannel.MODE_ADDRESS_INCREMENT) == 0) ? 1 : -1;
+
+        boolean flipflop = getFlipFlop();
+        int val;
+        if (registerNumber != 0)
+            val = (r.baseWordCount << dShift) - r.currentWordCount;
+        else
+            val = r.currentAddress + r.currentWordCount * direction;
+        return (val >>> (dShift + (flipflop ? 0x8 : 0x0))) & 0xff;
+    }
+
+    private int readController(int portNumber) {
+        int val;
+        int port = (portNumber >>> dShift) & 0x0f;
+        switch (port) {
+            case ADDRESS_READ_STATUS:
+                val = status;
+                status &=
+                        0xf0;
+                break;
+            case ADDRESS_READ_MASK:
+                val = mask;
+                break;
+            default:
+                val = 0;
+                break;
+        }
+
+        return val;
+    }
+
+    private int readPageLow(int portNumber) {
+        int channelNumber = channels[portNumber & 7];
+        if (-1 == channelNumber)
+            return 0;
+        return dmaChannels[channelNumber].pageLow;
+    }
+
+    private int readPageHigh(int portNumber) {
+        int channelNumber = channels[portNumber & 7];
+        if (-1 == channelNumber)
+            return 0;
+        return dmaChannels[channelNumber].pageHigh;
+    }
+
+    public void ioPortWrite8(int address, int data) {
+        switch ((address - ioBase) >>> dShift) {
+            case 0x0:
+            case 0x1:
+            case 0x2:
+            case 0x3:
+            case 0x4:
+            case 0x5:
+            case 0x6:
+            case 0x7:
+                writeChannel(address, data);
+                return;
+            case 0x8:
+            case 0x9:
+            case 0xa:
+            case 0xb:
+            case 0xc:
+            case 0xd:
+            case 0xe:
+            case 0xf:
+                writeController(address, data);
+                return;
+            default:
+                break;
+        }
+
+        switch (address - pageLowBase) {
+            case pagePortList0:
+            case pagePortList1:
+            case pagePortList2:
+            case pagePortList3:
+                writePageLow(address, data);
+                return;
+            default:
+                break;
+        }
+
+        switch (address - pageHighBase) {
+            case pagePortList0:
+            case pagePortList1:
+            case pagePortList2:
+            case pagePortList3:
+                writePageHigh(address, data);
+                return;
+            default:
+                break;
+        }
+
+    }
+
+    public void ioPortWrite16(int address, int data) {
+        this.ioPortWrite8(address, data);
+        this.ioPortWrite8(address + 1, data >>> 8);
+    }
+
+    public void ioPortWrite32(int address, int data) {
+        this.ioPortWrite16(address, data);
+        this.ioPortWrite16(address + 2, data >>> 16);
+    }
+
+    public int ioPortRead8(int address) {
+        switch ((address - ioBase) >>> dShift) {
+            case 0x0:
+            case 0x1:
+            case 0x2:
+            case 0x3:
+            case 0x4:
+            case 0x5:
+            case 0x6:
+            case 0x7:
+                return readChannel(address);
+            case 0x8:
+            case 0x9:
+            case 0xa:
+            case 0xb:
+            case 0xc:
+            case 0xd:
+            case 0xe:
+            case 0xf:
+                return readController(address);
+            default:
+                break;
+        }
+
+        switch (address - pageLowBase) {
+            case pagePortList0:
+            case pagePortList1:
+            case pagePortList2:
+            case pagePortList3:
+                return readPageLow(address);
+            default:
+                break;
+        }
+
+        switch (address - pageHighBase) {
+            case pagePortList0:
+            case pagePortList1:
+            case pagePortList2:
+            case pagePortList3:
+                return readPageHigh(address);
+            default:
+                break;
+        }
+
+        return 0xff;
+    }
+
+    public int ioPortRead16(int address) {
+        return (0xff & this.ioPortRead8(address)) | ((this.ioPortRead8(address) << 8) & 0xff);
+    }
+
+    public int ioPortRead32(int address) {
+        return (0xffff & this.ioPortRead8(address)) | ((this.ioPortRead8(address) << 16) & 0xffff);
+    }
+
+    public int[] ioPortsRequested() {
+        int[] temp;
+        if (pageHighBase >= 0)
+            temp = new int[16 + (2 * pagePortList.length)];
+        else
+            temp = new int[16 + pagePortList.length];
+
+        int j = 0;
+        for (int i = 0; i < 8; i++)
+            temp[j++] = ioBase + (i << this.dShift);
+        for (int i = 0; i < pagePortList.length; i++) {
+            temp[j++] = pageLowBase + pagePortList[i];
+            if (pageHighBase >= 0)
+                temp[j++] = pageHighBase + pagePortList[i];
+        }
+
+        for (int i = 0; i < 8; i++)
+            temp[j++] = ioBase + ((i + 8) << this.dShift);
+        return temp;
+    }
+
+    private boolean getFlipFlop() {
+        boolean ff = flipFlop;
+        flipFlop =
+                !ff;
+        return ff;
+    }
+
+    private void initChannel(int channelNumber) {
+        DMAChannel r = dmaChannels[channelNumber];
+        r.currentAddress = r.baseAddress << dShift;
+        r.currentWordCount = 0;
+    }
+
+    private static int numberOfTrailingZeros(int i) {
+        int y;
+        if (i == 0)
+            return 32;
+        int n = 31;
+
+        y = i << 16;
+        if (y != 0) {
+            n = n - 16;
+            i = y;
+        }
+
+        y = i << 8;
+        if (y != 0) {
+            n = n - 8;
+            i = y;
+        }
+
+        y = i << 4;
+        if (y != 0) {
+            n = n - 4;
+            i = y;
+        }
+
+        y = i << 2;
+        if (y != 0) {
+            n = n - 2;
+            i = y;
+        }
+
+        return n - ((i << 1) >>> 31);
+    }
+
+    private void runTransfers() {
+        int value = ~mask & (status >>> 4) & 0xf;
+        if (value == 0)
+            return;
+
+        while (value != 0) {
+            int channel = numberOfTrailingZeros(value);
+            if (channel < 4)
+                dmaChannels[channel].run();
+            else
+                break;
+            value &= ~(1 << channel);
+        }
+    }
+
+    /**
+     * Returns the mode register of the given DMA channel.
+     *
+     * @param channel channel index.
+     * @return mode register value.
+     */
     public int getChannelMode(int channel) {
-        throw new NotImplException();
+        return dmaChannels[channel].mode;
+    }
+
+    /**
+     * Request a DMA transfer operation to occur on the specified channel.
+     * <p>
+     * This is equivalent to pulling the DREQ line high on the controller.
+     *
+     * @param channel channel index.
+     */
+    public void holdDmaRequest(int channel) {
+        status |= 1 << (channel + 4);
+        runTransfers();
+    }
+
+    /**
+     * Request the DMA transfer in operation on the specified channel to stop.
+     * <p>
+     * This is equivalent to pulling the DREQ line low on the controller.
+     *
+     * @param channel channel index.
+     */
+    public void releaseDmaRequest(int channel) {
+        status &= ~(1 << (channel + 4));
+    }
+
+    /**
+     * Register the given <code>DMATransferCapable</code> device with the
+     * specified channel.
+     * <p>
+     * Subsequent DMA requests on this channel will call the
+     * <code>handleTransfer</code> method on <code>device</code>.
+     *
+     * @param channel channel index.
+     * @param device  target of transfers.
+     */
+    public void registerChannel(int channel, DMATransferCapable device) {
+        dmaChannels[channel].transferDevice = device;
+    }
+
+    private boolean ioportRegistered;
+
+    public boolean initialised() {
+        return ((memory != null) && ioportRegistered);
+    }
+
+    public boolean updated() {
+        return /*memory.updated() &&*/ ioportRegistered && (!isPrimary() || (slave != null));
+    }
+
+    public String toString() {
+        return "DMA Controller [element " + dShift + "]";
     }
 
 }
