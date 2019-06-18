@@ -2,11 +2,10 @@ package com.zms.zpc.emulator.store;
 
 import com.zms.zpc.emulator.board.*;
 import com.zms.zpc.emulator.board.helper.*;
-import com.zms.zpc.emulator.board.time.TimerResponsive;
+import com.zms.zpc.emulator.board.time.*;
 import com.zms.zpc.emulator.debug.DummyDebugger;
 import com.zms.zpc.support.NotImplException;
 
-import java.time.Clock;
 import java.util.logging.Level;
 
 /**
@@ -51,7 +50,7 @@ public class FloppyController extends BaseIODevice implements DMATransferCapable
     private static final int DMA_CHANNEL = 2;
     private static final int IOPORT_BASE = 0x3f0;
     private boolean drivesUpdated;
-    //private Timer resultTimer;
+    private Timer resultTimer;
     private Clock clock;
     private int state;
     private boolean dmaEnabled;
@@ -101,7 +100,14 @@ public class FloppyController extends BaseIODevice implements DMATransferCapable
         }
         irqDevice = mb.pic;
         dma = mb.dma1;
+        clock = mb.vc;
+        resultTimer = clock.newTimer(this);
         fifo = new byte[SECTOR_LENGTH];
+        if (DMA_CHANNEL != -1) {
+            dma = mb.dma1;
+            dmaEnabled = true;
+            dma.registerChannel(DMA_CHANNEL & 3, this);
+        }
         reset();
     }
 
@@ -585,7 +591,11 @@ public class FloppyController extends BaseIODevice implements DMATransferCapable
                     drive = getCurrentDrive();
                     drive.recalibrate();
                     resetFIFO();
-                    raiseIRQ(0x20);
+                    if (mb.pc.getConfig().isUseBochs()) {
+                        clock.newTimer(new IRQTimer()).setExpiry(clock.getEmulatedNanos() + 32000000);
+                    } else {
+                        raiseIRQ(0x20);
+                    }
                     break;
                 case 0x0f:
                     currentDrive = fifo[1] & 1;
@@ -631,7 +641,7 @@ public class FloppyController extends BaseIODevice implements DMATransferCapable
                 case 0x4A:
                     /* XXX: should set main status register to busy */
                     drive.head = (fifo[1] >>> 2) & 1;
-                    //resultTimer.setExpiry(clock.getEmulatedNanos() + (clock.getTickRate() / 50));
+                    resultTimer.setExpiry(clock.getEmulatedNanos() + (clock.getTickRate() / 50));
                     if (drive.head >= Integer.MIN_VALUE) {
                         throw new NotImplException();
                     }
@@ -922,7 +932,11 @@ public class FloppyController extends BaseIODevice implements DMATransferCapable
                 // No access is allowed until DMA transfer has completed
                 state |= CONTROL_BUSY;
                 // simulate a data transfer rate of a spinning platter at 300 rpm (each sector should take 200,000/sectorPerTrack micro seconds
-                dma.holdDmaRequest(DMA_CHANNEL & 3);
+                if (mb.pc.getConfig().isUseBochs()) {
+                    clock.newTimer(new DMATimer()).setExpiry(clock.getEmulatedNanos() + 1000 * (200000 / drive.sectorCount) + 1000000000 / clock.getTickRate()/*make it trigger the instruction after this (round up)*/);
+                } else {
+                    dma.holdDmaRequest(DMA_CHANNEL & 3);
+                }
                 return;
             } else
                 LOGGING.log(Level.INFO, "DMA mode %d, direction %d\n", dmaMode, direction);
@@ -957,5 +971,31 @@ public class FloppyController extends BaseIODevice implements DMATransferCapable
     }
 
     public enum DriveType {DRIVE_144, DRIVE_288, DRIVE_120, DRIVE_NONE}
+
+    private class IRQTimer implements TimerResponsive {
+
+        @Override
+        public void callback() {
+            raiseIRQ(0x20);
+        }
+
+        @Override
+        public int getType() {
+            return 0;
+        }
+    }
+
+    private class DMATimer implements TimerResponsive {
+
+        @Override
+        public void callback() {
+            dma.holdDmaRequest(DMA_CHANNEL & 3);
+        }
+
+        @Override
+        public int getType() {
+            return 0;
+        }
+    }
 
 }

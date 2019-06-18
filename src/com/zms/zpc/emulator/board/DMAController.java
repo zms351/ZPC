@@ -230,15 +230,14 @@ public class DMAController extends BaseIODevice {
     }
 
     public void reset() {
-        for (int i = 0; i < dmaChannels.length; i++)
+        /*for (int i = 0; i < dmaChannels.length; i++) {
             dmaChannels[i].reset();
+        }*/
 
         this.writeController(0x0d << this.dShift, 0);
 
-        memory =
-                null;
-        ioportRegistered =
-                false;
+        /*memory = null;
+        ioportRegistered = false;*/
     }
 
     private void writeChannel(int portNumber, int data) {

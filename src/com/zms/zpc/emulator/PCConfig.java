@@ -17,6 +17,7 @@ public class PCConfig {
     private String vgaBios;
     private String floppyA;
     private String name="一个虚拟机";
+    private boolean useBochs;
 
     public PCConfig() {
         setDefault();
@@ -31,6 +32,7 @@ public class PCConfig {
         this.bios="BIOS-bochs-latest";
         this.vgaBios="VGABIOS-lgpl-latest.debug.bin";
         this.floppyA="res:images/floppy.img";
+        this.useBochs=false;
     }
 
     public static PCConfig defaultPCConfig() {
@@ -79,6 +81,10 @@ public class PCConfig {
 
     public void setFloppyA(String floppyA) {
         this.floppyA = floppyA;
+    }
+
+    public boolean isUseBochs() {
+        return useBochs;
     }
 
 }
