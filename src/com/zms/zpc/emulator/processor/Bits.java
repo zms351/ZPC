@@ -210,6 +210,16 @@ public class Bits extends BaseObj {
                     return op2 < -100;
                 }
                 return ((op1 >> (op2 - 1)) & 0x1) != 0;
+            case ADC: {
+                long m = Pows[opWidth] - 1;
+                long t1 = op1 & m;
+                long t2 = op2 & m;
+                if ((result & m) != t1 + t1) {
+                    return t1 + t2 + 1 > m;
+                } else {
+                    return t1 + t2 > m;
+                }
+            }
         }
         throw new NotImplException();
     }
