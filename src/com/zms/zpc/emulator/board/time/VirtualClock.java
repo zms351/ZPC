@@ -17,18 +17,21 @@ public class VirtualClock extends BaseObj implements Runnable, Clock {
 
     public MotherBoard mb;
 
-    public VirtualClock(MotherBoard mb) {
+    public VirtualClock(MotherBoard mb,boolean selfThread) {
+        this();
         this.mb = mb;
-        Thread thread = new Thread(this, this.getClass().getName() + " working thread");
-        thread.setDaemon(true);
-        thread.start();
+        if(selfThread) {
+            Thread thread = new Thread(this, this.getClass().getName() + " working thread");
+            thread.setDaemon(true);
+            thread.start();
+        }
     }
 
     @Override
     public void run() {
         try {
             PC pc = mb.pc;
-            SimpleInterruptController pic = mb.pic;
+            InterruptController pic = mb.pic;
             long start = System.currentTimeMillis();
             double m = 0x001800b0 / 24.0 / 3600;
             PCState state;

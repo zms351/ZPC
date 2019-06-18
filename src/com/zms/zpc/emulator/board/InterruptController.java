@@ -28,6 +28,7 @@ public class InterruptController extends BaseIODevice {
     }
 
     private volatile int interruptFlags;
+    private static boolean SKIP_SLEEPS = false;//Option.max_instructions_per_block.intValue(1000) == 1;
 
     public void raiseInterrupt() {
         interruptFlags |= IFLAGS_HARDWARE_INTERRUPT;
@@ -39,6 +40,12 @@ public class InterruptController extends BaseIODevice {
 
     public void requestReset() {
         interruptFlags |= IFLAGS_RESET_REQUEST;
+    }
+
+    public void waitForInterrupt() {
+        while ((interruptFlags & IFLAGS_HARDWARE_INTERRUPT) == 0) {
+            mb.vc.updateNowAndProcess(!SKIP_SLEEPS);
+        }
     }
 
     private static final DummyDebugger LOGGING = DummyDebugger.getInstance();
@@ -74,14 +81,14 @@ public class InterruptController extends BaseIODevice {
 
     private void updateIRQ() {
         int slaveIRQ, masterIRQ;
-       /* first look at slave irq */
+        /* first look at slave irq */
         slaveIRQ = slave.getIRQ();
         if (slaveIRQ >= 0) {
-           /* if irq request by slave pic, signal Master PIC */
+            /* if irq request by slave pic, signal Master PIC */
             master.setIRQ(2, 1);
             master.setIRQ(2, 0);
         }
-       /* look at requested IRQ */
+        /* look at requested IRQ */
         masterIRQ = master.getIRQ();
         if (masterIRQ >= 0) {
             raiseInterrupt();
@@ -119,7 +126,7 @@ public class InterruptController extends BaseIODevice {
     public int cpuGetInterrupt() {
         int masterIRQ, slaveIRQ;
 
-       /* read the irq from the PIC */
+        /* read the irq from the PIC */
 
         masterIRQ = master.getIRQ();
         if (masterIRQ >= 0) {
@@ -129,7 +136,7 @@ public class InterruptController extends BaseIODevice {
                 if (slaveIRQ >= 0) {
                     slave.intAck(slaveIRQ);
                 } else {
-                   /* spurious IRQ on slave controller */
+                    /* spurious IRQ on slave controller */
                     slaveIRQ = 7;
                 }
                 this.updateIRQ();
@@ -140,7 +147,7 @@ public class InterruptController extends BaseIODevice {
                 return master.irqBase + masterIRQ;
             }
         } else {
-           /* spurious IRQ on host controller */
+            /* spurious IRQ on host controller */
             masterIRQ = 7;
             this.updateIRQ();
             return master.irqBase + masterIRQ;
@@ -212,7 +219,7 @@ public class InterruptController extends BaseIODevice {
             address &= 1;
             if (address == 0) {
                 if (0 != (data & 0x10)) {
-                   /* init */
+                    /* init */
                     this.reset();
                     clearInterrupt();
 
@@ -260,14 +267,14 @@ public class InterruptController extends BaseIODevice {
                             priorityAdd = (irq + 1) & 7;
                             return true;
                         default:
-                           /* no operation */
+                            /* no operation */
                             break;
                     }
                 }
             } else {
                 switch (initState) {
                     case 0:
-                       /* normal mode */
+                        /* normal mode */
                         interruptMaskRegister = data;
                         return true;
                     case 1:
@@ -294,7 +301,7 @@ public class InterruptController extends BaseIODevice {
         public void elcrWrite(int data) {
             elcr = data & elcrMask;
         }
-       /* END IODevice Methods */
+        /* END IODevice Methods */
 
         private int pollRead(int address) {
             int ret = this.getIRQ();
@@ -318,7 +325,7 @@ public class InterruptController extends BaseIODevice {
             int mask;
             mask = (1 << irqNumber);
             if (0 != (elcr & mask)) {
-               /* level triggered */
+                /* level triggered */
                 if (0 != level) {
                     interruptRequestRegister |= mask;
                     lastInterruptRequestRegister |= mask;
@@ -327,7 +334,7 @@ public class InterruptController extends BaseIODevice {
                     lastInterruptRequestRegister &= ~mask;
                 }
             } else {
-               /* edge triggered */
+                /* edge triggered */
                 if (0 != level) {
                     if ((lastInterruptRequestRegister & mask) == 0) {
                         interruptRequestRegister |= mask;
@@ -368,7 +375,7 @@ public class InterruptController extends BaseIODevice {
             currentPriority = this.getPriority(mask);
 
             if (priority < currentPriority) {
-               /* higher priority found: an irq should be generated */
+                /* higher priority found: an irq should be generated */
                 return (priority + priorityAdd) & 7;
             } else {
                 return -1;
@@ -382,7 +389,7 @@ public class InterruptController extends BaseIODevice {
             } else {
                 interruptServiceRegister |= (1 << irqNumber);
             }
-           /* We don't clear a level sensitive interrupt here */
+            /* We don't clear a level sensitive interrupt here */
             if (0 == (elcr & (1 << irqNumber)))
                 interruptRequestRegister &= ~(1 << irqNumber);
         }
@@ -494,7 +501,7 @@ public class InterruptController extends BaseIODevice {
         this.ioPortWrite16(address + 2, data >>> 16);
     }
 
-   /* END IODevice Defined Methods */
+    /* END IODevice Defined Methods */
 
     private void masterPollCode() {
         master.interruptServiceRegister &= ~(1 << 2);
