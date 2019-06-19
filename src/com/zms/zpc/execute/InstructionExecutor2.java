@@ -299,6 +299,26 @@ public class InstructionExecutor2 extends InstructionExecutor {
         }
     }
 
+    public void executeCbw() {
+        int width = executor.getBits();
+        BaseReg reg =pc.cpu.regs.ax;
+        BaseReg to=reg.getRegWithWidth(width);
+        width/=2;
+        BaseReg from = reg.getRegWithWidth(width);
+        to.setValue(NumberUtils.signExtend(from.getValue(),width,to.getWidth()));
+    }
+
+    public void executeCwd() {
+        int width=executor.getBits();
+        BaseReg reg1=pc.cpu.regs.ax.getRegWithWidth(width);
+        BaseReg reg2=pc.cpu.regs.dx.getRegWithWidth(width);
+        if(NumberUtils.hasSign(reg1.getValue(),width)) {
+            reg2.setValue(0);
+        } else {
+            reg2.setValue(0xffffffffffffffffL);
+        }
+    }
+
     public long bitsOp(long v, long c) {
         assert c >= 0;
         int oper = BITS_BASE + mrs.regIndex;
@@ -343,8 +363,6 @@ public class InstructionExecutor2 extends InstructionExecutor {
                 and_(mrs.getValMemory(pc), __v1);
                 break;
             case MUL:
-                mul_(oper);
-                break;
             case IMUL:
                 mul_(oper);
                 break;

@@ -108,7 +108,7 @@ public class NumberUtils {
     }
 
     public static long zeroExtend32_2_64(long n) {
-        return zeroExtend(n,32);
+        return zeroExtend(n, 32);
     }
 
     public static long signExtend32_2_64(long n) {
@@ -124,9 +124,26 @@ public class NumberUtils {
         return v & 0xffffffffL;
     }
 
+    public static long signExtend16_2_32(long n) {
+        short v = (short) n;
+        return v & 0xffffffffL;
+    }
+
     public static long signExtend8_2_16(long n) {
         int v = (byte) n;
         return v & 0xffffL;
+    }
+
+    public static long signExtend(long n, int from, int to) {
+        if (from == 8 && to == 16) {
+            return signExtend8_2_16(n);
+        } else if (from == 16 && to == 32) {
+            return signExtend16_2_32(n);
+        } else if (from == 32 && to == 64) {
+            return signExtend32_2_64(n);
+        } else {
+            throw new NotImplException();
+        }
     }
 
     public static long signExtend8(long n, int width) {
@@ -154,6 +171,21 @@ public class NumberUtils {
                 return n & 0xffffffffL;
             case 64:
                 return n;
+            default:
+                throw new NotImplException();
+        }
+    }
+
+    public static boolean hasSign(long n, int width) {
+        switch (width) {
+            case 8:
+                return (n & 0x80) != 0;
+            case 16:
+                return (n & 0x8000) != 0;
+            case 32:
+                return (n & 0x80000000) != 0;
+            case 64:
+                return (n & 0x8000000000000000L) != 0;
             default:
                 throw new NotImplException();
         }

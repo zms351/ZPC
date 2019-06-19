@@ -1248,6 +1248,22 @@ public class CodeExecutor extends BaseObj {
                 instruction.executeXchg1();
                 break;
 
+            case 0x98:
+                //CBW		void				[	o16 98]					8086
+                //CWDE		void				[	o32 98]					386
+                //CDQE		void				[	o64 98]					X64
+
+                instruction.executeCbw();
+                break;
+
+            case 0x99:
+                //CWD		void				[	o16 99]					8086
+                //CDQ		void				[	o32 99]					386
+                //CQO		void				[	o64 99]					X64
+
+                instruction.executeCwd();
+                break;
+
             case 0x9c:
                 //PUSHF		void				[	odf 9c]					8086
                 //PUSHFD		void				[	o32 9c]					386,NOLONG
