@@ -335,6 +335,9 @@ public class InstructionExecutor2 extends InstructionExecutor {
                 v = NumberUtils.asSigned(v, opWidth);
                 bits.setData(v, c, v >>> c, oper, getOpWidth(), OSZAPC);
                 break;
+            case ROR:
+                c=c & (opWidth-1);
+                return (v>>c) | (v<<(opWidth-c));
             default:
                 throw new NotImplException();
         }

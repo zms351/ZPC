@@ -128,6 +128,7 @@ public class Bits extends BaseObj {
             return of.get();
         } else {
             switch (ins) {
+                case ADC:
                 case ADD:
                     switch (opWidth) {
                         case 8:
