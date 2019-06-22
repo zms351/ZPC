@@ -33,11 +33,36 @@ public abstract class InstructionExecutor extends Instruction {
         throw new NotImplException();
     }
 
-    public void executeJumpFar() {
+    public boolean executeJumpFar_Op() {
+        int width = getOpWidth();
         long offset = readOp();
         int base = read16();
-        pc.cpu.regs.ip.getRegWithWidth(getOpWidth()).setValue(offset);
+
+        if (width == 16) {
+            offset = offset & 0xffff;
+            width = 32;
+        }
+
+        pc.cpu.regs.ip.getRegWithWidth(width).setValue(offset);
         pc.cpu.regs.cs.setValue(base);
+        return true;
+    }
+
+    public boolean executeJumpFar_Reg() {
+        int width = getOpWidth();
+        long address = mrs.getMemoryAddress(pc);
+
+        long offset = mrs.memoryRead(pc, address, width);
+        long base = mrs.memoryRead(pc, address + width / 8, 16);
+
+        if (width == 16) {
+            offset = offset & 0xffff;
+            width = 32;
+        }
+
+        pc.cpu.regs.ip.getRegWithWidth(width).setValue(offset);
+        pc.cpu.regs.cs.setValue(base);
+        return true;
     }
 
     public void executeJumpShort() {
@@ -589,28 +614,31 @@ public abstract class InstructionExecutor extends Instruction {
             long c1 = c;
             while (c != 0) {
                 executor.checkIR(pc, false);
-                address1 = df ? address1 - n : address1 + n;
-                address2 = df ? address2 - n : address2 + n;
-                c--;
-                if (type == REP_MOVS) {
-                    long v = mrs.memoryRead(pc, address1, opWidth);
-                    mrs.memoryWrite(pc, address2, v, opWidth);
-                } else if (type == REP_CMPS) {
-                    long v1 = mrs.memoryRead(pc, address1, opWidth);
-                    long v2 = mrs.memoryRead(pc, address2, opWidth);
-                    bits.setData(v1, v2, v1 - v2, SUB, opWidth, OSZAPC);
-                    if (isHasf3()) {
-                        if (v1 != v2) {
-                            break;
+                try {
+                    if (type == REP_MOVS) {
+                        long v = mrs.memoryRead(pc, address1, opWidth);
+                        mrs.memoryWrite(pc, address2, v, opWidth);
+                    } else if (type == REP_CMPS) {
+                        long v1 = mrs.memoryRead(pc, address1, opWidth);
+                        long v2 = mrs.memoryRead(pc, address2, opWidth);
+                        bits.setData(v1, v2, v1 - v2, SUB, opWidth, OSZAPC);
+                        if (isHasf3()) {
+                            if (v1 != v2) {
+                                break;
+                            }
                         }
-                    }
-                    if (isHasf2()) {
-                        if (v1 == v2) {
-                            break;
+                        if (isHasf2()) {
+                            if (v1 == v2) {
+                                break;
+                            }
                         }
+                    } else {
+                        throw new NotImplException();
                     }
-                } else {
-                    throw new NotImplException();
+                } finally {
+                    address1 = df ? address1 - n : address1 + n;
+                    address2 = df ? address2 - n : address2 + n;
+                    c--;
                 }
             }
             cr.setValue(c);

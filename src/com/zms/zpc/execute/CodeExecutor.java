@@ -1642,8 +1642,7 @@ public class CodeExecutor extends BaseObj {
 
                 //org.jpc.emulator.execution.opcodes.rm.jmp_Ap
 
-                instruction.executeJumpFar();
-                jump = true;
+                jump = instruction.executeJumpFar_Op();
                 break;
 
             case 0xe2:
@@ -1846,7 +1845,18 @@ public class CodeExecutor extends BaseObj {
                         //JMP		rm16				[m:	o16 ff /4]				8086,NOLONG,BND
                         //JMP		rm32				[m:	o32 ff /4]				386,NOLONG,BND
                         //JMP		rm64				[m:	o64nw ff /4]				X64,BND
+
                         jump = instruction.executeJumpNear();
+                        break;
+
+                    case 5:
+                        //JMP		mem|far				[m:	odf ff /5]				8086,NOLONG
+                        //JMP		mem|far				[m:	o64 ff /5]				X64
+                        //JMP		mem16|far			[m:	o16 ff /5]				8086
+                        //JMP		mem32|far			[m:	o32 ff /5]				386
+                        //JMP		mem64|far			[m:	o64 ff /5]				X64
+
+                        jump = instruction.executeJumpFar_Reg();
                         break;
 
                     case 6:
