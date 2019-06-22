@@ -76,4 +76,12 @@ public interface Constants {
     int IFLAGS_RESET_REQUEST = 0x4;
     int IFLAGS_IOPL_MASK = 3 << 12;
 
+    int REP_INS=601;
+    int REP_OUTS=603;
+    int REP_MOVS=602;
+    int REP_LODS=604;
+    int REP_STOS=605;
+    int REP_CMPS=606;
+    int REP_SCAS=607;
+
 }

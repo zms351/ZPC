@@ -1,7 +1,7 @@
 package com.zms.zpc.execute;
 
 import com.zms.zpc.emulator.PC;
-import com.zms.zpc.emulator.board.*;
+import com.zms.zpc.emulator.board.InterruptController;
 import com.zms.zpc.emulator.processor.*;
 import com.zms.zpc.support.*;
 
@@ -853,6 +853,26 @@ public class CodeExecutor extends BaseObj {
                 instruction.executeIMUL3();
                 break;
 
+            case 0x6C:
+                //INSB		void				[	6c]					186
+                mrs.reg8 = true;
+            case 0x6D:
+                //INSD		void				[	o32 6d]					386
+                //INSW		void				[	o16 6d]					186
+
+                instruction.executeLODS(REP_INS);
+                break;
+
+            case 0x6E:
+                //OUTSB		void				[	6e]					186
+                mrs.reg8 = true;
+            case 0x6F:
+                //OUTSD		void				[	o32 6f]					386
+                //OUTSW		void				[	o16 6f]					186
+
+                instruction.executeSTOS(REP_OUTS);
+                break;
+
             case 0x70:
             case 0x71:
             case 0x72:
@@ -1307,7 +1327,19 @@ public class CodeExecutor extends BaseObj {
                 //MOVSD		void				[	o32 a5]					386
                 //MOVSQ		void				[	o64 a5]					X64
                 //MOVSW		void				[	o16 a5]					8086
-                instruction.executeMovs();
+
+                instruction.executeMovs(REP_MOVS);
+                break;
+
+            case 0xa6:
+                //CMPSB		void				[	repe a6]				8086
+                mrs.reg8 = true;
+            case 0xa7:
+                //CMPSD		void				[	repe o32 a7]				386
+                //CMPSQ		void				[	repe o64 a7]				X64
+                //CMPSW		void				[	repe o16 a7]				8086
+
+                instruction.executeMovs(REP_CMPS);
                 break;
 
             case 0xa8:
@@ -1331,7 +1363,7 @@ public class CodeExecutor extends BaseObj {
                 //org.jpc.emulator.execution.opcodes.rm.stosb_a16
                 //org.jpc.emulator.execution.opcodes.rm.stosw_a16
 
-                instruction.executeSTOS();
+                instruction.executeSTOS(REP_STOS);
                 break;
 
             case 0xac:
@@ -1342,7 +1374,7 @@ public class CodeExecutor extends BaseObj {
                 //LODSQ		void				[	o64 ad]					X64
                 //LODSW		void				[	o16 ad]					8086
 
-                instruction.executeLODS();
+                instruction.executeLODS(REP_LODS);
                 break;
 
             case 0xae:
@@ -1353,7 +1385,7 @@ public class CodeExecutor extends BaseObj {
                 //SCASQ		void				[	repe o64 af]				X64
                 //SCASW		void				[	repe o16 af]				8086
 
-                instruction.executeScas();
+                instruction.executeScas(REP_SCAS);
                 break;
 
             case 0xb0:
@@ -1684,7 +1716,7 @@ public class CodeExecutor extends BaseObj {
             case 0xf4:
                 //HLT		void				[	f4]					8086,PRIV
 
-                jump=instruction.executeHlt();
+                jump = instruction.executeHlt();
                 break;
 
             case 0xf5:
@@ -1853,7 +1885,7 @@ public class CodeExecutor extends BaseObj {
             System.arraycopy(poses, 1, poses, 0, n - 1);
             poses[n - 1] = instruction.getStartPos();
         }
-        if(!jump) {
+        if (!jump) {
             checkIR(pc, false);
         }
         return 0;
@@ -1897,7 +1929,7 @@ public class CodeExecutor extends BaseObj {
     }
 
     public boolean checkIR(PC pc, boolean hlt) {
-        boolean jump=false;
+        boolean jump = false;
         try {
             pc.board.vc.updateAndProcess(1);
             if (hlt) {
@@ -1914,7 +1946,7 @@ public class CodeExecutor extends BaseObj {
                             int vector = pic.cpuGetInterrupt();
                             pic.clearInterrupt();
                             if (vector >= 0) {
-                                jump=instruction.executeHardInt(vector);
+                                jump = instruction.executeHardInt(vector);
                             }
                         }
                         break;

@@ -450,7 +450,8 @@ public class InstructionExecutor2 extends InstructionExecutor {
         }
     }
 
-    public void executeScas() {
+    public void executeScas(int type) {
+        assert type==REP_SCAS;
         Regs regs = pc.cpu.regs;
         Segment seg1 = regs.es;
         int addressWidth = getAddressWidth(executor.getBits());
