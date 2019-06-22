@@ -100,7 +100,7 @@ public abstract class Instruction extends BaseObj {
         }
         if (bits == 64) {
             while (true) {
-                if (n >= 0x40 && n <= 0xf) {
+                if (n >= 0x40 && n <= 0x4f) {
                     rexPrefix[rexPrefixCount++] = n;
                 } else {
                     break;
@@ -178,6 +178,7 @@ public abstract class Instruction extends BaseObj {
         return has67;
     }
 
+    //has repeat
     public boolean isHasf3() {
         return hasf3;
     }

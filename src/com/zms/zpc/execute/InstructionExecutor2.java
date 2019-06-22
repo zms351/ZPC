@@ -476,6 +476,9 @@ public class InstructionExecutor2 extends InstructionExecutor {
                 address1 = df ? address1 - n : address1 + n;
                 c = c - 1;
                 k++;
+                if(c==0) {
+                    break;
+                }
                 if (isHasf3()) {
                     if (v != v2) {
                         break;

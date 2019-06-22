@@ -295,7 +295,8 @@ public abstract class InstructionExecutor extends Instruction {
         bits.df.set(set);
     }
 
-    public void executeSTOS() {
+    public void executeSTOS(int type) {
+        assert type == REP_STOS;
         Regs regs = pc.cpu.regs;
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
         Segment base = regs.es;
@@ -331,7 +332,8 @@ public abstract class InstructionExecutor extends Instruction {
         mrs.memoryWrite(pc, address, val, width);
     }
 
-    public void executeLODS() {
+    public void executeLODS(int type) {
+        assert type == REP_LODS;
         Regs regs = pc.cpu.regs;
         BaseReg reg = getReg(pc, mrs.parseReg(this, executor.getBits(), 0));
         Segment base = regs.ds;
@@ -512,7 +514,7 @@ public abstract class InstructionExecutor extends Instruction {
         Regs regs = pc.cpu.regs;
         regs.rip.setValue(pop_(16));
         regs.cs.setValue(pop_(16));
-        regs.setFlag(pop_(16),16);
+        regs.setFlag(pop_(16), 16);
         return true;
     }
 
@@ -560,7 +562,7 @@ public abstract class InstructionExecutor extends Instruction {
         }
     }
 
-    public void executeMovs() {
+    public void executeMovs(int type) {
         int addressWidth = getAddressWidth(executor.getBits());
         Regs regs = pc.cpu.regs;
         boolean df = bits.df.get();
@@ -577,24 +579,55 @@ public abstract class InstructionExecutor extends Instruction {
         int n = opWidth / 8;
         assert n * 8 == opWidth;
 
-        if (isHasf3()) {
+        if (type == REP_MOVS) {
+            assert !isHasf2();
+        }
+
+        if (isHasf3() || isHasf2()) {
             BaseReg cr = regs.cx.getRegWithWidth(getAddressWidth(executor.getBits()));
             long c = cr.getValue();
             long c1 = c;
             while (c != 0) {
                 executor.checkIR(pc, false);
-                long v = mrs.memoryRead(pc, address1, opWidth);
-                mrs.memoryWrite(pc, address2, v, opWidth);
                 address1 = df ? address1 - n : address1 + n;
                 address2 = df ? address2 - n : address2 + n;
                 c--;
+                if (type == REP_MOVS) {
+                    long v = mrs.memoryRead(pc, address1, opWidth);
+                    mrs.memoryWrite(pc, address2, v, opWidth);
+                } else if (type == REP_CMPS) {
+                    long v1 = mrs.memoryRead(pc, address1, opWidth);
+                    long v2 = mrs.memoryRead(pc, address2, opWidth);
+                    bits.setData(v1, v2, v1 - v2, SUB, opWidth, OSZAPC);
+                    if (isHasf3()) {
+                        if (v1 != v2) {
+                            break;
+                        }
+                    }
+                    if (isHasf2()) {
+                        if (v1 == v2) {
+                            break;
+                        }
+                    }
+                } else {
+                    throw new NotImplException();
+                }
             }
-            cr.setValue(0);
+            cr.setValue(c);
+            c1 = (c1 - c);
             off1.setValue(df ? (off1.getValue() - n * c1) : (off1.getValue() + n * c1));
             off2.setValue(df ? (off2.getValue() - n * c1) : (off2.getValue() + n * c1));
         } else {
-            long v = mrs.memoryRead(pc, address1, opWidth);
-            mrs.memoryWrite(pc, address2, v, opWidth);
+            if (type == REP_MOVS) {
+                long v = mrs.memoryRead(pc, address1, opWidth);
+                mrs.memoryWrite(pc, address2, v, opWidth);
+            } else if (type == REP_CMPS) {
+                long v1 = mrs.memoryRead(pc, address1, opWidth);
+                long v2 = mrs.memoryRead(pc, address2, opWidth);
+                bits.setData(v1, v2, v1 - v2, SUB, opWidth, OSZAPC);
+            } else {
+                throw new NotImplException();
+            }
             off1.setValue(df ? (off1.getValue() - n) : (off1.getValue() + n));
             off2.setValue(df ? (off2.getValue() - n) : (off2.getValue() + n));
         }
